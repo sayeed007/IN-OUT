@@ -5,299 +5,278 @@ import {
     Text,
     StyleSheet,
     ScrollView,
-    TouchableOpacity,
     RefreshControl,
+    TouchableOpacity,
+    Dimensions,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { SafeContainer } from '../../components/layout/SafeContainer';
 import { Card } from '../../components/ui/Card';
-import { Button } from '../../components/ui/Button';
-import { Chip } from '../../components/ui/Chip';
-import { useGetTransactionsQuery, useGetAccountsQuery, useGetCategoriesQuery } from '../../state/api';
-import { calculateMonthlyTotals, formatCurrency, getCategoryBreakdown } from '../../features/transactions/utils/transactionUtils';
-import { Spacing } from '../../theme';
+import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { useGetTransactionsQuery, useGetAccountsQuery, useGetBudgetsQuery } from '../../state/api';
+import { KPICards } from './components/KPICards';
+import { MonthSelector } from './components/MonthSelector';
+import { MiniCharts } from './components/MiniCharts';
+import { QuickActions } from './components/QuickActions';
+import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../../app/providers/ThemeProvider';
+import dayjs from 'dayjs';
+
+const { width } = Dimensions.get('window');
 
 export const DashboardScreen: React.FC = () => {
     const navigation = useNavigation();
-    const [selectedMonth, setSelectedMonth] = useState(() => {
-        const now = new Date();
-        return { year: now.getFullYear(), month: now.getMonth() + 1 };
-    });
+    const { theme } = useTheme();
+    const [selectedMonth, setSelectedMonth] = useState(dayjs().format('YYYY-MM'));
     const [refreshing, setRefreshing] = useState(false);
 
-    // Data queries
-    const { data: transactions = [], refetch: refetchTransactions } = useGetTransactionsQuery();
-    const { data: accounts = [] } = useGetAccountsQuery();
-    const { data: categories = [] } = useGetCategoriesQuery();
+    // Calculate date range for selected month
+    const startDate = useMemo(() => dayjs(selectedMonth).startOf('month').toISOString(), [selectedMonth]);
+    const endDate = useMemo(() => dayjs(selectedMonth).endOf('month').toISOString(), [selectedMonth]);
 
-    // Calculate monthly totals
-    const monthlyTotals = useMemo(() => {
-        return calculateMonthlyTotals(transactions, selectedMonth.year, selectedMonth.month);
-    }, [transactions, selectedMonth]);
+    // API queries
+    const {
+        data: transactions = [],
+        isLoading: loadingTransactions,
+        refetch: refetchTransactions
+    } = useGetTransactionsQuery({ start: startDate, end: endDate });
 
-    // Calculate account balances
-    const accountBalances = useMemo(() => {
-        return accounts.map(account => {
-            const accountTransactions = transactions.filter(t =>
-                t.accountId === account.id || t.accountIdTo === account.id
-            );
+    const {
+        data: accounts = [],
+        isLoading: loadingAccounts,
+        refetch: refetchAccounts
+    } = useGetAccountsQuery();
 
-            let balance = account.openingBalance;
-            accountTransactions.forEach(transaction => {
-                if (transaction.accountId === account.id) {
-                    if (transaction.type === 'income') balance += transaction.amount;
-                    else if (transaction.type === 'expense') balance -= transaction.amount;
-                    else if (transaction.type === 'transfer') balance -= transaction.amount;
-                }
-                if (transaction.type === 'transfer' && transaction.accountIdTo === account.id) {
-                    balance += transaction.amount;
-                }
-            });
+    const {
+        data: budgets = [],
+        isLoading: loadingBudgets,
+        refetch: refetchBudgets
+    } = useGetBudgetsQuery({ month: selectedMonth });
 
+    const isLoading = loadingTransactions || loadingAccounts || loadingBudgets;
+
+    // Calculate KPIs for selected month
+    const kpis = useMemo(() => {
+        const income = transactions
+            .filter(t => t.type === 'income')
+            .reduce((sum, t) => sum + t.amount, 0);
+
+        const expense = transactions
+            .filter(t => t.type === 'expense')
+            .reduce((sum, t) => sum + t.amount, 0);
+
+        const totalBudget = budgets.reduce((sum, b) => sum + b.amount, 0);
+        const budgetUsed = expense;
+        const budgetPercentage = totalBudget > 0 ? (budgetUsed / totalBudget) * 100 : 0;
+
+        return {
+            income,
+            expense,
+            net: income - expense,
+            budgetUsed,
+            totalBudget,
+            budgetPercentage,
+        };
+    }, [transactions, budgets]);
+
+    // Get last 12 months data for mini charts
+    const chartData = useMemo(() => {
+        const last12Months = Array.from({ length: 12 }, (_, i) => {
+            const month = dayjs().subtract(11 - i, 'months');
             return {
-                ...account,
-                currentBalance: balance,
+                month: month.format('MMM'),
+                fullMonth: month.format('YYYY-MM'),
+                income: 0,
+                expense: 0,
             };
         });
-    }, [accounts, transactions]);
 
-    // Get category breakdown
-    const categoryBreakdown = useMemo(() => {
-        const startDate = new Date(selectedMonth.year, selectedMonth.month - 1, 1).toISOString().split('T')[0];
-        const endDate = new Date(selectedMonth.year, selectedMonth.month, 0).toISOString().split('T')[0];
+        // This would need actual data from the last 12 months
+        // For now, we'll use current month data for the selected month
+        const currentMonthIndex = last12Months.findIndex(
+            m => m.fullMonth === selectedMonth
+        );
 
-        return getCategoryBreakdown(transactions, categories, startDate, endDate);
-    }, [transactions, categories, selectedMonth]);
+        if (currentMonthIndex >= 0) {
+            last12Months[currentMonthIndex] = {
+                ...last12Months[currentMonthIndex],
+                income: kpis.income,
+                expense: kpis.expense,
+            };
+        }
 
-    // Handle refresh
+        return last12Months;
+    }, [kpis, selectedMonth]);
+
+    // Category breakdown for pie chart
+    const categoryData = useMemo(() => {
+        const categoryTotals = transactions
+            .filter(t => t.type === 'expense' && t.categoryId)
+            .reduce((acc, t) => {
+                const categoryId = t.categoryId!;
+                acc[categoryId] = (acc[categoryId] || 0) + t.amount;
+                return acc;
+            }, {} as Record<string, number>);
+
+        return Object.entries(categoryTotals)
+            .map(([categoryId, amount]) => ({ categoryId, amount }))
+            .sort((a, b) => b.amount - a.amount)
+            .slice(0, 6); // Top 6 categories
+    }, [transactions]);
+
     const handleRefresh = async () => {
         setRefreshing(true);
-        await refetchTransactions();
-        setRefreshing(false);
+        try {
+            await Promise.all([
+                refetchTransactions(),
+                refetchAccounts(),
+                refetchBudgets(),
+            ]);
+        } finally {
+            setRefreshing(false);
+        }
     };
 
-    // Handle month change
-    const handleMonthChange = (direction: 'prev' | 'next') => {
-        setSelectedMonth(prev => {
-            let newMonth = prev.month + (direction === 'next' ? 1 : -1);
-            let newYear = prev.year;
-
-            if (newMonth > 12) {
-                newMonth = 1;
-                newYear++;
-            } else if (newMonth < 1) {
-                newMonth = 12;
-                newYear--;
-            }
-
-            return { year: newYear, month: newMonth };
-        });
+    const handleQuickAction = (action: string) => {
+        switch (action) {
+            case 'add-income':
+                navigation.navigate('AddTransaction', { type: 'income' });
+                break;
+            case 'add-expense':
+                navigation.navigate('AddTransaction', { type: 'expense' });
+                break;
+            case 'transfer':
+                navigation.navigate('AddTransaction', { type: 'transfer' });
+                break;
+            case 'view-budget':
+                navigation.navigate('Budget');
+                break;
+            default:
+                break;
+        }
     };
 
-    // Get month name
-    const getMonthName = (month: number) => {
-        const months = [
-            'January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December'
-        ];
-        return months[month - 1];
-    };
-
-    // Quick action buttons
-    const quickActions = [
-        {
-            title: 'Add Expense',
-            icon: 'remove-circle',
-            color: '#EF4444',
-            onPress: () => navigation.navigate('AddTransaction' as never),
-        },
-        {
-            title: 'Add Income',
-            icon: 'add-circle',
-            color: '#10B981',
-            onPress: () => navigation.navigate('AddTransaction' as never),
-        },
-        {
-            title: 'View Reports',
-            icon: 'bar-chart',
-            color: '#6366F1',
-            onPress: () => navigation.navigate('Reports' as never),
-        },
-        {
-            title: 'Manage Accounts',
-            icon: 'wallet',
-            color: '#F59E0B',
-            onPress: () => navigation.navigate('Settings' as never),
-        },
-    ];
+    if (isLoading && transactions.length === 0) {
+        return (
+            <SafeContainer>
+                <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
+                    <LoadingSpinner size="large" />
+                    <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>
+                        Loading dashboard...
+                    </Text>
+                </View>
+            </SafeContainer>
+        );
+    }
 
     return (
         <SafeContainer>
             <ScrollView
-                style={styles.container}
+                style={[styles.container, { backgroundColor: theme.colors.background }]}
                 showsVerticalScrollIndicator={false}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={handleRefresh}
+                        colors={[theme.colors.primary]}
+                        tintColor={theme.colors.primary}
+                    />
                 }
             >
                 {/* Header */}
-                <View style={styles.header}>
-                    <Text style={styles.title}>Dashboard</Text>
-                    <Text style={styles.subtitle}>Your financial overview</Text>
+                <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
+                    <Text style={[styles.title, { color: theme.colors.text }]}>
+                        Dashboard
+                    </Text>
+                    <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
+                        Financial Overview
+                    </Text>
                 </View>
 
                 {/* Month Selector */}
-                <Card style={styles.monthSelector}>
-                    <View style={styles.monthSelectorContent}>
-                        <TouchableOpacity
-                            style={styles.monthButton}
-                            onPress={() => handleMonthChange('prev')}
-                        >
-                            <Text style={styles.monthButtonText}>‹</Text>
-                        </TouchableOpacity>
-
-                        <Text style={styles.monthText}>
-                            {getMonthName(selectedMonth.month)} {selectedMonth.year}
-                        </Text>
-
-                        <TouchableOpacity
-                            style={styles.monthButton}
-                            onPress={() => handleMonthChange('next')}
-                        >
-                            <Text style={styles.monthButtonText}>›</Text>
-                        </TouchableOpacity>
-                    </View>
-                </Card>
+                <MonthSelector
+                    selectedMonth={selectedMonth}
+                    onMonthChange={setSelectedMonth}
+                />
 
                 {/* KPI Cards */}
-                <View style={styles.kpiContainer}>
-                    <Card style={[styles.kpiCard, styles.incomeCard]}>
-                        <View style={styles.kpiHeader}>
-                            <Text style={styles.kpiLabel}>Income</Text>
-                            <Text style={styles.kpiIcon}>📈</Text>
-                        </View>
-                        <Text style={styles.kpiAmount}>{formatCurrency(monthlyTotals.income)}</Text>
-                        <Text style={styles.kpiSubtext}>This month</Text>
-                    </Card>
-
-                    <Card style={[styles.kpiCard, styles.expenseCard]}>
-                        <View style={styles.kpiHeader}>
-                            <Text style={styles.kpiLabel}>Expenses</Text>
-                            <Text style={styles.kpiIcon}>📉</Text>
-                        </View>
-                        <Text style={styles.kpiAmount}>{formatCurrency(monthlyTotals.expense)}</Text>
-                        <Text style={styles.kpiSubtext}>This month</Text>
-                    </Card>
-
-                    <Card style={[styles.kpiCard, styles.netCard]}>
-                        <View style={styles.kpiHeader}>
-                            <Text style={styles.kpiLabel}>Net</Text>
-                            <Text style={styles.kpiIcon}>💰</Text>
-                        </View>
-                        <Text style={[
-                            styles.kpiAmount,
-                            { color: monthlyTotals.net >= 0 ? '#10B981' : '#EF4444' }
-                        ]}>
-                            {formatCurrency(monthlyTotals.net)}
-                        </Text>
-                        <Text style={styles.kpiSubtext}>This month</Text>
-                    </Card>
-                </View>
+                <KPICards
+                    income={kpis.income}
+                    expense={kpis.expense}
+                    net={kpis.net}
+                    budgetUsed={kpis.budgetUsed}
+                    totalBudget={kpis.totalBudget}
+                    budgetPercentage={kpis.budgetPercentage}
+                />
 
                 {/* Quick Actions */}
-                <Card style={styles.quickActionsCard}>
-                    <Text style={styles.sectionTitle}>Quick Actions</Text>
-                    <View style={styles.quickActionsGrid}>
-                        {quickActions.map((action, index) => (
+                <QuickActions onAction={handleQuickAction} />
+
+                {/* Mini Charts */}
+                {transactions.length > 0 ? (
+                    <MiniCharts
+                        trendData={chartData}
+                        categoryData={categoryData}
+                        accounts={accounts}
+                    />
+                ) : (
+                    <Card style={styles.emptyCard}>
+                        <EmptyState
+                            title="No transactions yet"
+                            message="Start by adding your first income or expense"
+                            actionLabel="Add Transaction"
+                            onAction={() => navigation.navigate('AddTransaction')}
+                        />
+                    </Card>
+                )}
+
+                {/* Recent Transactions Preview */}
+                {transactions.length > 0 && (
+                    <Card style={styles.recentCard}>
+                        <View style={styles.sectionHeader}>
+                            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                                Recent Transactions
+                            </Text>
                             <TouchableOpacity
-                                key={index}
-                                style={styles.quickActionButton}
-                                onPress={action.onPress}
+                                onPress={() => navigation.navigate('TransactionList')}
+                                activeOpacity={0.7}
                             >
-                                <View style={[styles.quickActionIcon, { backgroundColor: action.color }]}>
-                                    <Text style={styles.quickActionIconText}>{action.icon}</Text>
-                                </View>
-                                <Text style={styles.quickActionTitle}>{action.title}</Text>
+                                <Text style={[styles.seeAllText, { color: theme.colors.primary }]}>
+                                    See All
+                                </Text>
                             </TouchableOpacity>
+                        </View>
+
+                        {transactions.slice(0, 3).map((transaction, index) => (
+                            <View key={transaction.id} style={styles.transactionItem}>
+                                <View style={styles.transactionInfo}>
+                                    <Text style={[styles.transactionNote, { color: theme.colors.text }]}>
+                                        {transaction.note || `${transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}`}
+                                    </Text>
+                                    <Text style={[styles.transactionDate, { color: theme.colors.textSecondary }]}>
+                                        {dayjs(transaction.date).format('MMM D')}
+                                    </Text>
+                                </View>
+                                <Text style={[
+                                    styles.transactionAmount,
+                                    {
+                                        color: transaction.type === 'income'
+                                            ? theme.colors.success
+                                            : transaction.type === 'expense'
+                                                ? theme.colors.error
+                                                : theme.colors.text
+                                    }
+                                ]}>
+                                    {transaction.type === 'income' ? '+' : transaction.type === 'expense' ? '-' : ''}
+                                    ${transaction.amount.toFixed(2)}
+                                </Text>
+                            </View>
                         ))}
-                    </View>
-                </Card>
+                    </Card>
+                )}
 
-                {/* Account Balances */}
-                <Card style={styles.accountsCard}>
-                    <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>Account Balances</Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('Settings' as never)}>
-                            <Text style={styles.seeAllText}>See All</Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    {accountBalances.slice(0, 3).map((account) => (
-                        <View key={account.id} style={styles.accountItem}>
-                            <View style={styles.accountInfo}>
-                                <Text style={styles.accountName}>{account.name}</Text>
-                                <Text style={styles.accountType}>{account.type}</Text>
-                            </View>
-                            <Text style={[
-                                styles.accountBalance,
-                                { color: account.currentBalance >= 0 ? '#10B981' : '#EF4444' }
-                            ]}>
-                                {formatCurrency(account.currentBalance)}
-                            </Text>
-                        </View>
-                    ))}
-                </Card>
-
-                {/* Category Breakdown */}
-                <Card style={styles.categoriesCard}>
-                    <Text style={styles.sectionTitle}>Top Categories</Text>
-
-                    {categoryBreakdown.slice(0, 5).map((item, index) => (
-                        <View key={item.category.id} style={styles.categoryItem}>
-                            <View style={styles.categoryInfo}>
-                                <View style={[styles.categoryColor, { backgroundColor: item.category.color }]} />
-                                <Text style={styles.categoryName}>{item.category.name}</Text>
-                            </View>
-                            <View style={styles.categoryAmount}>
-                                <Text style={styles.categoryAmountText}>
-                                    {formatCurrency(item.amount)}
-                                </Text>
-                                <Text style={styles.categoryPercentage}>
-                                    {item.percentage.toFixed(1)}%
-                                </Text>
-                            </View>
-                        </View>
-                    ))}
-                </Card>
-
-                {/* Recent Transactions */}
-                <Card style={styles.recentTransactionsCard}>
-                    <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>Recent Transactions</Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('Transactions' as never)}>
-                            <Text style={styles.seeAllText}>See All</Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    {transactions.slice(0, 3).map((transaction) => (
-                        <View key={transaction.id} style={styles.transactionItem}>
-                            <View style={styles.transactionInfo}>
-                                <Text style={styles.transactionNote}>
-                                    {transaction.note || 'No note'}
-                                </Text>
-                                <Text style={styles.transactionDate}>
-                                    {new Date(transaction.date).toLocaleDateString()}
-                                </Text>
-                            </View>
-                            <Text style={[
-                                styles.transactionAmount,
-                                { color: transaction.type === 'income' ? '#10B981' : '#EF4444' }
-                            ]}>
-                                {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
-                            </Text>
-                        </View>
-                    ))}
-                </Card>
+                {/* Bottom spacing for tab bar */}
+                <View style={styles.bottomSpacing} />
             </ScrollView>
         </SafeContainer>
     );
@@ -307,219 +286,57 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    loadingText: {
+        marginTop: 16,
+        fontSize: 16,
+    },
     header: {
-        paddingHorizontal: Spacing.lg,
-        paddingVertical: Spacing.xl,
+        padding: 20,
+        paddingTop: 10,
+        paddingBottom: 24,
     },
     title: {
-        fontSize: 32,
-        fontWeight: '700',
-        color: '#111827',
-        marginBottom: Spacing.xs,
+        fontSize: 28,
+        fontWeight: 'bold',
+        marginBottom: 4,
     },
     subtitle: {
         fontSize: 16,
-        color: '#6B7280',
     },
-    monthSelector: {
-        marginHorizontal: Spacing.lg,
-        marginBottom: Spacing.lg,
+    emptyCard: {
+        margin: 16,
+        marginTop: 8,
     },
-    monthSelectorContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: Spacing.md,
-    },
-    monthButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#F3F4F6',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    monthButtonText: {
-        fontSize: 20,
-        fontWeight: '600',
-        color: '#374151',
-    },
-    monthText: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#111827',
-    },
-    kpiContainer: {
-        flexDirection: 'row',
-        paddingHorizontal: Spacing.lg,
-        marginBottom: Spacing.lg,
-        gap: Spacing.sm,
-    },
-    kpiCard: {
-        flex: 1,
-        padding: Spacing.md,
-    },
-    incomeCard: {
-        backgroundColor: '#F0FDF4',
-    },
-    expenseCard: {
-        backgroundColor: '#FEF2F2',
-    },
-    netCard: {
-        backgroundColor: '#F0F9FF',
-    },
-    kpiHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: Spacing.sm,
-    },
-    kpiLabel: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: '#374151',
-    },
-    kpiIcon: {
-        fontSize: 16,
-    },
-    kpiAmount: {
-        fontSize: 20,
-        fontWeight: '700',
-        color: '#111827',
-        marginBottom: Spacing.xs,
-    },
-    kpiSubtext: {
-        fontSize: 12,
-        color: '#6B7280',
-    },
-    quickActionsCard: {
-        marginHorizontal: Spacing.lg,
-        marginBottom: Spacing.lg,
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#111827',
-        marginBottom: Spacing.md,
-    },
-    quickActionsGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: Spacing.md,
-    },
-    quickActionButton: {
-        width: '48%',
-        alignItems: 'center',
-        paddingVertical: Spacing.md,
-    },
-    quickActionIcon: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: Spacing.sm,
-    },
-    quickActionIconText: {
-        fontSize: 24,
-        color: '#FFFFFF',
-    },
-    quickActionTitle: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: '#374151',
-        textAlign: 'center',
-    },
-    accountsCard: {
-        marginHorizontal: Spacing.lg,
-        marginBottom: Spacing.lg,
+    recentCard: {
+        margin: 16,
+        marginTop: 8,
     },
     sectionHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: Spacing.md,
+        marginBottom: 16,
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: '600',
     },
     seeAllText: {
         fontSize: 14,
         fontWeight: '500',
-        color: '#6366F1',
-    },
-    accountItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: Spacing.sm,
-        borderBottomWidth: 1,
-        borderBottomColor: '#F3F4F6',
-    },
-    accountInfo: {
-        flex: 1,
-    },
-    accountName: {
-        fontSize: 16,
-        fontWeight: '500',
-        color: '#111827',
-    },
-    accountType: {
-        fontSize: 14,
-        color: '#6B7280',
-    },
-    accountBalance: {
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    categoriesCard: {
-        marginHorizontal: Spacing.lg,
-        marginBottom: Spacing.lg,
-    },
-    categoryItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: Spacing.sm,
-        borderBottomWidth: 1,
-        borderBottomColor: '#F3F4F6',
-    },
-    categoryInfo: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1,
-    },
-    categoryColor: {
-        width: 12,
-        height: 12,
-        borderRadius: 6,
-        marginRight: Spacing.sm,
-    },
-    categoryName: {
-        fontSize: 16,
-        fontWeight: '500',
-        color: '#111827',
-    },
-    categoryAmount: {
-        alignItems: 'flex-end',
-    },
-    categoryAmountText: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#111827',
-    },
-    categoryPercentage: {
-        fontSize: 12,
-        color: '#6B7280',
-    },
-    recentTransactionsCard: {
-        marginHorizontal: Spacing.lg,
-        marginBottom: Spacing.xl,
     },
     transactionItem: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingVertical: Spacing.sm,
-        borderBottomWidth: 1,
-        borderBottomColor: '#F3F4F6',
+        paddingVertical: 12,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: '#E5E5E5',
     },
     transactionInfo: {
         flex: 1,
@@ -527,16 +344,16 @@ const styles = StyleSheet.create({
     transactionNote: {
         fontSize: 16,
         fontWeight: '500',
-        color: '#111827',
+        marginBottom: 2,
     },
     transactionDate: {
         fontSize: 14,
-        color: '#6B7280',
     },
     transactionAmount: {
         fontSize: 16,
         fontWeight: '600',
     },
+    bottomSpacing: {
+        height: 100, // Space for tab bar
+    },
 });
-
-

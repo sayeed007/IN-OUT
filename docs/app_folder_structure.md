@@ -61,14 +61,14 @@ IncomeExpenseApp/
 │   │   │   ├── OnboardingScreen.tsx
 │   │   │   └── LockScreen.tsx
 │   │   ├── dashboard/                # Dashboard screens
-│   │   │   ├── DashboardScreen.tsx
+│   │   │   ├── DashboardScreen.tsx                                         -Done
 │   │   │   └── components/
-│   │   │       ├── KPICards.tsx
-│   │   │       ├── MonthSelector.tsx
+│   │   │       ├── KPICards.tsx                                            -Done
+│   │   │       ├── MonthSelector.tsx                                       -Done
 │   │   │       ├── MiniCharts.tsx
 │   │   │       └── QuickActions.tsx
 │   │   ├── transactions/             # Transaction screens
-│   │   │   ├── TransactionListScreen.tsx
+│   │   │   ├── TransactionListScreen.tsx                                   -Done
 │   │   │   ├── TransactionDetailScreen.tsx
 │   │   │   ├── AddTransactionScreen.tsx
 │   │   │   └── components/

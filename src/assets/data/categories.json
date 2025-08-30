@@ -1,0 +1,5 @@
+[
+  { "id": "income", "name": "Income", "type": "income" },
+  { "id": "food", "name": "Food & Dining", "type": "expense" },
+  { "id": "transport", "name": "Transport", "type": "expense" }
+]

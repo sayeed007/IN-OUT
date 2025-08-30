@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm start)",
+      "Bash(npx react-native run-android:*)",
+      "Bash(npx tsc:*)",
+      "Bash(node test-imports.js)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

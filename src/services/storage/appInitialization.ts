@@ -352,4 +352,39 @@ class AppInitializationService {
   }
 }
 
+const appInit = AppInitializationService.getInstance();
+
+/**
+ * Initialize the app - called from App.tsx on startup
+ */
+export const initializeApp = async (): Promise<void> => {
+  try {
+    console.log('Initializing app...');
+    
+    // Check if onboarding is complete
+    const isOnboardingComplete = await appInit.isOnboardingComplete();
+    
+    if (!isOnboardingComplete) {
+      console.log('First time app launch - will show onboarding');
+      // Don't initialize database yet - wait for onboarding
+      return;
+    }
+    
+    // Initialize/migrate database if needed
+    await appInit.migrateDatabase();
+    
+    // Get database to ensure it's initialized
+    let db = await appInit.getDatabase();
+    if (!db) {
+      console.log('Database not found, initializing with defaults...');
+      db = await appInit.initializeDatabase();
+    }
+    
+    console.log('App initialization complete');
+  } catch (error) {
+    console.error('App initialization failed:', error);
+    // Don't throw - app should still be usable
+  }
+};
+
 export default AppInitializationService;

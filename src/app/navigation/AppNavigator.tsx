@@ -1,5 +1,4 @@
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
@@ -7,54 +6,60 @@ import { StatusBar, useColorScheme } from 'react-native';
 
 // Navigation Components
 import TabNavigator from './TabNavigator';
-import StackNavigator from './StackNavigator';
 
 // Screens
 import LockScreen from '../../screens/auth/LockScreen';
 import OnboardingScreen from '../../screens/auth/OnboardingScreen';
 
+// Services
+import AppInitializationService from '../../services/storage/appInitialization';
+
 // Types
-import { RootStackParamList } from '../../types/navigation';
+import { RootStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const AppNavigator: React.FC = () => {
+    const [isOnboarded, setIsOnboarded] = useState<boolean | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
     const colorScheme = useColorScheme();
-    const { isLocked, isOnboarded, theme } = useSelector((state: RootState) => ({
-        isLocked: state.app.isLocked,
-        isOnboarded: state.app.isOnboarded,
-        theme: state.preferences.theme === 'system' ? colorScheme : state.preferences.theme,
+    const { theme } = useSelector((state: RootState) => ({
+        theme: state.preferences?.theme === 'system' ? colorScheme : state.preferences?.theme || 'light',
     }));
+
+    const appInit = AppInitializationService.getInstance();
+
+    useEffect(() => {
+        checkOnboardingStatus();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const checkOnboardingStatus = async () => {
+        try {
+            const onboardingComplete = await appInit.isOnboardingComplete();
+            setIsOnboarded(onboardingComplete);
+        } catch (error) {
+            console.error('Failed to check onboarding status:', error);
+            setIsOnboarded(false);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     // Theme colors
     const isDark = theme === 'dark';
     const backgroundColor = isDark ? '#0A0A0B' : '#FFFFFF';
     const statusBarStyle = isDark ? 'light-content' : 'dark-content';
 
-    const renderInitialRoute = () => {
-        if (!isOnboarded) {
-            return 'Onboarding';
-        }
-        if (isLocked) {
-            return 'Lock';
-        }
-        return 'Main';
-    };
+    if (isLoading) {
+        // Could show a splash screen here
+        return null;
+    }
+
+    const initialRouteName = isOnboarded ? 'Main' : 'Onboarding';
 
     return (
-        <NavigationContainer
-            theme={{
-                dark: isDark,
-                colors: {
-                    primary: '#6366F1',
-                    background: backgroundColor,
-                    card: isDark ? '#1F1F23' : '#FFFFFF',
-                    text: isDark ? '#FFFFFF' : '#000000',
-                    border: isDark ? '#2D2D32' : '#E5E5E7',
-                    notification: '#FF3B30',
-                },
-            }}
-        >
+        <>
             <StatusBar
                 barStyle={statusBarStyle}
                 backgroundColor={backgroundColor}
@@ -62,7 +67,7 @@ const AppNavigator: React.FC = () => {
             />
 
             <Stack.Navigator
-                initialRouteName={renderInitialRoute()}
+                initialRouteName={initialRouteName}
                 screenOptions={{
                     headerShown: false,
                     gestureEnabled: false,
@@ -97,19 +102,8 @@ const AppNavigator: React.FC = () => {
                         animation: 'fade',
                     }}
                 />
-
-                {/* Modal/Stack Screens */}
-                <Stack.Group screenOptions={{ presentation: 'modal' }}>
-                    <Stack.Screen
-                        name="ModalStack"
-                        component={StackNavigator}
-                        options={{
-                            headerShown: false,
-                        }}
-                    />
-                </Stack.Group>
             </Stack.Navigator>
-        </NavigationContainer>
+        </>
     );
 };
 

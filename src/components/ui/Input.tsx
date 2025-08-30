@@ -102,6 +102,12 @@ const Input = forwardRef<TextInput, InputProps>(({
 
     const config = sizeConfig[size];
 
+    const animatedFontLabel = {
+        fontSize: config.labelSize,
+        marginBottom: 6,
+    };
+
+
     const handleFocus = (e: any) => {
         setIsFocused(true);
         focusAnimation.value = withTiming(1, { duration: 200 });
@@ -178,10 +184,7 @@ const Input = forwardRef<TextInput, InputProps>(({
             {label && (
                 <Animated.Text style={[
                     styles.label,
-                    {
-                        fontSize: config.labelSize,
-                        marginBottom: 6,
-                    },
+                    animatedFontLabel,
                     animatedLabelStyle,
                 ]}>
                     {label}
