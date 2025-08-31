@@ -1,29 +1,28 @@
 // src/screens/transactions/TransactionListScreen.tsx
-import React, { useState, useMemo, useCallback } from 'react';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import dayjs from 'dayjs';
+import React, { useMemo, useState } from 'react';
 import {
-    View,
-    Text,
-    StyleSheet,
+    Alert,
     FlatList,
     RefreshControl,
-    TouchableOpacity,
+    StyleSheet,
+    Text,
     TextInput,
-    Alert,
+    TouchableOpacity,
+    View,
 } from 'react-native';
-import { SafeContainer } from '../../components/layout/SafeContainer';
-import { Card } from '../../components/ui/Card';
-import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
-import { EmptyState } from '../../components/ui/EmptyState';
-import { FloatingActionButton } from '../../components/ui/FloatingActionButton';
-import { Chip } from '../../components/ui/Chip';
-import { useGetTransactionsQuery, useDeleteTransactionMutation } from '../../state/api';
-import { TransactionFilters } from './components/TransactionFilters';
-import { TransactionItem } from '../../components/lists/TransactionItem';
-import { SectionHeader } from '../../components/lists/SectionHeader';
-import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../../app/providers/ThemeProvider';
+import { SafeContainer } from '../../components/layout/SafeContainer';
+import { SectionHeader } from '../../components/lists/SectionHeader';
+import { TransactionItem } from '../../components/lists/TransactionItem';
+import Chip from '../../components/ui/Chip';
+import EmptyState from '../../components/ui/EmptyState';
+import FloatingActionButton from '../../components/ui/FloatingActionButton';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import { useDeleteTransactionMutation, useGetTransactionsQuery } from '../../state/api';
 import { Transaction } from '../../types/global';
-import dayjs from 'dayjs';
+import TransactionFilters from './components/TransactionFilters';
 
 interface GroupedTransaction {
     title: string;
@@ -31,9 +30,26 @@ interface GroupedTransaction {
     total: number;
 }
 
+// Define route params interface
+interface RouteParams {
+    filter?: {
+        type?: 'income' | 'expense' | 'transfer';
+        categoryId?: string;
+        accountId?: string;
+    };
+}
+
+// Define navigation params for Add screen
+interface AddScreenParams {
+    editTransaction?: Transaction;
+    type?: 'income' | 'expense' | 'transfer';
+}
+
 export const TransactionListScreen: React.FC = () => {
-    const navigation = useNavigation();
-    const route = useRoute();
+    const navigation = useNavigation<{
+        navigate: (screen: 'Add' | 'TransactionDetail', params?: AddScreenParams | { transactionId: string }) => void;
+    }>();
+    const route = useRoute<{ key: string; name: string; params?: RouteParams }>();
     const { theme } = useTheme();
 
     // State
@@ -141,7 +157,7 @@ export const TransactionListScreen: React.FC = () => {
     };
 
     const handleTransactionEdit = (transaction: Transaction) => {
-        navigation.navigate('AddTransaction', {
+        navigation.navigate('Add', {
             editTransaction: transaction,
             type: transaction.type
         });
@@ -159,8 +175,8 @@ export const TransactionListScreen: React.FC = () => {
                     onPress: async () => {
                         try {
                             await deleteTransaction(transaction.id).unwrap();
-                        } catch (error) {
-                            Alert.alert('Error', 'Failed to delete transaction');
+                        } catch (handleTransactionError) {
+                            Alert.alert('Error', `Failed to delete transaction because ${handleTransactionError}`);
                         }
                     },
                 },
@@ -169,7 +185,7 @@ export const TransactionListScreen: React.FC = () => {
     };
 
     const handleAddTransaction = () => {
-        navigation.navigate('AddTransaction');
+        navigation.navigate('Add', {});
     };
 
     const clearFilters = () => {
@@ -243,15 +259,33 @@ export const TransactionListScreen: React.FC = () => {
     }
 
     if (error) {
+        console.log('Transaction loading error:', error);
+        
+        // Determine error type and message
+        const errorData = error as any;
+        const isTimeoutError = errorData?.status === 'TIMEOUT_ERROR' || 
+                              errorData?.error?.includes('AbortError');
+        
+        const errorTitle = isTimeoutError 
+            ? 'Connection Timeout'
+            : 'Failed to Load Transactions';
+        
+        const errorMessage = isTimeoutError
+            ? 'The request took too long. Please check your connection and try again.'
+            : 'Unable to load transactions. Please try again.';
+        
         return (
             <SafeContainer>
                 <View style={[styles.errorContainer, { backgroundColor: theme.colors.background }]}>
-                    <Text style={[styles.errorText, { color: theme.colors.error }]}>
-                        Failed to load transactions
+                    <Text style={[styles.errorText, { color: theme.colors.error[500] }]}>
+                        {errorTitle}
+                    </Text>
+                    <Text style={[styles.errorSubText, { color: theme.colors.textSecondary }]}>
+                        {errorMessage}
                     </Text>
                     <TouchableOpacity
                         onPress={handleRefresh}
-                        style={[styles.retryButton, { backgroundColor: theme.colors.primary }]}
+                        style={[styles.retryButton, { backgroundColor: theme.colors.primary[500] }]}
                         activeOpacity={0.8}
                     >
                         <Text style={[styles.retryText, { color: theme.colors.onPrimary }]}>
@@ -287,7 +321,7 @@ export const TransactionListScreen: React.FC = () => {
                                 styles.filterButton,
                                 {
                                     backgroundColor: getActiveFiltersCount() > 0
-                                        ? theme.colors.primary
+                                        ? theme.colors.primary[500]
                                         : theme.colors.background,
                                 }
                             ]}
@@ -304,7 +338,7 @@ export const TransactionListScreen: React.FC = () => {
                                 ⚙
                             </Text>
                             {getActiveFiltersCount() > 0 && (
-                                <View style={[styles.filterBadge, { backgroundColor: theme.colors.error }]}>
+                                <View style={[styles.filterBadge, { backgroundColor: theme.colors.error[500] }]}>
                                     <Text style={[styles.filterBadgeText, { color: theme.colors.onError }]}>
                                         {getActiveFiltersCount()}
                                     </Text>
@@ -346,21 +380,21 @@ export const TransactionListScreen: React.FC = () => {
                     <View style={styles.emptyContainer}>
                         <EmptyState
                             title="No transactions found"
-                            message={
+                            description={
                                 getActiveFiltersCount() > 0
                                     ? "Try adjusting your filters"
                                     : "Start by adding your first transaction"
                             }
                             actionLabel="Add Transaction"
-                            onAction={handleAddTransaction}
+                            onActionPress={handleAddTransaction}
                         />
                         {getActiveFiltersCount() > 0 && (
                             <TouchableOpacity
                                 onPress={clearFilters}
-                                style={[styles.clearFiltersButton, { borderColor: theme.colors.primary }]}
+                                style={[styles.clearFiltersButton, { borderColor: theme.colors.primary[500] }]}
                                 activeOpacity={0.7}
                             >
-                                <Text style={[styles.clearFiltersText, { color: theme.colors.primary }]}>
+                                <Text style={[styles.clearFiltersText, { color: theme.colors.primary[500] }]}>
                                     Clear Filters
                                 </Text>
                             </TouchableOpacity>
@@ -425,8 +459,15 @@ const styles = StyleSheet.create({
     },
     errorText: {
         fontSize: 16,
+        fontWeight: '600',
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    errorSubText: {
+        fontSize: 14,
         marginBottom: 16,
         textAlign: 'center',
+        lineHeight: 20,
     },
     retryButton: {
         paddingHorizontal: 24,

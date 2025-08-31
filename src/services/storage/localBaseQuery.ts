@@ -46,11 +46,19 @@ class LocalDatabase {
     if (this.cache) return this.cache;
 
     try {
-      const dbJson = await AsyncStorage.getItem(STORAGE_KEYS.APP_DB);
+      // Add timeout to AsyncStorage operation
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('AsyncStorage timeout')), 3000)
+      );
+      
+      const loadPromise = AsyncStorage.getItem(STORAGE_KEYS.APP_DB);
+      const dbJson = await Promise.race([loadPromise, timeoutPromise]);
+      
       this.cache = dbJson ? JSON.parse(dbJson) : { ...DEFAULT_DB };
       return this.cache;
     } catch (error) {
       console.error('Failed to load database:', error);
+      // If it's a timeout or parse error, return default DB
       this.cache = { ...DEFAULT_DB };
       return this.cache;
     }
@@ -59,7 +67,14 @@ class LocalDatabase {
   async saveDB(data: LocalDBData): Promise<void> {
     try {
       this.cache = data;
-      await AsyncStorage.setItem(STORAGE_KEYS.APP_DB, JSON.stringify(data));
+      
+      // Add timeout to save operation
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('AsyncStorage save timeout')), 3000)
+      );
+      
+      const savePromise = AsyncStorage.setItem(STORAGE_KEYS.APP_DB, JSON.stringify(data));
+      await Promise.race([savePromise, timeoutPromise]);
     } catch (error) {
       console.error('Failed to save database:', error);
       throw new Error('Database save failed');
@@ -79,9 +94,19 @@ export const localBaseQuery: BaseQueryFn<
   unknown,
   FetchBaseQueryError
 > = async (args) => {
+  // Create timeout promise to simulate network behavior
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => {
+      reject(new Error('AbortError: Operation timed out'));
+    }, 5000); // 5 second timeout
+  });
+
   try {
     // Normalize args
     const { url, method = 'GET', body } = typeof args === 'string' ? { url: args } : args;
+    
+    // Wrap the operation in a race with timeout
+    const operationPromise = (async () => {
     
     // Parse URL and params
     const [pathname, search] = url.split('?');
@@ -213,8 +238,24 @@ export const localBaseQuery: BaseQueryFn<
     }
 
     return { data: result };
+    })();
+
+    // Race between operation and timeout
+    const result = await Promise.race([operationPromise, timeoutPromise]);
+    return result;
   } catch (error) {
     console.error('LocalBaseQuery error:', error);
+    
+    // Handle timeout errors specifically
+    if (error instanceof Error && error.message.includes('AbortError')) {
+      return { 
+        error: { 
+          status: 'TIMEOUT_ERROR', 
+          data: error.message 
+        } 
+      };
+    }
+    
     return { 
       error: { 
         status: 500, 
