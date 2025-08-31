@@ -24,6 +24,69 @@ interface LoadingSpinnerProps {
     style?: ViewStyle;
 }
 
+interface SpinnerComponentProps {
+    animatedStyle: any;
+    config: {
+        size: number;
+        strokeWidth: number;
+        fontSize: number;
+    };
+    colors: {
+        primary: string;
+        textSecondary: string;
+    };
+    message?: string;
+    size: 'small' | 'medium' | 'large';
+    style?: ViewStyle;
+}
+
+const SpinnerComponent: React.FC<SpinnerComponentProps> = ({
+    animatedStyle,
+    config,
+    colors,
+    message,
+    size,
+    style,
+}) => {
+
+    const messageStyle = {
+        fontSize: config.fontSize,
+        color: colors.textSecondary,
+        marginTop: size === 'small' ? 8 : 12,
+    };
+
+    return (
+        <View style={[styles.spinnerContainer, style]}>
+            <Animated.View style={[animatedStyle]}>
+                <View
+                    style={[
+                        styles.spinner,
+                        {
+                            width: config.size,
+                            height: config.size,
+                            borderWidth: config.strokeWidth,
+                            borderColor: `${colors.primary}20`,
+                            borderTopColor: colors.primary,
+                            borderRadius: config.size / 2,
+                        },
+                    ]}
+                />
+            </Animated.View>
+
+            {message && (
+                <Text
+                    style={[
+                        styles.message,
+                        messageStyle
+                    ]}
+                >
+                    {message}
+                </Text>
+            )}
+        </View>
+    );
+};
+
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     size = 'medium',
     color,
@@ -87,6 +150,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         return () => {
             opacity.value = withTiming(0, { duration: 200 });
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const animatedStyle = useAnimatedStyle(() => ({
@@ -98,50 +162,31 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         opacity: opacity.value,
     }));
 
-    const SpinnerComponent = () => (
-        <View style={[styles.spinnerContainer, style]}>
-            <Animated.View style={[animatedStyle]}>
-                <View
-                    style={[
-                        styles.spinner,
-                        {
-                            width: config.size,
-                            height: config.size,
-                            borderWidth: config.strokeWidth,
-                            borderColor: `${colors.primary}20`,
-                            borderTopColor: colors.primary,
-                            borderRadius: config.size / 2,
-                        },
-                    ]}
-                />
-            </Animated.View>
-
-            {message && (
-                <Text
-                    style={[
-                        styles.message,
-                        {
-                            fontSize: config.fontSize,
-                            color: colors.textSecondary,
-                            marginTop: size === 'small' ? 8 : 12,
-                        },
-                    ]}
-                >
-                    {message}
-                </Text>
-            )}
-        </View>
-    );
-
     if (overlay) {
         return (
             <Animated.View style={[styles.overlay, { backgroundColor: colors.overlay }, containerAnimatedStyle]}>
-                <SpinnerComponent />
+                <SpinnerComponent
+                    animatedStyle={animatedStyle}
+                    config={config}
+                    colors={colors}
+                    message={message}
+                    size={size}
+                    style={style}
+                />
             </Animated.View>
         );
     }
 
-    return <SpinnerComponent />;
+    return (
+        <SpinnerComponent
+            animatedStyle={animatedStyle}
+            config={config}
+            colors={colors}
+            message={message}
+            size={size}
+            style={style}
+        />
+    );
 };
 
 const styles = StyleSheet.create({

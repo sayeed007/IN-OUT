@@ -1,28 +1,26 @@
 // src/screens/dashboard/DashboardScreen.tsx
-import React, { useState, useMemo } from 'react';
-import {
-    View,
-    Text,
-    StyleSheet,
-    ScrollView,
-    RefreshControl,
-    TouchableOpacity,
-    Dimensions,
-} from 'react-native';
-import { SafeContainer } from '../../components/layout/SafeContainer';
-import { Card } from '../../components/ui/Card';
-import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
-import { EmptyState } from '../../components/ui/EmptyState';
-import { useGetTransactionsQuery, useGetAccountsQuery, useGetBudgetsQuery } from '../../state/api';
-import { KPICards } from './components/KPICards';
-import { MonthSelector } from './components/MonthSelector';
-import { MiniCharts } from './components/MiniCharts';
-import { QuickActions } from './components/QuickActions';
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../../app/providers/ThemeProvider';
 import dayjs from 'dayjs';
+import React, { useMemo, useState } from 'react';
+import {
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from 'react-native';
+import { useTheme } from '../../app/providers/ThemeProvider';
+import { SafeContainer } from '../../components/layout/SafeContainer';
+import Card from '../../components/ui/Card';
+import EmptyState from '../../components/ui/EmptyState';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import { useGetAccountsQuery, useGetBudgetsQuery, useGetTransactionsQuery } from '../../state/api';
+import { KPICards } from './components/KPICards';
+import MiniCharts from './components/MiniCharts';
+import { MonthSelector } from './components/MonthSelector';
+import QuickActions from './components/QuickActions';
 
-const { width } = Dimensions.get('window');
 
 export const DashboardScreen: React.FC = () => {
     const navigation = useNavigation();
@@ -140,13 +138,13 @@ export const DashboardScreen: React.FC = () => {
     const handleQuickAction = (action: string) => {
         switch (action) {
             case 'add-income':
-                navigation.navigate('AddTransaction', { type: 'income' });
+                navigation.navigate('Add', { type: 'income' });
                 break;
             case 'add-expense':
-                navigation.navigate('AddTransaction', { type: 'expense' });
+                navigation.navigate('Add', { type: 'expense' });
                 break;
             case 'transfer':
-                navigation.navigate('AddTransaction', { type: 'transfer' });
+                navigation.navigate('Add', { type: 'transfer' });
                 break;
             case 'view-budget':
                 navigation.navigate('Budget');
@@ -178,13 +176,13 @@ export const DashboardScreen: React.FC = () => {
                     <RefreshControl
                         refreshing={refreshing}
                         onRefresh={handleRefresh}
-                        colors={[theme.colors.primary]}
-                        tintColor={theme.colors.primary}
+                        colors={[theme.colors.primary[500]]}
+                        tintColor={theme.colors.primary[500]}
                     />
                 }
             >
                 {/* Header */}
-                <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
+                <View style={styles.header}>
                     <Text style={[styles.title, { color: theme.colors.text }]}>
                         Dashboard
                     </Text>
@@ -223,9 +221,9 @@ export const DashboardScreen: React.FC = () => {
                     <Card style={styles.emptyCard}>
                         <EmptyState
                             title="No transactions yet"
-                            message="Start by adding your first income or expense"
+                            description="Start by adding your first income or expense"
                             actionLabel="Add Transaction"
-                            onAction={() => navigation.navigate('AddTransaction')}
+                            onActionPress={() => navigation.navigate('Add', {})}
                         />
                     </Card>
                 )}
@@ -238,16 +236,16 @@ export const DashboardScreen: React.FC = () => {
                                 Recent Transactions
                             </Text>
                             <TouchableOpacity
-                                onPress={() => navigation.navigate('TransactionList')}
+                                onPress={() => navigation.navigate('Transactions', {})}
                                 activeOpacity={0.7}
                             >
-                                <Text style={[styles.seeAllText, { color: theme.colors.primary }]}>
+                                <Text style={[styles.seeAllText, { color: theme.colors.primary[500] }]}>
                                     See All
                                 </Text>
                             </TouchableOpacity>
                         </View>
 
-                        {transactions.slice(0, 3).map((transaction, index) => (
+                        {transactions.slice(0, 3).map((transaction) => (
                             <View key={transaction.id} style={styles.transactionItem}>
                                 <View style={styles.transactionInfo}>
                                     <Text style={[styles.transactionNote, { color: theme.colors.text }]}>
@@ -261,9 +259,9 @@ export const DashboardScreen: React.FC = () => {
                                     styles.transactionAmount,
                                     {
                                         color: transaction.type === 'income'
-                                            ? theme.colors.success
+                                            ? theme.colors.success[500]
                                             : transaction.type === 'expense'
-                                                ? theme.colors.error
+                                                ? theme.colors.error[500]
                                                 : theme.colors.text
                                     }
                                 ]}>
@@ -296,9 +294,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     header: {
-        padding: 20,
-        paddingTop: 10,
-        paddingBottom: 24,
+        padding: 10,
     },
     title: {
         fontSize: 28,

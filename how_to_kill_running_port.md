@@ -17,6 +17,7 @@ Sometimes, you may need to free up a port that is already in use by a running pr
 2. Use the `netstat` command to find the PID using the port:
    ```cmd
    netstat -aon | findstr :PORT_NUMBER
+   netstat -aon | findstr :8081
    ```
 3. The PID will be listed in the last column of the output.
 

@@ -1,14 +1,13 @@
 import React from 'react';
 import {
-    View,
-    Text,
     StyleSheet,
+    Text,
+    View,
     ViewStyle,
     useColorScheme,
 } from 'react-native';
-import { useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
-// import Button from './Button';
+import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { Button } from './Button';
 
@@ -73,6 +72,18 @@ const EmptyState: React.FC<EmptyStateProps> = ({
 
     const config = sizeConfig[size];
 
+    const titleStyle = {
+        fontSize: config.titleSize,
+        color: colors.text,
+        marginBottom: description ? 8 : config.spacing,
+    };
+
+    const descriptionStyle = {
+        fontSize: config.descriptionSize,
+        color: colors.textSecondary,
+        marginBottom: actionLabel ? config.spacing : 0,
+    };
+
     return (
         <View style={[
             styles.container,
@@ -94,11 +105,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
 
             <Text style={[
                 styles.title,
-                {
-                    fontSize: config.titleSize,
-                    color: colors.text,
-                    marginBottom: description ? 8 : config.spacing,
-                },
+                titleStyle
             ]}>
                 {title}
             </Text>
@@ -106,11 +113,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
             {description && (
                 <Text style={[
                     styles.description,
-                    {
-                        fontSize: config.descriptionSize,
-                        color: colors.textSecondary,
-                        marginBottom: actionLabel ? config.spacing : 0,
-                    },
+                    descriptionStyle
                 ]}>
                     {description}
                 </Text>
@@ -120,7 +123,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
                 <Button
                     title={actionLabel}
                     onPress={onActionPress}
-                    variant="outlined"
+                    variant="outline"
                     size={size === 'small' ? 'small' : 'medium'}
                     style={{ marginTop: config.spacing }}
                 />

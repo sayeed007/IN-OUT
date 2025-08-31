@@ -15,8 +15,18 @@ export type RootStackParamList = {
 // Tab Navigator (Main App Tabs)
 export type TabParamList = {
   Dashboard: undefined;
-  Transactions: undefined;
-  Add: undefined;
+  Transactions: { 
+    filter?: {
+      type?: 'income' | 'expense' | 'transfer';
+      accountId?: UUID;
+      categoryId?: UUID;
+    };
+  };
+  Add: { 
+    type?: 'income' | 'expense' | 'transfer';
+    accountId?: UUID;
+    categoryId?: UUID;
+  };
   Reports: undefined;
   Settings: undefined;
 };
@@ -27,7 +37,13 @@ export type DashboardStackParamList = {
 };
 
 export type TransactionStackParamList = {
-  TransactionList: undefined;
+  TransactionList: { 
+    filter?: {
+      type?: 'income' | 'expense' | 'transfer';
+      accountId?: UUID;
+      categoryId?: UUID;
+    };
+  };
   TransactionDetail: { transactionId: UUID };
   AddTransaction: { 
     type?: 'income' | 'expense' | 'transfer';
@@ -61,6 +77,7 @@ export type SettingsStackParamList = {
   CategoryForm: { categoryId?: UUID };
   BudgetManager: undefined;
   BudgetForm: { budgetId?: UUID; categoryId?: UUID; month?: string };
+  Budget: undefined;
   DataManagement: undefined;
   SecuritySettings: undefined;
   AppearanceSettings: undefined;
@@ -88,9 +105,25 @@ export type ReportsScreenProps<T extends keyof ReportsStackParamList> =
 export type SettingsScreenProps<T extends keyof SettingsStackParamList> = 
   NativeStackScreenProps<SettingsStackParamList, T>;
 
+// Combined navigation param list for cross-stack navigation
+export type AppParamList = TabParamList & TransactionStackParamList & SettingsStackParamList & {
+  AddTransaction: { 
+    type?: 'income' | 'expense' | 'transfer';
+    accountId?: UUID;
+    categoryId?: UUID;
+  };
+  TransactionList: { 
+    filter?: {
+      type?: 'income' | 'expense' | 'transfer';
+      accountId?: UUID;
+      categoryId?: UUID;
+    };
+  };
+};
+
 // Global navigation props for use with navigation.navigate()
 declare global {
   namespace ReactNavigation {
-    interface RootParamList extends RootStackParamList {}
+    interface RootParamList extends AppParamList {}
   }
 }

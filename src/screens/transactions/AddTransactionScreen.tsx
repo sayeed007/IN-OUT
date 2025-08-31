@@ -43,9 +43,9 @@ interface TransactionForm {
   tags: string[];
 }
 
-const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => {
+export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => {
   const { type: initialType, accountId, categoryId } = route?.params || {};
-  
+
   const [transactionType, setTransactionType] = useState<TransactionType>(initialType || 'expense');
   const [showAmountKeypad, setShowAmountKeypad] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -183,7 +183,7 @@ const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   };
 
-  const filteredCategories = categories.filter(category => 
+  const filteredCategories = categories.filter(category =>
     transactionType === 'transfer' ? false : category.type === transactionType
   );
 
@@ -200,17 +200,17 @@ const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header 
+      <Header
         title="Add Transaction"
         showBackButton
         onBackPress={() => navigation.goBack()}
       />
 
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         style={styles.content}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView 
+        <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
@@ -444,4 +444,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AddTransactionScreen;

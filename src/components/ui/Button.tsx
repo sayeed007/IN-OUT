@@ -1,22 +1,22 @@
 import React from 'react';
 import {
-    TouchableOpacity,
-    Text,
-    StyleSheet,
-    ViewStyle,
-    TextStyle,
     ActivityIndicator,
+    StyleSheet,
+    Text,
+    TextStyle,
+    TouchableOpacity,
     View,
+    ViewStyle,
     useColorScheme,
 } from 'react-native';
 import { useSelector } from 'react-redux';
-import { getTheme, Colors, Shadows, Spacing, Typography } from '../../theme';
 import { RootState } from '../../state/store';
+import { getTheme } from '../../theme';
 
 export interface ButtonProps {
     title: string;
     onPress: () => void;
-    variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'basePrimary' | 'baseSecondary';
+    variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
     size?: 'small' | 'medium' | 'large';
     disabled?: boolean;
     loading?: boolean;
@@ -55,96 +55,157 @@ export const Button: React.FC<ButtonProps> = ({
         }
     };
 
-    const getVariantStyle = (): ViewStyle => {
+    const getButtonStyles = (): ViewStyle[] => {
+        const baseStyle: ViewStyle = {
+            borderRadius: 12,
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'row',
+            borderWidth: 1,
+        };
+
+        const sizeStyle = StyleSheet.flatten([
+            size === 'small' && styles.small,
+            size === 'medium' && styles.medium,
+            size === 'large' && styles.large,
+        ]);
+
+        let variantStyle: ViewStyle = {};
+
+        if (disabled || loading) {
+            variantStyle = {
+                backgroundColor: theme.colors.surfaceVariant,
+                borderColor: theme.colors.border,
+                opacity: 0.6,
+            };
+        } else {
+            switch (variant) {
+                case 'primary':
+                    variantStyle = {
+                        backgroundColor: theme.colors.primary[500],
+                        borderColor: theme.colors.primary[500],
+                        ...theme.shadows.ios.small,
+                        ...theme.shadows.android.small,
+                    };
+                    break;
+                case 'secondary':
+                    variantStyle = {
+                        backgroundColor: theme.colors.surface,
+                        borderColor: theme.colors.border,
+                    };
+                    break;
+                case 'outline':
+                    variantStyle = {
+                        backgroundColor: 'transparent',
+                        borderColor: theme.colors.primary[500],
+                    };
+                    break;
+                case 'ghost':
+                    variantStyle = {
+                        backgroundColor: 'transparent',
+                        borderColor: 'transparent',
+                    };
+                    break;
+                case 'danger':
+                    variantStyle = {
+                        backgroundColor: theme.colors.error[500],
+                        borderColor: theme.colors.error[500],
+                        ...theme.shadows.ios.small,
+                        ...theme.shadows.android.small,
+                    };
+                    break;
+            }
+        }
+
+        const dynamicStyles = [baseStyle, sizeStyle, variantStyle];
+
+        if (fullWidth) dynamicStyles.push(styles.fullWidth);
+        if (style) dynamicStyles.push(style);
+
+        return dynamicStyles;
+    };
+
+    const getTextStyles = (): TextStyle[] => {
+        const baseTextStyle: TextStyle = {
+            fontWeight: '600',
+            textAlign: 'center',
+            includeFontPadding: false,
+        };
+
+        const sizeTextStyle = StyleSheet.flatten([
+            size === 'small' && styles.smallText,
+            size === 'medium' && styles.mediumText,
+            size === 'large' && styles.largeText,
+        ]);
+
+        let colorStyle: TextStyle = {};
+
+        if (disabled || loading) {
+            colorStyle = {
+                color: theme.colors.textTertiary,
+            };
+        } else {
+            switch (variant) {
+                case 'primary':
+                    colorStyle = {
+                        color: theme.colors.onPrimary,
+                    };
+                    break;
+                case 'secondary':
+                    colorStyle = {
+                        color: theme.colors.text,
+                    };
+                    break;
+                case 'outline':
+                case 'ghost':
+                    colorStyle = {
+                        color: theme.colors.primary[500],
+                    };
+                    break;
+                case 'danger':
+                    colorStyle = {
+                        color: theme.colors.onError,
+                    };
+                    break;
+            }
+        }
+
+        const dynamicTextStyles = [baseTextStyle, sizeTextStyle, colorStyle];
+
+        if (textStyle) dynamicTextStyles.push(textStyle);
+
+        return dynamicTextStyles;
+    };
+
+    const getActivityIndicatorColor = (): string => {
+        if (disabled) return theme.colors.textTertiary;
+
         switch (variant) {
-            case 'basePrimary':
-                return {
-                    backgroundColor: theme.colors.primary[500],
-                    borderColor: 'transparent',
-                    ...Shadows.ios.small,
-                    ...Shadows.android.small,
-                };
-            case 'baseSecondary':
-                return {
-                    backgroundColor: theme.colors.surface,
-                    borderColor: theme.colors.border,
-                    borderWidth: 1,
-                };
+            case 'primary':
+                return theme.colors.onPrimary;
+            case 'danger':
+                return theme.colors.onError;
+            case 'secondary':
+                return theme.colors.text;
+            case 'outline':
+            case 'ghost':
+                return theme.colors.primary[500];
             default:
-                return styles[variant as keyof typeof styles] as ViewStyle;
+                return theme.colors.onPrimary;
         }
     };
-
-    const getDisabledStyle = (): ViewStyle => {
-        switch (variant) {
-            case 'basePrimary':
-            case 'baseSecondary':
-                return {
-                    backgroundColor: theme.colors.surfaceVariant,
-                    borderColor: theme.colors.border,
-                };
-            default:
-                return styles[`${variant}Disabled` as keyof typeof styles] as ViewStyle;
-        }
-    };
-
-    const buttonStyle = [
-        styles.base,
-        getVariantStyle(),
-        styles[size],
-        fullWidth && styles.fullWidth,
-        (disabled || loading) && styles.disabled,
-        (disabled || loading) && getDisabledStyle(),
-        style,
-    ].filter(Boolean);
-
-    const getVariantTextStyle = (): TextStyle => {
-        switch (variant) {
-            case 'basePrimary':
-                return {
-                    color: theme.colors.onPrimary,
-                    ...Typography.styles.body,
-                };
-            case 'baseSecondary':
-                return {
-                    color: theme.colors.text,
-                    ...Typography.styles.body,
-                };
-            default:
-                return styles[`${variant}Text` as keyof typeof styles] as TextStyle;
-        }
-    };
-
-    const getDisabledTextStyle = (): TextStyle => {
-        if (variant === 'basePrimary' || variant === 'baseSecondary') {
-            return { color: theme.colors.textTertiary };
-        }
-        return styles[`${variant}TextDisabled` as keyof typeof styles] as TextStyle;
-    };
-
-    const textStyleCombined = [
-        styles.text,
-        getVariantTextStyle(),
-        styles[`${size}Text`],
-        (disabled || loading) && getDisabledTextStyle(),
-        textStyle,
-    ].filter(Boolean);
 
     const renderContent = () => {
         if (loading) {
             return (
-                <View style={styles.loadingContainer}>
+                <View style={styles.contentContainer}>
                     <ActivityIndicator
-                        size={size === 'small' ? 'small' : 'small'}
-                        color={
-                            variant === 'primary' || variant === 'danger' || variant === 'basePrimary'
-                                ? Colors.neutral[0]
-                                : variant === 'baseSecondary'
-                                    ? theme.colors.primary[500]
-                                    : Colors.primary[500]
-                        }
+                        size="small"
+                        color={getActivityIndicatorColor()}
                     />
-                    <Text style={[textStyleCombined, styles.loadingText]}>{title}</Text>
+                    <Text style={getTextStyles().concat(styles.loadingText)}>
+                        {title}
+                    </Text>
                 </View>
             );
         }
@@ -154,7 +215,7 @@ export const Button: React.FC<ButtonProps> = ({
                 {icon && iconPosition === 'left' && (
                     <View style={[styles.icon, styles.iconLeft]}>{icon}</View>
                 )}
-                <Text style={textStyleCombined}>{title}</Text>
+                <Text style={getTextStyles()}>{title}</Text>
                 {icon && iconPosition === 'right' && (
                     <View style={[styles.icon, styles.iconRight]}>{icon}</View>
                 )}
@@ -164,14 +225,18 @@ export const Button: React.FC<ButtonProps> = ({
 
     return (
         <TouchableOpacity
-            style={buttonStyle}
+            style={getButtonStyles()}
             onPress={handlePress}
             disabled={disabled || loading}
-            activeOpacity={0.8}
+            activeOpacity={0.7}
             testID={testID}
             accessibilityRole="button"
-            accessibilityLabel={title}
-            accessibilityState={{ disabled: disabled || loading }}
+            accessibilityLabel={loading ? `Loading ${title}` : title}
+            accessibilityHint={loading ? "Button is loading, please wait" : undefined}
+            accessibilityState={{
+                disabled: disabled || loading,
+                busy: loading
+            }}
         >
             {renderContent()}
         </TouchableOpacity>
@@ -179,158 +244,60 @@ export const Button: React.FC<ButtonProps> = ({
 };
 
 const styles = StyleSheet.create({
-    base: {
-        borderRadius: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'row',
-        borderWidth: 1,
-        borderColor: 'transparent',
-    },
-
-    // Variants
-    primary: {
-        backgroundColor: Colors.primary[500],
-        ...Shadows.ios.small,
-        ...Shadows.android.small,
-    },
-    secondary: {
-        backgroundColor: Colors.neutral[100],
-        borderColor: Colors.neutral[200],
-    },
-    outline: {
-        backgroundColor: 'transparent',
-        borderColor: Colors.primary[500],
-    },
-    ghost: {
-        backgroundColor: 'transparent',
-    },
-    danger: {
-        backgroundColor: Colors.error[500],
-        ...Shadows.ios.small,
-        ...Shadows.android.small,
-    },
-
     // Sizes
     small: {
-        paddingHorizontal: Spacing.md, // 16px instead of 8px
-        paddingVertical: Spacing.sm,   // 8px instead of 4px
-        minHeight: 40,                 // 40px instead of 36px
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        minHeight: 40,
     },
     medium: {
-        paddingHorizontal: Spacing.xl, // 24px instead of 20px
-        paddingVertical: Spacing.md,   // 16px instead of 8px
-        minHeight: 48,                 // 48px instead of 44px
+        paddingHorizontal: 24,
+        paddingVertical: 12,
+        minHeight: 48,
     },
     large: {
-        paddingHorizontal: Spacing['2xl'], // 32px instead of 24px
-        paddingVertical: Spacing.lg,       // 20px instead of 16px
-        minHeight: 56,                     // 56px instead of 52px
+        paddingHorizontal: 32,
+        paddingVertical: 16,
+        minHeight: 56,
     },
 
-    // Text variants
-    text: {
-        fontWeight: Typography.weights.semibold,
-        textAlign: 'center' as const,
-    },
-    primaryText: {
-        color: Colors.neutral[0],
-        ...Typography.styles.body,
-    },
-    secondaryText: {
-        color: Colors.neutral[700],
-        ...Typography.styles.body,
-    },
-    outlineText: {
-        color: Colors.primary[500],
-        ...Typography.styles.body,
-    },
-    ghostText: {
-        color: Colors.primary[500],
-        ...Typography.styles.body,
-    },
-    dangerText: {
-        color: Colors.neutral[0],
-        ...Typography.styles.body,
-    },
-
-    // Text sizes
+    // Text sizes with explicit values
     smallText: {
-        ...Typography.styles.bodySmall,
+        fontSize: 14,
+        lineHeight: 20,
     },
     mediumText: {
-        ...Typography.styles.body,
+        fontSize: 16,
+        lineHeight: 24,
     },
     largeText: {
-        ...Typography.styles.bodyLarge,
-    },
-
-    // Disabled states
-    disabled: {
-        opacity: 0.6,
-    },
-    primaryDisabled: {
-        backgroundColor: Colors.neutral[300],
-    },
-    secondaryDisabled: {
-        backgroundColor: Colors.neutral[100],
-    },
-    outlineDisabled: {
-        borderColor: Colors.neutral[300],
-    },
-    ghostDisabled: {},
-    dangerDisabled: {
-        backgroundColor: Colors.neutral[300],
-    },
-
-    // Disabled text
-    primaryTextDisabled: {
-        color: Colors.neutral[500],
-    },
-    secondaryTextDisabled: {
-        color: Colors.neutral[500],
-    },
-    outlineTextDisabled: {
-        color: Colors.neutral[500],
-    },
-    ghostTextDisabled: {
-        color: Colors.neutral[500],
-    },
-    dangerTextDisabled: {
-        color: Colors.neutral[500],
+        fontSize: 18,
+        lineHeight: 28,
     },
 
     // Layout
     fullWidth: {
         width: '100%',
     },
-
-    // Content
     contentContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-    },
-    loadingContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
+        flex: 1,
     },
     loadingText: {
-        marginLeft: Spacing.xs,
+        marginLeft: 8,
     },
-
-    // Icons
     icon: {
         alignItems: 'center',
         justifyContent: 'center',
     },
     iconLeft: {
-        marginRight: Spacing.xs,
+        marginRight: 8,
     },
     iconRight: {
-        marginLeft: Spacing.xs,
+        marginLeft: 8,
     },
 });
 
-export default Button;
+export default Button

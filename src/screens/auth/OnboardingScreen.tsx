@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackScreenProps } from '../../app/navigation/types';
-import { Button, Card, Input } from '../../components/ui';
+import { Button, Input } from '../../components/ui';
 import AppInitializationService from '../../services/storage/appInitialization';
 import { getSupportedCurrencies } from '../../utils/helpers/currencyUtils';
 import { validateAccountName, validateRequired } from '../../utils/helpers/validationUtils';
@@ -134,7 +134,7 @@ const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
   );
 
   const renderStep2 = () => (
-    <Card style={styles.card}>
+    <>
       <Text style={styles.stepTitle}>Create Your First Account</Text>
       <Text style={styles.stepDescription}>
         Add your first account to start tracking transactions.
@@ -176,11 +176,11 @@ const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
           inputStyle={styles.input}
         />
       </View>
-    </Card>
+    </>
   );
 
   const renderStep3 = () => (
-    <Card style={styles.card}>
+    <>
       <Text style={styles.stepTitle}>You're All Set!</Text>
       <Text style={styles.stepDescription}>
         Review your setup and start tracking your finances.
@@ -208,7 +208,7 @@ const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
           🎉 You're ready to start managing your finances!
         </Text>
       </View>
-    </Card>
+    </>
   );
 
   const renderStepContent = () => {

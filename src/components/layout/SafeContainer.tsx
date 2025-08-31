@@ -1,8 +1,8 @@
 // src/components/layout/SafeContainer.tsx
 import React from 'react';
-import { View, StyleSheet, ViewStyle } from 'react-native';
+import { View, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Spacing } from '../../theme';
+import { Spacing, lightTheme } from '../../theme';
 
 interface SafeContainerProps {
     children: React.ReactNode;
@@ -16,18 +16,20 @@ export const SafeContainer: React.FC<SafeContainerProps> = ({
     children,
     style,
     padding = 'md',
-    backgroundColor = '#FFFFFF',
+    backgroundColor = lightTheme.colors.background,
     edges = ['top', 'bottom', 'left', 'right'],
 }) => {
     const insets = useSafeAreaInsets();
 
+    const spacingValue = typeof Spacing[padding] === 'number' ? Spacing[padding] : Spacing.md;
+    
     const containerStyle: ViewStyle = {
         flex: 1,
         backgroundColor,
-        paddingTop: edges.includes('top') ? Math.max(insets.top, Spacing[padding]) : 0,
-        paddingBottom: edges.includes('bottom') ? Math.max(insets.bottom, Spacing[padding]) : 0,
-        paddingLeft: edges.includes('left') ? Math.max(insets.left, Spacing[padding]) : 0,
-        paddingRight: edges.includes('right') ? Math.max(insets.right, Spacing[padding]) : 0,
+        paddingTop: edges.includes('top') ? Math.max(insets.top, spacingValue) : 0,
+        paddingBottom: edges.includes('bottom') ? Math.max(insets.bottom, spacingValue) : 0,
+        paddingLeft: edges.includes('left') ? Math.max(insets.left, spacingValue) : 0,
+        paddingRight: edges.includes('right') ? Math.max(insets.right, spacingValue) : 0,
     };
 
     return (

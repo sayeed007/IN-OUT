@@ -9,6 +9,7 @@ import {
     ViewStyle,
     TextStyle,
     useColorScheme,
+    Platform,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -19,6 +20,7 @@ import Animated, {
     interpolateColor,
 } from 'react-native-reanimated';
 import { RootState } from '../../state/store';
+import { getTheme } from '../../theme';
 
 interface InputProps extends Omit<TextInputProps, 'style'> {
     label?: string;
@@ -49,33 +51,16 @@ const Input = forwardRef<TextInput, InputProps>(({
     ...props
 }, ref) => {
     const colorScheme = useColorScheme();
-    const theme = useSelector((state: RootState) =>
+    const themeMode = useSelector((state: RootState) =>
         state.preferences.theme === 'system' ? colorScheme : state.preferences.theme
     );
+
+    const theme = getTheme(themeMode === 'dark' ? 'dark' : 'light');
 
     const [isFocused, setIsFocused] = useState(false);
     const focusAnimation = useSharedValue(0);
 
-    const isDark = theme === 'dark';
-
-    // Theme colors
-    const colors = {
-        primary: '#6366F1',
-        primaryLight: '#818CF8',
-        success: '#10B981',
-        error: '#EF4444',
-        background: isDark ? '#0A0A0B' : '#FFFFFF',
-        surface: isDark ? '#1F1F23' : '#FFFFFF',
-        surfaceVariant: isDark ? '#2D2D32' : '#F5F5F7',
-        text: isDark ? '#FFFFFF' : '#000000',
-        textSecondary: isDark ? '#A1A1AA' : '#6B7280',
-        textTertiary: isDark ? '#71717A' : '#9CA3AF',
-        border: isDark ? '#3F3F46' : '#D1D5DB',
-        borderFocus: isDark ? '#6366F1' : '#6366F1',
-        borderError: isDark ? '#EF4444' : '#EF4444',
-    };
-
-    // Size configurations
+    // Size configurations with better text centering
     const sizeConfig = {
         small: {
             height: 40,
@@ -83,6 +68,8 @@ const Input = forwardRef<TextInput, InputProps>(({
             paddingHorizontal: 12,
             iconSize: 18,
             labelSize: 12,
+            // Platform-specific adjustments for better centering
+            paddingVertical: Platform.OS === 'android' ? 8 : 0,
         },
         medium: {
             height: 48,
@@ -90,6 +77,7 @@ const Input = forwardRef<TextInput, InputProps>(({
             paddingHorizontal: 16,
             iconSize: 20,
             labelSize: 14,
+            paddingVertical: Platform.OS === 'android' ? 10 : 0,
         },
         large: {
             height: 56,
@@ -97,6 +85,7 @@ const Input = forwardRef<TextInput, InputProps>(({
             paddingHorizontal: 20,
             iconSize: 24,
             labelSize: 16,
+            paddingVertical: Platform.OS === 'android' ? 14 : 0,
         },
     };
 
@@ -106,7 +95,6 @@ const Input = forwardRef<TextInput, InputProps>(({
         fontSize: config.labelSize,
         marginBottom: 6,
     };
-
 
     const handleFocus = (e: any) => {
         setIsFocused(true);
@@ -122,11 +110,11 @@ const Input = forwardRef<TextInput, InputProps>(({
 
     const animatedBorderStyle = useAnimatedStyle(() => {
         const borderColor = error
-            ? colors.borderError
+            ? theme.colors.error[500]
             : interpolateColor(
                 focusAnimation.value,
                 [0, 1],
-                [colors.border, colors.borderFocus]
+                [theme.colors.border, theme.colors.primary[500]]
             );
 
         return {
@@ -137,11 +125,11 @@ const Input = forwardRef<TextInput, InputProps>(({
 
     const animatedLabelStyle = useAnimatedStyle(() => {
         const labelColor = error
-            ? colors.borderError
+            ? theme.colors.error[500]
             : interpolateColor(
                 focusAnimation.value,
                 [0, 1],
-                [colors.textSecondary, colors.primary]
+                [theme.colors.textSecondary, theme.colors.primary[500]]
             );
 
         return {
@@ -152,18 +140,20 @@ const Input = forwardRef<TextInput, InputProps>(({
     const getContainerStyle = (): ViewStyle => {
         const baseStyle: ViewStyle = {
             borderRadius: 12,
-            backgroundColor: variant === 'filled' ? colors.surfaceVariant : colors.surface,
+            backgroundColor: variant === 'filled' ? theme.colors.surfaceVariant : theme.colors.surface,
             height: config.height,
             flexDirection: 'row',
             alignItems: 'center',
             paddingHorizontal: config.paddingHorizontal,
+            // Ensure proper alignment
+            justifyContent: 'center',
         };
 
         if (variant === 'outlined') {
             return {
                 ...baseStyle,
                 borderWidth: 1,
-                borderColor: error ? colors.borderError : colors.border,
+                borderColor: error ? theme.colors.error[500] : theme.colors.border,
             };
         }
 
@@ -173,10 +163,25 @@ const Input = forwardRef<TextInput, InputProps>(({
     const getTextInputStyle = (): TextStyle => ({
         flex: 1,
         fontSize: config.fontSize,
-        color: colors.text,
-        paddingVertical: 0,
+        color: theme.colors.text,
+        // Critical fixes for text centering
+        paddingVertical: config.paddingVertical,
+        paddingTop: Platform.OS === 'android' ? config.paddingVertical : 0,
+        paddingBottom: Platform.OS === 'android' ? config.paddingVertical : 0,
         marginLeft: leftIcon ? 8 : 0,
         marginRight: rightIcon ? 8 : 0,
+        textAlignVertical: 'center',
+        includeFontPadding: false,
+        // Additional Android-specific fixes
+        ...(Platform.OS === 'android' && {
+            textAlignVertical: 'center',
+            height: '100%',
+        }),
+        // iOS-specific fixes
+        ...(Platform.OS === 'ios' && {
+            lineHeight: config.fontSize * 1.2,
+        }),
+        marginTop: 15,
     });
 
     return (
@@ -189,7 +194,7 @@ const Input = forwardRef<TextInput, InputProps>(({
                 ]}>
                     {label}
                     {required && (
-                        <Text style={{ color: colors.error }}> *</Text>
+                        <Text style={{ color: theme.colors.error[500] }}> *</Text>
                     )}
                 </Animated.Text>
             )}
@@ -197,22 +202,30 @@ const Input = forwardRef<TextInput, InputProps>(({
             <Animated.View style={[
                 getContainerStyle(),
                 variant === 'outlined' && animatedBorderStyle,
-                isFocused && styles.focused,
+                isFocused && {
+                    ...styles.focused,
+                    shadowColor: theme.colors.primary[500],
+                },
             ]}>
                 {leftIcon && (
                     <Icon
                         name={leftIcon}
                         size={config.iconSize}
-                        color={error ? colors.borderError : isFocused ? colors.primary : colors.textSecondary}
+                        color={error ? theme.colors.error[500] : isFocused ? theme.colors.primary[500] : theme.colors.textSecondary}
+                        style={styles.leftIcon}
                     />
                 )}
 
                 <TextInput
                     ref={ref}
                     style={[getTextInputStyle(), inputStyle]}
-                    placeholderTextColor={colors.textTertiary}
+                    placeholderTextColor={theme.colors.textTertiary}
                     onFocus={handleFocus}
                     onBlur={handleBlur}
+                    // Additional props for better text centering
+                    multiline={false}
+                    textContentType="none"
+                    autoCorrect={false}
                     {...props}
                 />
 
@@ -225,7 +238,7 @@ const Input = forwardRef<TextInput, InputProps>(({
                         <Icon
                             name={rightIcon}
                             size={config.iconSize}
-                            color={error ? colors.borderError : isFocused ? colors.primary : colors.textSecondary}
+                            color={error ? theme.colors.error[500] : isFocused ? theme.colors.primary[500] : theme.colors.textSecondary}
                         />
                     </TouchableOpacity>
                 )}
@@ -235,7 +248,7 @@ const Input = forwardRef<TextInput, InputProps>(({
                 <Text style={[
                     styles.helperText,
                     {
-                        color: error ? colors.error : colors.textSecondary,
+                        color: error ? theme.colors.error[500] : theme.colors.textSecondary,
                         fontSize: config.labelSize,
                     }
                 ]}>
@@ -254,7 +267,6 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     focused: {
-        shadowColor: '#6366F1',
         shadowOffset: {
             width: 0,
             height: 2,
@@ -263,8 +275,12 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 2,
     },
+    leftIcon: {
+        marginRight: 8,
+    },
     rightIconContainer: {
         padding: 4,
+        marginLeft: 8,
     },
     helperText: {
         marginTop: 6,

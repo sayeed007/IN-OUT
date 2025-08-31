@@ -385,8 +385,8 @@ export const TransactionListScreen: React.FC = () => {
                             <RefreshControl
                                 refreshing={refreshing}
                                 onRefresh={handleRefresh}
-                                colors={[theme.colors.primary]}
-                                tintColor={theme.colors.primary}
+                                colors={[theme.colors.primary[500]]}
+                                tintColor={theme.colors.primary[500]}
                             />
                         }
                         showsVerticalScrollIndicator={false}

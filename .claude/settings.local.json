@@ -4,7 +4,12 @@
       "Bash(npm start)",
       "Bash(npx react-native run-android:*)",
       "Bash(npx tsc:*)",
-      "Bash(node test-imports.js)"
+      "Bash(node test-imports.js)",
+      "Bash(npm install:*)",
+      "Bash(npx react-native start:*)",
+      "Bash(taskkill:*)",
+      "Bash(npm run start:*)",
+      "Bash(npm run lint)"
     ],
     "deny": [],
     "ask": []

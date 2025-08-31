@@ -1,5 +1,5 @@
 // src/screens/dashboard/components/MonthSelector.tsx
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -23,6 +23,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
   const { theme } = useTheme();
   const [showYearSelector, setShowYearSelector] = useState(false);
   const fadeAnim = new Animated.Value(1);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   // Generate last 6 months and next 6 months
   const months = React.useMemo(() => {
@@ -103,6 +104,77 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
     handleMonthSelect(current);
   };
 
+  // Auto-scroll to selected month when component mounts or selectedMonth changes
+  useEffect(() => {
+    if (scrollViewRef.current && !showYearSelector) {
+      const selectedIndex = months.findIndex(month => month.isSelected);
+      if (selectedIndex >= 0) {
+        const scrollToX = selectedIndex * 68 - 50; // 68 = width + margin, 50 = offset
+        setTimeout(() => {
+          scrollViewRef.current?.scrollTo({
+            x: Math.max(0, scrollToX),
+            animated: true,
+          });
+        }, 100);
+      }
+    }
+  }, [selectedMonth, months, showYearSelector]);
+
+  // Create dynamic styles to replace inline styles
+  const getDynamicStyles = () => {
+    return StyleSheet.create({
+      yearItemSelected: {
+        backgroundColor: theme.colors.primary[500] + '15',
+      },
+      yearItemDefault: {
+        backgroundColor: 'transparent',
+      },
+      yearTextSelected: {
+        color: theme.colors.primary[500],
+        fontWeight: '600' as const,
+      },
+      yearTextDefault: {
+        color: theme.colors.text,
+        fontWeight: '400' as const,
+      },
+      monthChipSelected: {
+        backgroundColor: theme.colors.primary[500],
+        borderColor: 'transparent',
+        borderWidth: 0,
+      },
+      monthChipCurrent: {
+        backgroundColor: theme.colors.background,
+        borderColor: theme.colors.primary[500],
+        borderWidth: 1,
+      },
+      monthChipDefault: {
+        backgroundColor: theme.colors.background,
+        borderColor: 'transparent',
+        borderWidth: 0,
+      },
+      monthChipTextSelected: {
+        color: theme.colors.onPrimary,
+        fontWeight: '600' as const,
+      },
+      monthChipTextCurrent: {
+        color: theme.colors.primary[500],
+        fontWeight: '600' as const,
+      },
+      monthChipTextDefault: {
+        color: theme.colors.text,
+        fontWeight: '400' as const,
+      },
+      currentIndicatorSelected: {
+        backgroundColor: theme.colors.onPrimary,
+      },
+      currentIndicatorDefault: {
+        backgroundColor: theme.colors.primary[500],
+      },
+    });
+  };
+
+  const dynamicStyles = getDynamicStyles();
+
   if (showYearSelector) {
     return (
       <View style={[styles.container, { backgroundColor: theme.colors.surface }]}>
@@ -112,7 +184,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
             style={styles.backButton}
             activeOpacity={0.7}
           >
-            <Text style={[styles.backText, { color: theme.colors.primary }]}>
+            <Text style={[styles.backText, { color: theme.colors.primary[500] }]}>
               ← Back
             </Text>
           </TouchableOpacity>
@@ -132,22 +204,17 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
               onPress={() => handleYearSelect(year)}
               style={[
                 styles.yearItem,
-                {
-                  backgroundColor: dayjs(selectedMonth).year() === year
-                    ? theme.colors.primary + '15'
-                    : 'transparent',
-                }
+                dayjs(selectedMonth).year() === year
+                  ? dynamicStyles.yearItemSelected
+                  : dynamicStyles.yearItemDefault
               ]}
               activeOpacity={0.7}
             >
               <Text style={[
                 styles.yearText,
-                {
-                  color: dayjs(selectedMonth).year() === year
-                    ? theme.colors.primary
-                    : theme.colors.text,
-                  fontWeight: dayjs(selectedMonth).year() === year ? '600' : '400',
-                }
+                dayjs(selectedMonth).year() === year
+                  ? dynamicStyles.yearTextSelected
+                  : dynamicStyles.yearTextDefault
               ]}>
                 {year}
               </Text>
@@ -172,7 +239,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
           style={styles.navButton}
           activeOpacity={0.7}
         >
-          <Text style={[styles.navButtonText, { color: theme.colors.primary }]}>
+          <Text style={[styles.navButtonText, { color: theme.colors.primary[500] }]}>
             ←
           </Text>
         </TouchableOpacity>
@@ -195,7 +262,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
           style={styles.navButton}
           activeOpacity={0.7}
         >
-          <Text style={[styles.navButtonText, { color: theme.colors.primary }]}>
+          <Text style={[styles.navButtonText, { color: theme.colors.primary[500] }]}>
             →
           </Text>
         </TouchableOpacity>
@@ -203,6 +270,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
 
       {/* Month slider */}
       <ScrollView
+        ref={scrollViewRef}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.monthsContainer}
@@ -214,39 +282,30 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
             onPress={() => handleMonthSelect(month.value)}
             style={[
               styles.monthChip,
-              {
-                backgroundColor: month.isSelected
-                  ? theme.colors.primary
-                  : theme.colors.background,
-                borderColor: month.isCurrent && !month.isSelected
-                  ? theme.colors.primary
-                  : 'transparent',
-                borderWidth: month.isCurrent && !month.isSelected ? 1 : 0,
-              }
+              month.isSelected
+                ? dynamicStyles.monthChipSelected
+                : month.isCurrent
+                  ? dynamicStyles.monthChipCurrent
+                  : dynamicStyles.monthChipDefault
             ]}
             activeOpacity={0.8}
           >
             <Text style={[
               styles.monthChipText,
-              {
-                color: month.isSelected
-                  ? theme.colors.onPrimary
-                  : month.isCurrent
-                    ? theme.colors.primary
-                    : theme.colors.text,
-                fontWeight: month.isSelected || month.isCurrent ? '600' : '400',
-              }
+              month.isSelected
+                ? dynamicStyles.monthChipTextSelected
+                : month.isCurrent
+                  ? dynamicStyles.monthChipTextCurrent
+                  : dynamicStyles.monthChipTextDefault
             ]}>
               {month.label}
             </Text>
             {month.isCurrent && (
               <View style={[
                 styles.currentIndicator,
-                {
-                  backgroundColor: month.isSelected
-                    ? theme.colors.onPrimary
-                    : theme.colors.primary,
-                }
+                month.isSelected
+                  ? dynamicStyles.currentIndicatorSelected
+                  : dynamicStyles.currentIndicatorDefault
               ]} />
             )}
           </TouchableOpacity>
@@ -258,10 +317,10 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
         {!dayjs(selectedMonth).isSame(dayjs(), 'month') && (
           <TouchableOpacity
             onPress={goToCurrentMonth}
-            style={[styles.todayButton, { borderColor: theme.colors.primary }]}
+            style={[styles.todayButton, { borderColor: theme.colors.primary[500] }]}
             activeOpacity={0.7}
           >
-            <Text style={[styles.todayButtonText, { color: theme.colors.primary }]}>
+            <Text style={[styles.todayButtonText, { color: theme.colors.primary[500] }]}>
               This Month
             </Text>
           </TouchableOpacity>
@@ -275,7 +334,7 @@ const styles = StyleSheet.create({
   container: {
     paddingVertical: 16,
     paddingHorizontal: 16,
-    marginHorizontal: 16,
+    marginHorizontal: 4,
     marginBottom: 12,
     borderRadius: 12,
     elevation: 2,

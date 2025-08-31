@@ -88,7 +88,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
     }, [progress, animated]);
 
     const progressStyle = useAnimatedStyle(() => {
-        const width = `${progressAnimation.value}%`;
+        const width = `${progressAnimation.value}%` as const;
 
         // Color transitions for different progress levels
         const dynamicColor = variant === 'default'

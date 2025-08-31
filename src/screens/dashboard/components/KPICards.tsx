@@ -8,8 +8,8 @@ import {
     Animated,
     Easing,
 } from 'react-native';
-import { Card } from '../../../components/ui/Card';
-import { ProgressBar } from '../../../components/ui/ProgressBar';
+import Card from '../../../components/ui/Card';
+import ProgressBar from '../../../components/ui/ProgressBar';
 import { useTheme } from '../../../app/providers/ThemeProvider';
 import { useNavigation } from '@react-navigation/native';
 
@@ -31,7 +31,7 @@ export const KPICards: React.FC<KPICardsProps> = ({
     budgetPercentage,
 }) => {
     const { theme } = useTheme();
-    const navigation = useNavigation();
+    const navigation = useNavigation<any>();
     const animatedValue = new Animated.Value(0);
 
     React.useEffect(() => {
@@ -44,9 +44,9 @@ export const KPICards: React.FC<KPICardsProps> = ({
     }, []);
 
     const getBudgetColor = (percentage: number) => {
-        if (percentage >= 100) return theme.colors.error;
-        if (percentage >= 80) return theme.colors.warning;
-        return theme.colors.success;
+        if (percentage >= 100) return theme.colors.error[500];
+        if (percentage >= 80) return theme.colors.warning[500];
+        return theme.colors.success[500];
     };
 
     const getBudgetStatus = (percentage: number) => {
@@ -58,13 +58,13 @@ export const KPICards: React.FC<KPICardsProps> = ({
     const handleCardPress = (type: string) => {
         switch (type) {
             case 'income':
-                navigation.navigate('TransactionList', { filter: { type: 'income' } });
+                navigation.navigate('Transactions', { filter: { type: 'income' } });
                 break;
             case 'expense':
-                navigation.navigate('TransactionList', { filter: { type: 'expense' } });
+                navigation.navigate('Transactions', { filter: { type: 'expense' } });
                 break;
             case 'budget':
-                navigation.navigate('Budget');
+                navigation.navigate('Settings');
                 break;
             default:
                 break;
@@ -73,6 +73,7 @@ export const KPICards: React.FC<KPICardsProps> = ({
 
     return (
         <View style={styles.container}>
+
             {/* Income & Expense Row */}
             <View style={styles.row}>
                 <Animated.View
@@ -95,16 +96,16 @@ export const KPICards: React.FC<KPICardsProps> = ({
                         onPress={() => handleCardPress('income')}
                         activeOpacity={0.8}
                     >
-                        <Card style={[styles.kpiCard, styles.incomeCard]}>
+                        <Card style={StyleSheet.flatten([styles.kpiCard, styles.incomeCard])}>
                             <View style={styles.cardHeader}>
-                                <View style={[styles.iconContainer, { backgroundColor: theme.colors.success + '20' }]}>
-                                    <Text style={[styles.icon, { color: theme.colors.success }]}>↗</Text>
+                                <View style={[styles.iconContainer, { backgroundColor: (theme.colors.success[500]) + '20' }]}>
+                                    <Text style={[styles.icon, { color: theme.colors.success[500] }]}>↗</Text>
                                 </View>
                                 <Text style={[styles.cardTitle, { color: theme.colors.textSecondary }]}>
                                     Income
                                 </Text>
                             </View>
-                            <Text style={[styles.amount, { color: theme.colors.success }]}>
+                            <Text style={[styles.amount, { color: theme.colors.success[500] }]}>
                                 +${income.toFixed(2)}
                             </Text>
                             <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
@@ -134,16 +135,16 @@ export const KPICards: React.FC<KPICardsProps> = ({
                         onPress={() => handleCardPress('expense')}
                         activeOpacity={0.8}
                     >
-                        <Card style={[styles.kpiCard, styles.expenseCard]}>
+                        <Card style={StyleSheet.flatten([styles.kpiCard, styles.expenseCard])}>
                             <View style={styles.cardHeader}>
-                                <View style={[styles.iconContainer, { backgroundColor: theme.colors.error + '20' }]}>
-                                    <Text style={[styles.icon, { color: theme.colors.error }]}>↙</Text>
+                                <View style={[styles.iconContainer, { backgroundColor: (theme.colors.error[500]) + '20' }]}>
+                                    <Text style={[styles.icon, { color: theme.colors.error[500] }]}>↙</Text>
                                 </View>
                                 <Text style={[styles.cardTitle, { color: theme.colors.textSecondary }]}>
                                     Expenses
                                 </Text>
                             </View>
-                            <Text style={[styles.amount, { color: theme.colors.error }]}>
+                            <Text style={[styles.amount, { color: theme.colors.error[500] }]}>
                                 -${expense.toFixed(2)}
                             </Text>
                             <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
@@ -170,7 +171,7 @@ export const KPICards: React.FC<KPICardsProps> = ({
                     },
                 ]}
             >
-                <Card style={[styles.netCard, { marginHorizontal: 16, marginBottom: 12 }]}>
+                <Card style={styles.netCard}>
                     <View style={styles.netHeader}>
                         <View>
                             <Text style={[styles.netLabel, { color: theme.colors.textSecondary }]}>
@@ -178,18 +179,18 @@ export const KPICards: React.FC<KPICardsProps> = ({
                             </Text>
                             <Text style={[
                                 styles.netAmount,
-                                { color: net >= 0 ? theme.colors.success : theme.colors.error }
+                                { color: net >= 0 ? (theme.colors.success[500]) : (theme.colors.error[500]) }
                             ]}>
                                 {net >= 0 ? '+' : ''}${net.toFixed(2)}
                             </Text>
                         </View>
                         <View style={[
                             styles.netBadge,
-                            { backgroundColor: net >= 0 ? theme.colors.success + '20' : theme.colors.error + '20' }
+                            { backgroundColor: net >= 0 ? (theme.colors.success[500]) + '20' : (theme.colors.error[500]) + '20' }
                         ]}>
                             <Text style={[
                                 styles.netBadgeText,
-                                { color: net >= 0 ? theme.colors.success : theme.colors.error }
+                                { color: net >= 0 ? (theme.colors.success[500]) : (theme.colors.error[500]) }
                             ]}>
                                 {net >= 0 ? 'Positive' : 'Negative'}
                             </Text>
@@ -219,7 +220,7 @@ export const KPICards: React.FC<KPICardsProps> = ({
                         onPress={() => handleCardPress('budget')}
                         activeOpacity={0.8}
                     >
-                        <Card style={[styles.budgetCard, { marginHorizontal: 16 }]}>
+                        <Card style={StyleSheet.flatten([styles.budgetCard, { marginHorizontal: 16 }])}>
                             <View style={styles.budgetHeader}>
                                 <View>
                                     <Text style={[styles.budgetTitle, { color: theme.colors.text }]}>
@@ -244,7 +245,7 @@ export const KPICards: React.FC<KPICardsProps> = ({
 
                             <View style={styles.progressContainer}>
                                 <ProgressBar
-                                    progress={Math.min(budgetPercentage / 100, 1)}
+                                    progress={budgetPercentage}
                                     color={getBudgetColor(budgetPercentage)}
                                     height={8}
                                     animated
@@ -263,33 +264,31 @@ export const KPICards: React.FC<KPICardsProps> = ({
 
 const styles = StyleSheet.create({
     container: {
-        paddingHorizontal: 4,
     },
     row: {
         flexDirection: 'row',
-        marginHorizontal: 12,
-        marginBottom: 12,
     },
     cardContainer: {
         flex: 1,
-        marginHorizontal: 4,
     },
     kpiCard: {
-        padding: 16,
         minHeight: 120,
     },
     incomeCard: {
-        borderLeftWidth: 4,
-        borderLeftColor: '#10B981', // Green
+        borderWidth: 1,
+        borderTopWidth: 1,
+        borderLeftWidth: 5,
+        borderColor: '#10B981', // Green
     },
     expenseCard: {
-        borderLeftWidth: 4,
-        borderLeftColor: '#EF4444', // Red
+        borderWidth: 1,
+        borderLeftWidth: 5,
+        borderColor: '#EF4444', // Red
     },
     cardHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 12,
+        marginBottom: 6,
     },
     iconContainer: {
         width: 32,
@@ -297,7 +296,7 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 8,
+        marginRight: 6,
     },
     icon: {
         fontSize: 16,
@@ -316,7 +315,8 @@ const styles = StyleSheet.create({
         fontSize: 12,
     },
     netCard: {
-        padding: 16,
+        padding: 0,
+        paddingVertical: 8,
     },
     netHeader: {
         flexDirection: 'row',
