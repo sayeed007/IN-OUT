@@ -10,8 +10,8 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { Area, CartesianChart } from 'victory-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { Area, CartesianChart } from 'victory-native';
 import { useTheme } from '../../app/providers/ThemeProvider';
 import { SafeContainer } from '../../components/layout/SafeContainer';
 import Card from '../../components/ui/Card';
