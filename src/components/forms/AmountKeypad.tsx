@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Spacing } from '../../theme';
 
 interface AmountKeypadProps {
     value: string;
@@ -152,67 +151,89 @@ export const AmountKeypad: React.FC<AmountKeypadProps> = ({
 };
 
 const styles = StyleSheet.create({
-    container: {
+    modalContainer: {
+        flex: 1,
         backgroundColor: '#FFFFFF',
-        borderRadius: 16,
-        padding: Spacing.lg,
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 4,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#E5E7EB',
+    },
+    closeButton: {
+        padding: 4,
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#111827',
+    },
+    doneHeaderButton: {
+        paddingVertical: 8,
+        paddingHorizontal: 4,
+    },
+    doneHeaderButtonText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#6366F1',
+    },
+    container: {
+        flex: 1,
+        padding: 10,
+        justifyContent: 'center',
     },
     displayContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingVertical: Spacing.md,
-        paddingHorizontal: Spacing.lg,
+        paddingVertical: 10,
+        paddingHorizontal: 14,
         backgroundColor: '#F8F9FA',
-        borderRadius: 12,
-        marginBottom: Spacing.lg,
+        borderRadius: 6,
+        marginBottom: 12,
     },
     currencyCode: {
-        fontSize: 16,
+        fontSize: 12,
         fontWeight: '600',
         color: '#6B7280',
     },
     amountText: {
-        fontSize: 32,
+        fontSize: 20,
         fontWeight: '700',
         color: '#111827',
         flex: 1,
         textAlign: 'center',
     },
     clearButton: {
-        paddingHorizontal: Spacing.sm,
-        paddingVertical: Spacing.xs,
+        paddingHorizontal: 6,
+        paddingVertical: 4,
     },
     clearButtonText: {
-        fontSize: 14,
+        fontSize: 11,
         fontWeight: '500',
         color: '#EF4444',
     },
     keypadContainer: {
-        gap: Spacing.sm,
+        gap: 6,
     },
     row: {
         flexDirection: 'row',
-        gap: Spacing.sm,
+        gap: 6,
     },
     key: {
         flex: 1,
-        height: 56,
+        height: 40,
         backgroundColor: '#F3F4F6',
-        borderRadius: 12,
+        borderRadius: 6,
         justifyContent: 'center',
         alignItems: 'center',
     },
     keyText: {
-        fontSize: 20,
+        fontSize: 16,
         fontWeight: '600',
         color: '#111827',
     },
@@ -230,13 +251,14 @@ const styles = StyleSheet.create({
     },
     doneButton: {
         backgroundColor: '#6366F1',
-        borderRadius: 12,
-        paddingVertical: Spacing.md,
-        marginTop: Spacing.lg,
+        borderRadius: 6,
+        paddingVertical: 10,
+        marginTop: 6,
+        justifyContent: 'center',
         alignItems: 'center',
     },
     doneButtonText: {
-        fontSize: 16,
+        fontSize: 13,
         fontWeight: '600',
         color: '#FFFFFF',
     },

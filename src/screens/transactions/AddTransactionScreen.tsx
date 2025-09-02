@@ -1,36 +1,42 @@
 // src/screens/transactions/AddTransactionScreen.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { useFocusEffect } from '@react-navigation/native';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
   Alert,
+  Animated,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useForm, Controller } from 'react-hook-form';
-import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
-import { Card } from '../../components/ui/Card';
-import { Header } from '../../components/layout/Header';
-import { AmountKeypad } from '../../components/forms/AmountKeypad';
+import Icon from 'react-native-vector-icons/Ionicons';
+import type { TabScreenProps } from '../../app/navigation/types';
 import { AccountSelector } from '../../components/forms/AccountSelector';
+import { AmountKeypad } from '../../components/forms/AmountKeypad';
 import { CategorySelector } from '../../components/forms/CategorySelector';
 import { DatePicker } from '../../components/forms/DatePicker';
 import { TagInput } from '../../components/forms/TagInput';
+import { Header } from '../../components/layout/Header';
+import { AccountCreationModal } from '../../components/modals/AccountCreationModal';
+import { CategoryCreationModal } from '../../components/modals/CategoryCreationModal';
+import { Button } from '../../components/ui/Button';
+import Card from '../../components/ui/Card';
+import Input from '../../components/ui/Input';
 import {
+  useAddTransactionMutation,
   useGetAccountsQuery,
   useGetCategoriesQuery,
-  useAddTransactionMutation,
 } from '../../state/api';
-import { validateTransaction } from '../../utils/helpers/validationUtils';
-import { formatCurrency } from '../../utils/helpers/currencyUtils';
 import type { Transaction, TransactionType } from '../../types/global';
-import type { AddScreenProps } from '../../app/navigation/types';
+import { formatCurrency } from '../../utils/helpers/currencyUtils';
+import { validateTransaction } from '../../utils/helpers/validationUtils';
 
-type Props = AddScreenProps<'AddTransaction'>;
+type Props = TabScreenProps<'Add'>;
 
 interface TransactionForm {
   type: TransactionType;
@@ -49,10 +55,30 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
   const [transactionType, setTransactionType] = useState<TransactionType>(initialType || 'expense');
   const [showAmountKeypad, setShowAmountKeypad] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['essentials']));
+  const amountLabelAnimation = useRef(new Animated.Value(0)).current;
+
+  // Quick add modals state
+  const [showAccountModal, setShowAccountModal] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
 
   const { data: accounts = [] } = useGetAccountsQuery();
   const { data: categories = [] } = useGetCategoriesQuery();
   const [addTransaction] = useAddTransactionMutation();
+
+  // Get user preferences for smart defaults
+  const getSmartDefaults = () => {
+    // This could come from user preferences/recent transactions
+    // For now, just use the first account and first matching category
+    const defaultAccount = accounts[0];
+    const recentCategory = categories.find(cat => cat.type === transactionType);
+
+    return {
+      accountId: accountId || defaultAccount?.id || '',
+      categoryId: categoryId || recentCategory?.id || '',
+      date: new Date().toISOString(),
+    };
+  };
 
   const {
     control,
@@ -60,15 +86,12 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
     watch,
     setValue,
     reset,
-    formState: { errors },
   } = useForm<TransactionForm>({
     defaultValues: {
       type: transactionType,
       amount: '',
-      accountId: accountId || '',
+      ...getSmartDefaults(),
       accountIdTo: '',
-      categoryId: categoryId || '',
-      date: new Date().toISOString(),
       note: '',
       tags: [],
     },
@@ -76,27 +99,132 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
 
   const watchedAmount = watch('amount');
   const watchedAccountId = watch('accountId');
-  const watchedType = watch('type');
+  const watchedAccountIdTo = watch('accountIdTo');
+  const watchedCategoryId = watch('categoryId');
+
+  // Reset form when screen comes into focus (user navigates back)
+  // But skip reset if user came with route params (intentional pre-fill)
+  useFocusEffect(
+    useCallback(() => {
+      // Only reset if no route params were provided (meaning user navigated naturally)
+      if (!initialType && !accountId && !categoryId && accounts.length > 0) {
+        const defaultAccount = accounts[0];
+        const defaultCategory = categories.find(cat => cat.type === transactionType);
+        
+        reset({
+          type: transactionType,
+          amount: '',
+          accountId: defaultAccount?.id || '',
+          categoryId: defaultCategory?.id || '',
+          accountIdTo: '',
+          date: new Date().toISOString(),
+          note: '',
+          tags: [],
+        });
+      }
+    }, [reset, transactionType, initialType, accountId, categoryId, accounts, categories])
+  );
 
   useEffect(() => {
-    setValue('type', transactionType);
-    // Clear category for transfers
-    if (transactionType === 'transfer') {
-      setValue('categoryId', '');
-    }
-    // Clear accountIdTo for non-transfers
-    if (transactionType !== 'transfer') {
-      setValue('accountIdTo', '');
-    }
-  }, [transactionType, setValue]);
+    Animated.timing(amountLabelAnimation, {
+      toValue: watchedAmount ? 1 : 0,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  }, [watchedAmount, amountLabelAnimation]);
+
+  const amountLabelStyle = {
+    fontSize: amountLabelAnimation.interpolate({
+      inputRange: [0, 1],
+      outputRange: [16, 12],
+    }),
+    color: amountLabelAnimation.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['#9CA3AF', '#6366F1'],
+    }),
+    transform: [{
+      translateY: amountLabelAnimation.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, -12],
+      })
+    }]
+  };
+
+  // Calculate form completion - use useMemo to prevent infinite re-renders
+  const formSteps = useMemo(() => {
+    return [
+      {
+        id: 'amount',
+        title: 'Amount',
+        required: true,
+        completed: !!watchedAmount && parseFloat(watchedAmount) > 0,
+      },
+      {
+        id: 'account',
+        title: 'Account',
+        required: true,
+        completed: !!watchedAccountId,
+      },
+      {
+        id: 'transferAccount',
+        title: 'To Account',
+        required: transactionType === 'transfer',
+        completed: transactionType !== 'transfer' || !!watchedAccountIdTo,
+      },
+      {
+        id: 'category',
+        title: 'Category',
+        required: transactionType !== 'transfer',
+        completed: transactionType === 'transfer' || !!watchedCategoryId,
+      },
+    ];
+  }, [watchedAmount, watchedAccountId, watchedAccountIdTo, watchedCategoryId, transactionType]);
+
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(sectionId)) {
+        newSet.delete(sectionId);
+      } else {
+        newSet.add(sectionId);
+      }
+      return newSet;
+    });
+  };
 
   const handleTypeChange = (type: TransactionType) => {
     setTransactionType(type);
     setValue('type', type);
+
+    // Auto-set smart defaults when type changes
+    if (type !== 'transfer' && !watchedCategoryId) {
+      const suggestedCategory = categories.find(cat => cat.type === type);
+      if (suggestedCategory) {
+        setValue('categoryId', suggestedCategory.id);
+      }
+    }
   };
 
   const handleAmountChange = (amount: string) => {
     setValue('amount', amount);
+  };
+
+  const handleQuickAddAccount = () => {
+    setShowAccountModal(true);
+  };
+
+  const handleQuickAddCategory = () => {
+    setShowCategoryModal(true);
+  };
+
+  const handleAccountCreated = (account: any) => {
+    // Auto-select the newly created account
+    setValue('accountId', account.id);
+  };
+
+  const handleCategoryCreated = (category: any) => {
+    // Auto-select the newly created category
+    setValue('categoryId', category.id);
   };
 
   const onSubmit = async (data: TransactionForm) => {
@@ -183,6 +311,17 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
     }
   };
 
+  const isFormValid = () => {
+    const requiredSteps = formSteps.filter(step => step.required);
+    return requiredSteps.every(step => step.completed);
+  };
+
+  const getCompletionPercentage = () => {
+    const requiredSteps = formSteps.filter(step => step.required);
+    const completedSteps = requiredSteps.filter(step => step.completed);
+    return (completedSteps.length / requiredSteps.length) * 100;
+  };
+
   const filteredCategories = categories.filter(category =>
     transactionType === 'transfer' ? false : category.type === transactionType
   );
@@ -200,11 +339,27 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header with Progress */}
       <Header
         title="Add Transaction"
         showBackButton
         onBackPress={() => navigation.goBack()}
       />
+
+      {/* Progress Indicator */}
+      <View style={styles.progressContainer}>
+        <View style={styles.progressBar}>
+          <View
+            style={[
+              styles.progressFill,
+              { width: `${getCompletionPercentage()}%` }
+            ]}
+          />
+        </View>
+        <Text style={styles.progressText}>
+          {Math.round(getCompletionPercentage())}% complete
+        </Text>
+      </View>
 
       <KeyboardAvoidingView
         style={styles.content}
@@ -215,9 +370,8 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Transaction Type Selector */}
-          <Card style={styles.card}>
-            <Text style={styles.sectionTitle}>Transaction Type</Text>
+          {/* Quick Type Selector - Always visible */}
+          <Card style={styles.card} padding='small'>
             <View style={styles.typeSelector}>
               {(['income', 'expense', 'transfer'] as TransactionType[]).map((type) => (
                 <Button
@@ -226,30 +380,56 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
                   variant={transactionType === type ? 'primary' : 'secondary'}
                   onPress={() => handleTypeChange(type)}
                   style={styles.typeButton}
+                  textStyle={styles.typeButtonText}
+                  size='small'
                 />
               ))}
             </View>
           </Card>
 
-          {/* Amount Display */}
-          <Card style={styles.card}>
-            <Text style={styles.sectionTitle}>Amount</Text>
-            <Text style={styles.amountDisplay}>{getAmountDisplay()}</Text>
-            <Button
-              title="Enter Amount"
-              variant="secondary"
-              onPress={() => setShowAmountKeypad(true)}
-            />
-            {errors.amount && (
-              <Text style={styles.errorText}>{errors.amount.message}</Text>
-            )}
-          </Card>
+          {/* Essential Information - Always expanded */}
+          <Card style={styles.card} padding='small'>
 
-          {/* Account Selection */}
-          <Card style={styles.card}>
-            <Text style={styles.sectionTitle}>
-              {transactionType === 'transfer' ? 'From Account' : 'Account'}
-            </Text>
+            {/* Title - Essential Details */}
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Essential Details</Text>
+              <Controller
+                control={control}
+                name="date"
+                render={({ field: { value, onChange } }) => (
+                  <DatePicker
+                    date={new Date(value)}
+                    onDateChange={(date) => onChange(date.toISOString())}
+                    showLabel={false}
+                    compact={true}
+                    placeholder="Today"
+                  />
+                )}
+              />
+            </View>
+
+            {/* Amount - Floating Label Design */}
+            <View style={styles.floatingInputContainer}>
+              <Animated.Text style={[
+                styles.floatingInputLabel,
+                amountLabelStyle
+              ]}>
+                Amount
+              </Animated.Text>
+              <TouchableOpacity
+                style={styles.floatingAmountInput}
+                onPress={() => setShowAmountKeypad(true)}
+              >
+                <Text style={[
+                  styles.amountDisplay,
+                  !watchedAmount && styles.amountPlaceholder
+                ]}>
+                  {watchedAmount ? getAmountDisplay() : ''}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Account Selection with Floating Label */}
             <Controller
               control={control}
               name="accountId"
@@ -259,18 +439,16 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
                   accounts={accounts}
                   selectedAccountId={value}
                   onSelectAccount={onChange}
+                  compact={true}
+                  floatingLabel={true}
+                  label="Account"
+                  onQuickAdd={handleQuickAddAccount}
                 />
               )}
             />
-            {errors.accountId && (
-              <Text style={styles.errorText}>{errors.accountId.message}</Text>
-            )}
-          </Card>
 
-          {/* Transfer To Account */}
-          {transactionType === 'transfer' && (
-            <Card style={styles.card}>
-              <Text style={styles.sectionTitle}>To Account</Text>
+            {/* Transfer To Account */}
+            {transactionType === 'transfer' && (
               <Controller
                 control={control}
                 name="accountIdTo"
@@ -280,19 +458,17 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
                     accounts={accounts.filter(acc => acc.id !== watchedAccountId)}
                     selectedAccountId={value}
                     onSelectAccount={onChange}
+                    compact={true}
+                    floatingLabel={true}
+                    label="To Account"
+                    onQuickAdd={handleQuickAddAccount}
                   />
                 )}
               />
-              {errors.accountIdTo && (
-                <Text style={styles.errorText}>{errors.accountIdTo.message}</Text>
-              )}
-            </Card>
-          )}
+            )}
 
-          {/* Category Selection */}
-          {transactionType !== 'transfer' && (
-            <Card style={styles.card}>
-              <Text style={styles.sectionTitle}>Category</Text>
+            {/* Category Selection with Floating Label */}
+            {transactionType !== 'transfer' && (
               <Controller
                 control={control}
                 name="categoryId"
@@ -302,85 +478,110 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
                     categories={filteredCategories}
                     selectedCategoryId={value}
                     onSelectCategory={onChange}
+                    compact={true}
+                    floatingLabel={true}
+                    label="Category"
+                    onQuickAdd={handleQuickAddCategory}
                   />
                 )}
               />
-              {errors.categoryId && (
-                <Text style={styles.errorText}>{errors.categoryId.message}</Text>
-              )}
-            </Card>
-          )}
-
-          {/* Date Selection */}
-          <Card style={styles.card}>
-            <Text style={styles.sectionTitle}>Date</Text>
-            <Controller
-              control={control}
-              name="date"
-              rules={{ required: 'Date is required' }}
-              render={({ field: { value, onChange } }) => (
-                <DatePicker
-                  date={new Date(value)}
-                  onDateChange={(date) => onChange(date.toISOString())}
-                />
-              )}
-            />
+            )}
           </Card>
 
-          {/* Note */}
-          <Card style={styles.card}>
-            <Controller
-              control={control}
-              name="note"
-              render={({ field: { value, onChange } }) => (
-                <Input
-                  label="Note (Optional)"
-                  value={value}
-                  onChangeText={onChange}
-                  placeholder="Add a note for this transaction"
-                  multiline
-                  numberOfLines={3}
+          {/* Optional Details - Collapsible */}
+          <Card style={styles.card} padding='small'>
+            <TouchableOpacity
+              style={styles.collapsibleHeader}
+              onPress={() => toggleSection('optional')}
+            >
+              <Text style={styles.sectionTitle}>Optional Details</Text>
+              <Icon
+                name={expandedSections.has('optional') ? 'chevron-up' : 'chevron-down'}
+                size={20}
+                color="#6b7280"
+              />
+            </TouchableOpacity>
+
+            {expandedSections.has('optional') && (
+              <Animated.View style={styles.collapsibleContent}>
+
+                {/* Note */}
+                <Controller
+                  control={control}
+                  name="note"
+                  render={({ field: { value, onChange } }) => (
+                    <Input
+                      label="Note"
+                      value={value}
+                      onChangeText={onChange}
+                      placeholder="Add a note (optional)"
+                      multiline
+                      numberOfLines={2}
+                      inputStyle={styles.noteInput}
+                    />
+                  )}
                 />
-              )}
-            />
+
+                {/* Tags */}
+                <Controller
+                  control={control}
+                  name="tags"
+                  render={({ field: { value, onChange } }) => (
+                    <TagInput
+                      tags={value}
+                      onTagsChange={onChange}
+                      placeholder="Add tags (optional)"
+                    />
+                  )}
+                />
+              </Animated.View>
+            )}
           </Card>
 
-          {/* Tags */}
-          <Card style={styles.card}>
-            <Text style={styles.sectionTitle}>Tags</Text>
-            <Controller
-              control={control}
-              name="tags"
-              render={({ field: { value, onChange } }) => (
-                <TagInput
-                  tags={value}
-                  onTagsChange={onChange}
-                  placeholder="Add tags to categorize this transaction"
-                />
-              )}
-            />
-          </Card>
         </ScrollView>
 
-        {/* Submit Button */}
-        <View style={styles.footer}>
+        {/* Floating Action Button */}
+        <View style={styles.floatingButton}>
           <Button
-            title="Save Transaction"
+            title={isFormValid() ? "Save Transaction" : "Complete Required Fields"}
             onPress={handleSubmit(onSubmit)}
             loading={isSubmitting}
-            disabled={!watchedAmount || parseFloat(watchedAmount) <= 0}
-            style={styles.submitButton}
+            disabled={!isFormValid()}
+            // style={[
+            //   styles.submitButton,
+            //   { opacity: isFormValid() ? 1 : 0.6 }
+            // ]}
+            style={StyleSheet.flatten([
+              styles.submitButton,
+              !isFormValid() && styles.submitButtonDisabled
+            ])}
           />
         </View>
       </KeyboardAvoidingView>
 
       {/* Amount Keypad Modal */}
-      <AmountKeypad
-        visible={showAmountKeypad}
-        amount={watchedAmount}
-        onAmountChange={handleAmountChange}
-        onClose={() => setShowAmountKeypad(false)}
-        currencyCode={getSelectedAccount()?.currencyCode || 'USD'}
+      {showAmountKeypad && (
+        <AmountKeypad
+          value={watchedAmount}
+          onChange={handleAmountChange}
+          onDone={() => setShowAmountKeypad(false)}
+          currencyCode={getSelectedAccount()?.currencyCode || 'USD'}
+        />
+      )}
+
+      {/* Account Creation Modal */}
+      <AccountCreationModal
+        visible={showAccountModal}
+        onClose={() => setShowAccountModal(false)}
+        onAccountCreated={handleAccountCreated}
+      />
+
+      {/* Category Creation Modal */}
+      <CategoryCreationModal
+        visible={showCategoryModal}
+        onClose={() => setShowCategoryModal(false)}
+        onCategoryCreated={handleCategoryCreated}
+        transactionType={transactionType}
       />
     </SafeAreaView>
   );
@@ -391,6 +592,30 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8fafc',
   },
+  progressContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  progressBar: {
+    height: 4,
+    backgroundColor: '#e5e7eb',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#10b981',
+    borderRadius: 2,
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: 4,
+    textAlign: 'center',
+  },
   content: {
     flex: 1,
   },
@@ -398,17 +623,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: 16,
-    paddingBottom: 100,
+    paddingBottom: 120,
   },
   card: {
     marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: '600',
     color: '#1f2937',
-    marginBottom: 12,
   },
   typeSelector: {
     flexDirection: 'row',
@@ -417,19 +640,67 @@ const styles = StyleSheet.create({
   typeButton: {
     flex: 1,
   },
+  typeButtonText: {
+    fontSize: 12,
+  },
   amountDisplay: {
-    fontSize: 32,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '600',
     color: '#1f2937',
-    textAlign: 'center',
-    marginBottom: 16,
+    textAlign: 'left',
   },
-  errorText: {
-    color: '#ef4444',
+  amountPlaceholder: {
+    color: '#9ca3af',
     fontSize: 14,
-    marginTop: 4,
   },
-  footer: {
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  floatingInputContainer: {
+    position: 'relative',
+    marginBottom: 20,
+  },
+  floatingInputLabel: {
+    position: 'absolute',
+    left: 16,
+    top: 16,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 4,
+    zIndex: 1,
+  },
+  floatingAmountInput: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1.5,
+    borderColor: '#D1D5DB',
+    minHeight: 56,
+    justifyContent: 'center',
+  },
+  collapsibleHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  collapsibleContent: {
+    marginTop: 12,
+  },
+  noteInput: {
+    marginBottom: 12,
+  },
+  quickActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  quickActionText: {
+    fontSize: 12,
+    color: '#374151',
+    fontWeight: '500',
+  },
+  floatingButton: {
     position: 'absolute',
     bottom: 0,
     left: 0,
@@ -438,9 +709,44 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderTopWidth: 1,
     borderTopColor: '#e5e7eb',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 8,
   },
   submitButton: {
     width: '100%',
   },
+  submitButtonDisabled: {
+    opacity: 0.6,
+  },
+  errorText: {
+    color: '#ef4444',
+    fontSize: 12,
+    marginTop: 4,
+  },
 });
 
+
+
+// {/* Quick Actions for common scenarios */ }
+// <Card style={styles.card} padding='small'>
+//   <Text style={styles.sectionTitle}>Quick Actions</Text>
+//   <View style={styles.quickActions}>
+//     <Button
+//       title="Copy Last Transaction"
+//       variant="outline"
+//       size="small"
+//       textStyle={styles.quickActionText}
+//       onPress={() => {/* Copy last similar transaction */ }}
+//     />
+//     <Button
+//       title="Save as Template"
+//       variant="outline"
+//       size="small"
+//       textStyle={styles.quickActionText}
+//       onPress={() => {/* Save current as template */ }}
+//     />
+//   </View>
+// </Card>

@@ -1,16 +1,10 @@
 // src/state/api.ts
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { createApi } from '@reduxjs/toolkit/query/react';
 import { localBaseQuery } from '../services/storage/localBaseQuery';
-import { API_CONFIG, IS_DEV } from '../utils/env';
-import type { Account, Category, Transaction, Budget } from '../types/global';
+import type { Account, Budget, Category, Transaction } from '../types/global';
 
-// Use fetchBaseQuery in development, localBaseQuery in production
-const baseQuery = IS_DEV
-  ? fetchBaseQuery({ 
-      baseUrl: API_CONFIG.BASE_URL,
-      timeout: API_CONFIG.TIMEOUT,
-    })
-  : localBaseQuery;
+// Always use localBaseQuery for now (mock/local development)
+const baseQuery = localBaseQuery;
 
 export const api = createApi({
   reducerPath: 'api',
@@ -23,9 +17,9 @@ export const api = createApi({
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({ type: 'Account' as const, id })),
-              { type: 'Account', id: 'LIST' },
-            ]
+            ...result.map(({ id }) => ({ type: 'Account' as const, id })),
+            { type: 'Account', id: 'LIST' },
+          ]
           : [{ type: 'Account', id: 'LIST' }],
     }),
 
@@ -69,9 +63,9 @@ export const api = createApi({
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({ type: 'Category' as const, id })),
-              { type: 'Category', id: 'LIST' },
-            ]
+            ...result.map(({ id }) => ({ type: 'Category' as const, id })),
+            { type: 'Category', id: 'LIST' },
+          ]
           : [{ type: 'Category', id: 'LIST' }],
     }),
 
@@ -98,7 +92,7 @@ export const api = createApi({
 
     // Transaction endpoints
     getTransactions: builder.query<
-      Transaction[], 
+      Transaction[],
       {
         type?: string;
         start?: string;
@@ -111,7 +105,7 @@ export const api = createApi({
     >({
       query: (params = {}) => {
         const searchParams = new URLSearchParams();
-        
+
         if (params.type) searchParams.append('type', params.type);
         if (params.start) searchParams.append('date_gte', params.start);
         if (params.end) searchParams.append('date_lte', params.end);
@@ -119,7 +113,7 @@ export const api = createApi({
         if (params.categoryId) searchParams.append('categoryId', params.categoryId);
         if (params.page) searchParams.append('_page', params.page.toString());
         if (params.limit) searchParams.append('_limit', params.limit.toString());
-        
+
         searchParams.append('_sort', 'date');
         searchParams.append('_order', 'desc');
 
@@ -128,9 +122,9 @@ export const api = createApi({
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({ type: 'Transaction' as const, id })),
-              { type: 'Transaction', id: 'LIST' },
-            ]
+            ...result.map(({ id }) => ({ type: 'Transaction' as const, id })),
+            { type: 'Transaction', id: 'LIST' },
+          ]
           : [{ type: 'Transaction', id: 'LIST' }],
     }),
 
@@ -154,7 +148,7 @@ export const api = createApi({
     updateTransaction: builder.mutation<Transaction, Partial<Transaction> & { id: string }>({
       query: ({ id, ...body }) => ({
         url: `/transactions/${id}`,
-        method: 'PATCH', 
+        method: 'PATCH',
         body,
       }),
       invalidatesTags: (result, error, { id }) => [
@@ -185,9 +179,9 @@ export const api = createApi({
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({ type: 'Budget' as const, id })),
-              { type: 'Budget', id: 'LIST' },
-            ]
+            ...result.map(({ id }) => ({ type: 'Budget' as const, id })),
+            { type: 'Budget', id: 'LIST' },
+          ]
           : [{ type: 'Budget', id: 'LIST' }],
     }),
 

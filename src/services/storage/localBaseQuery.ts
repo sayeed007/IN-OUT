@@ -8,10 +8,142 @@ import type {
 } from '@reduxjs/toolkit/query';
 import { STORAGE_KEYS } from '../../utils/env';
 
-// Default database structure
+// Default database structure with initial seed data
 const DEFAULT_DB = {
-  accounts: [],
-  categories: [],
+  accounts: [
+    {
+      id: 'acc1',
+      name: 'Cash',
+      type: 'cash',
+      openingBalance: 500,
+      currencyCode: 'USD',
+      isArchived: false,
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z',
+    },
+    {
+      id: 'acc2',
+      name: 'Main Bank Account',
+      type: 'bank',
+      openingBalance: 2500,
+      currencyCode: 'USD',
+      isArchived: false,
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z',
+    },
+  ],
+  categories: [
+    {
+      id: 'cat1',
+      name: 'Food & Dining',
+      type: 'expense',
+      parentId: null,
+      color: '#EF4444',
+      icon: '🍽️',
+      isArchived: false,
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z',
+    },
+    {
+      id: 'cat2',
+      name: 'Transportation',
+      type: 'expense',
+      parentId: null,
+      color: '#3B82F6',
+      icon: '🚗',
+      isArchived: false,
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z',
+    },
+    {
+      id: 'cat3',
+      name: 'Salary',
+      type: 'income',
+      parentId: null,
+      color: '#10B981',
+      icon: '💰',
+      isArchived: false,
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z',
+    },
+    {
+      id: 'cat4',
+      name: 'Groceries',
+      type: 'expense',
+      parentId: null,
+      color: '#22C55E',
+      icon: '🛒',
+      isArchived: false,
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z',
+    },
+    {
+      id: 'cat5',
+      name: 'Utilities',
+      type: 'expense',
+      parentId: null,
+      color: '#F59E0B',
+      icon: '⚡',
+      isArchived: false,
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z',
+    },
+    {
+      id: 'cat6',
+      name: 'Entertainment',
+      type: 'expense',
+      parentId: null,
+      color: '#8B5CF6',
+      icon: '🎬',
+      isArchived: false,
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z',
+    },
+    {
+      id: 'cat7',
+      name: 'Healthcare',
+      type: 'expense',
+      parentId: null,
+      color: '#EC4899',
+      icon: '🏥',
+      isArchived: false,
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z',
+    },
+    {
+      id: 'cat8',
+      name: 'Rent',
+      type: 'expense',
+      parentId: null,
+      color: '#6B7280',
+      icon: '🏠',
+      isArchived: false,
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z',
+    },
+    {
+      id: 'cat9',
+      name: 'Freelance Work',
+      type: 'income',
+      parentId: null,
+      color: '#06B6D4',
+      icon: '💼',
+      isArchived: false,
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z',
+    },
+    {
+      id: 'cat10',
+      name: 'Investment Returns',
+      type: 'income',
+      parentId: null,
+      color: '#84CC16',
+      icon: '📈',
+      isArchived: false,
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z',
+    },
+  ],
   transactions: [],
   budgets: [],
   attachments: [],
@@ -46,6 +178,7 @@ class LocalDatabase {
     if (this.cache) return this.cache;
 
     try {
+      console.log('Loading database from AsyncStorage...');
       // Add timeout to AsyncStorage operation
       const timeoutPromise = new Promise<never>((_, reject) => 
         setTimeout(() => reject(new Error('AsyncStorage timeout')), 3000)
@@ -54,7 +187,22 @@ class LocalDatabase {
       const loadPromise = AsyncStorage.getItem(STORAGE_KEYS.APP_DB);
       const dbJson = await Promise.race([loadPromise, timeoutPromise]);
       
-      this.cache = dbJson ? JSON.parse(dbJson) : { ...DEFAULT_DB };
+      if (dbJson) {
+        console.log('Database found in storage, parsing...');
+        this.cache = JSON.parse(dbJson);
+      } else {
+        console.log('No database found, using default with seed data...');
+        this.cache = { ...DEFAULT_DB };
+        // Save the default database immediately
+        await this.saveDB(this.cache);
+      }
+      
+      console.log('Database loaded:', {
+        accounts: this.cache.accounts.length,
+        categories: this.cache.categories.length,
+        transactions: this.cache.transactions.length
+      });
+      
       return this.cache;
     } catch (error) {
       console.error('Failed to load database:', error);
@@ -62,6 +210,12 @@ class LocalDatabase {
       this.cache = { ...DEFAULT_DB };
       return this.cache;
     }
+  }
+
+  async resetDB(): Promise<void> {
+    console.log('Resetting database to default...');
+    this.cache = { ...DEFAULT_DB };
+    await this.saveDB(this.cache);
   }
 
   async saveDB(data: LocalDBData): Promise<void> {
@@ -112,6 +266,8 @@ export const localBaseQuery: BaseQueryFn<
     const [pathname, search] = url.split('?');
     const resource = pathname.replace('/', '');
     const params = new URLSearchParams(search || '');
+    
+    console.log(`LocalBaseQuery: ${method.toUpperCase()} ${pathname}`, body ? { body } : '');
 
     // Load database
     const db = await localDB.loadDB();
@@ -237,6 +393,7 @@ export const localBaseQuery: BaseQueryFn<
         return { error: { status: 405, data: 'Method not allowed' } };
     }
 
+    console.log(`LocalBaseQuery result:`, result);
     return { data: result };
     })();
 
