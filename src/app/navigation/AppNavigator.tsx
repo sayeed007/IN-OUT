@@ -48,7 +48,7 @@ const AppNavigator: React.FC = () => {
 
     // Theme colors
     const isDark = theme === 'dark';
-    const backgroundColor = isDark ? '#0A0A0B' : '#FFFFFF';
+    const backgroundColor = isDark ? '#000000' : '#F9FAFB';
     const statusBarStyle = isDark ? 'light-content' : 'dark-content';
 
     if (isLoading) {

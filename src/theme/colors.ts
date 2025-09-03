@@ -75,8 +75,8 @@ export const Colors = {
 
   // Dark Mode Colors
   dark: {
-    background: '#0A0A0B',
-    surface: '#1A1A1B',
+    background: '#000000',
+    surface: '#1F1F23',
     surfaceVariant: '#2D2D30',
     border: '#3A3A3D',
     text: '#FFFFFF',

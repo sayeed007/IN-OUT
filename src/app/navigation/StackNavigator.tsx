@@ -25,7 +25,7 @@ const StackNavigator: React.FC = () => {
 
     // Theme colors
     const colors = {
-        background: isDark ? '#0A0A0B' : '#FFFFFF',
+        background: isDark ? '#000000' : '#F9FAFB',
         surface: isDark ? '#1F1F23' : '#FFFFFF',
         text: isDark ? '#FFFFFF' : '#000000',
         textSecondary: isDark ? '#A1A1AA' : '#6B7280',

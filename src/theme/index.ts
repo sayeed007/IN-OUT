@@ -47,8 +47,8 @@ export interface Theme {
 export const lightTheme: Theme = {
   colors: {
     ...Colors,
-    background: Colors.neutral[0],
-    surface: Colors.neutral[50],
+    background: Colors.neutral[50],
+    surface: Colors.neutral[0],
     surfaceVariant: Colors.neutral[100],
     border: Colors.neutral[200],
     text: Colors.neutral[900],
