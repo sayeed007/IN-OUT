@@ -1,14 +1,14 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Animated, {
     useAnimatedStyle,
     useSharedValue,
     withSpring,
     withTiming
 } from 'react-native-reanimated';
-import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { TabParamList } from '../types';
+import { TabBarAdvancedButton } from './TabBarAdvancedButton';
 
 interface CustomTabBarIconProps {
     focused: boolean;
@@ -64,51 +64,13 @@ const CustomTabBarIcon: React.FC<CustomTabBarIconProps> = ({
         backgroundColor: primaryColor + '20',
     }));
 
-    const addButtonContainerStyle = {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        shadowColor: primaryColor,
-        shadowOffset: {
-            width: 0,
-            height: 8,
-        },
-        shadowOpacity: 0.35,
-        shadowRadius: 16,
-        elevation: 16,
-        marginBottom: 8,
-    };
-
-    const addButtonGradientStyle = {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        justifyContent: 'center' as const,
-        alignItems: 'center' as const,
-    };
 
     // Special styling for Add button
     if (routeName === 'Add') {
         return (
-            <Animated.View
-                style={[
-                    addButtonContainerStyle,
-                    animatedIconStyle
-                ]}
-            >
-                <LinearGradient
-                    colors={[primaryColor, `${primaryColor}CC`]}
-                    style={addButtonGradientStyle}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                >
-                    <Icon
-                        name={getTabBarIcon()}
-                        size={28}
-                        color="#FFFFFF"
-                    />
-                </LinearGradient>
-            </Animated.View>
+            <TabBarAdvancedButton
+                primaryColor={primaryColor}
+            />
         );
     }
 

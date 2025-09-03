@@ -52,7 +52,6 @@ const TabNavigator: React.FC = () => {
                 tabBarInactiveTintColor: theme.colors.textSecondary,
                 tabBarStyle: {
                     position: 'absolute',
-                    // bottom: Platform.OS === 'ios' ? 20 : 16,
                     bottom: 0,
                     left: 16,
                     right: 16,
@@ -61,9 +60,8 @@ const TabNavigator: React.FC = () => {
                     borderTopWidth: 0,
                     borderTopLeftRadius: 24,
                     borderTopRightRadius: 24,
-                    height: Platform.OS === 'ios' ? 75 : 70,
-                    paddingBottom: Platform.OS === 'ios' ? 15 : 12,
-                    paddingTop: 8,
+                    height: Platform.OS === 'ios' ? 65 : 60,
+                    paddingBottom: Platform.OS === 'ios' ? 20 : 17,
                     paddingHorizontal: 8,
                     ...Platform.select({
                         ios: {
