@@ -99,10 +99,6 @@ const files = [
     "screens/budgets/components/BudgetAlerts.tsx",
 
     "screens/reports/ReportsScreen.tsx",
-    "screens/reports/components/ReportFilters.tsx",
-    "screens/reports/components/MonthlyReport.tsx",
-    "screens/reports/components/YearlyReport.tsx",
-    "screens/reports/components/ExportOptions.tsx",
 
     "screens/settings/SettingsScreen.tsx",
     "screens/settings/components/SettingsItem.tsx",

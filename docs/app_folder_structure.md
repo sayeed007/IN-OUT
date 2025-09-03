@@ -96,10 +96,6 @@ IncomeExpenseApp/
 │   │   ├── reports/                  # Report screens
 │   │   │   ├── ReportsScreen.tsx
 │   │   │   └── components/
-│   │   │       ├── ReportFilters.tsx
-│   │   │       ├── MonthlyReport.tsx
-│   │   │       ├── YearlyReport.tsx
-│   │   │       └── ExportOptions.tsx
 │   │   └── settings/                 # Settings screens
 │   │       ├── SettingsScreen.tsx
 │   │       └── components/
