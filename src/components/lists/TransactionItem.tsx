@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../app/providers/ThemeProvider';
 import { Transaction } from '../../types/global';
 
@@ -14,6 +15,8 @@ interface TransactionItemProps {
   onPress: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  categories?: any[];
+  accounts?: any[];
 }
 
 export const TransactionItem: React.FC<TransactionItemProps> = ({
@@ -21,30 +24,56 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
   onPress,
   onEdit,
   onDelete,
+  categories = [],
+  accounts = [],
 }) => {
   const { theme } = useTheme();
+
+  // Helper function to get meaningful transaction description
+  const getTransactionDescription = () => {
+    if (transaction.note) {
+      return transaction.note;
+    }
+
+    if (transaction.categoryId && categories.length > 0) {
+      const category = categories.find(cat => cat.id === transaction.categoryId);
+      if (category) {
+        return category.name;
+      }
+    }
+
+    if (transaction.type === 'transfer' && accounts.length > 0) {
+      const fromAccount = accounts.find(acc => acc.id === transaction.accountId);
+      const toAccount = accounts.find(acc => acc.id === transaction.accountIdTo);
+      if (fromAccount && toAccount) {
+        return `${fromAccount.name} → ${toAccount.name}`;
+      }
+    }
+
+    return `${transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}`;
+  };
 
   const getTransactionIcon = () => {
     switch (transaction.type) {
       case 'income':
-        return '↓';
+        return 'arrow-down-circle';
       case 'expense':
-        return '↑';
+        return 'arrow-up-circle';
       case 'transfer':
-        return '⇄';
+        return 'swap-horizontal';
       default:
-        return '•';
+        return 'ellipse';
     }
   };
 
   const getTransactionColor = () => {
     switch (transaction.type) {
       case 'income':
-        return theme.colors.income.main;
+        return theme.colors.success[500];
       case 'expense':
-        return theme.colors.expense.main;
+        return theme.colors.error[500];
       case 'transfer':
-        return theme.colors.transfer.main;
+        return theme.colors.primary[500];
       default:
         return theme.colors.textSecondary;
     }
@@ -84,16 +113,11 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
           },
         ]}
       >
-        <Text
-          style={[
-            styles.icon,
-            {
-              color: getTransactionColor(),
-            },
-          ]}
-        >
-          {getTransactionIcon()}
-        </Text>
+        <Icon
+          name={getTransactionIcon()}
+          size={20}
+          color={getTransactionColor()}
+        />
       </View>
 
       {/* Transaction Details */}
@@ -103,7 +127,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
             style={[styles.note, { color: theme.colors.text }]}
             numberOfLines={1}
           >
-            {transaction.note || 'No description'}
+            {getTransactionDescription()}
           </Text>
           <Text
             style={[
@@ -157,8 +181,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    marginHorizontal: 16,
-    marginVertical: 4,
+    marginVertical: 6,
     borderRadius: 12,
     elevation: 1,
     shadowColor: '#000',
@@ -176,10 +199,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
-  },
-  icon: {
-    fontSize: 18,
-    fontWeight: 'bold',
   },
   detailsContainer: {
     flex: 1,

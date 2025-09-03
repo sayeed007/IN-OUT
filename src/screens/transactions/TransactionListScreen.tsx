@@ -12,15 +12,17 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../app/providers/ThemeProvider';
 import { SafeContainer } from '../../components/layout/SafeContainer';
 import { SectionHeader } from '../../components/lists/SectionHeader';
 import { TransactionItem } from '../../components/lists/TransactionItem';
+import { Card } from '../../components/ui';
+import BottomSpacing from '../../components/ui/BottomSpacing';
 import Chip from '../../components/ui/Chip';
 import EmptyState from '../../components/ui/EmptyState';
-import FloatingActionButton from '../../components/ui/FloatingActionButton';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import { useDeleteTransactionMutation, useGetTransactionsQuery } from '../../state/api';
+import { useDeleteTransactionMutation, useGetAccountsQuery, useGetCategoriesQuery, useGetTransactionsQuery } from '../../state/api';
 import { Transaction } from '../../types/global';
 import TransactionFilters from './components/TransactionFilters';
 
@@ -57,8 +59,8 @@ export const TransactionListScreen: React.FC = () => {
     const [selectedType, setSelectedType] = useState<'all' | 'income' | 'expense' | 'transfer'>('all');
     const [showFilters, setShowFilters] = useState(false);
     const [dateRange, setDateRange] = useState({
-        start: dayjs().subtract(30, 'days').format('YYYY-MM-DD'),
-        end: dayjs().format('YYYY-MM-DD'),
+        start: dayjs().subtract(30, 'days').startOf('day').toISOString(),
+        end: dayjs().endOf('day').toISOString(),
     });
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
@@ -87,6 +89,10 @@ export const TransactionListScreen: React.FC = () => {
     });
 
     const [deleteTransaction] = useDeleteTransactionMutation();
+
+    // Additional data queries for better transaction descriptions
+    const { data: categories = [], refetch: refetchCategories } = useGetCategoriesQuery();
+    const { data: accounts = [], refetch: refetchAccounts } = useGetAccountsQuery();
 
     // Filter transactions based on search and filters
     const filteredTransactions = useMemo(() => {
@@ -146,7 +152,11 @@ export const TransactionListScreen: React.FC = () => {
     const handleRefresh = async () => {
         setRefreshing(true);
         try {
-            await refetch();
+            await Promise.all([
+                refetch(),
+                refetchCategories(),
+                refetchAccounts(),
+            ]);
         } finally {
             setRefreshing(false);
         }
@@ -194,8 +204,8 @@ export const TransactionListScreen: React.FC = () => {
         setSelectedCategories([]);
         setSelectedAccounts([]);
         setDateRange({
-            start: dayjs().subtract(30, 'days').format('YYYY-MM-DD'),
-            end: dayjs().format('YYYY-MM-DD'),
+            start: dayjs().subtract(30, 'days').startOf('day').toISOString(),
+            end: dayjs().endOf('day').toISOString(),
         });
     };
 
@@ -238,11 +248,9 @@ export const TransactionListScreen: React.FC = () => {
             onPress={() => handleTransactionPress(item)}
             onEdit={() => handleTransactionEdit(item)}
             onDelete={() => handleTransactionDelete(item)}
+            categories={categories}
+            accounts={accounts}
         />
-    );
-
-    const renderSeparator = () => (
-        <View style={[styles.separator, { backgroundColor: theme.colors.border }]} />
     );
 
     if (isLoading && transactions.length === 0) {
@@ -260,20 +268,20 @@ export const TransactionListScreen: React.FC = () => {
 
     if (error) {
         console.log('Transaction loading error:', error);
-        
+
         // Determine error type and message
         const errorData = error as any;
-        const isTimeoutError = errorData?.status === 'TIMEOUT_ERROR' || 
-                              errorData?.error?.includes('AbortError');
-        
-        const errorTitle = isTimeoutError 
+        const isTimeoutError = errorData?.status === 'TIMEOUT_ERROR' ||
+            errorData?.error?.includes('AbortError');
+
+        const errorTitle = isTimeoutError
             ? 'Connection Timeout'
             : 'Failed to Load Transactions';
-        
+
         const errorMessage = isTimeoutError
             ? 'The request took too long. Please check your connection and try again.'
             : 'Unable to load transactions. Please try again.';
-        
+
         return (
             <SafeContainer>
                 <View style={[styles.errorContainer, { backgroundColor: theme.colors.background }]}>
@@ -301,7 +309,8 @@ export const TransactionListScreen: React.FC = () => {
         <SafeContainer>
             <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
                 {/* Header */}
-                <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
+                {/* <Card style={[styles.header, { backgroundColor: theme.colors.surface }]}> */}
+                <Card>
                     <Text style={[styles.title, { color: theme.colors.text }]}>
                         Transactions
                     </Text>
@@ -327,16 +336,13 @@ export const TransactionListScreen: React.FC = () => {
                             ]}
                             activeOpacity={0.7}
                         >
-                            <Text style={[
-                                styles.filterIcon,
-                                {
-                                    color: getActiveFiltersCount() > 0
-                                        ? theme.colors.onPrimary
-                                        : theme.colors.textSecondary,
-                                }
-                            ]}>
-                                ⚙
-                            </Text>
+                            <Icon
+                                name="options"
+                                size={18}
+                                color={getActiveFiltersCount() > 0
+                                    ? theme.colors.onPrimary
+                                    : theme.colors.textSecondary}
+                            />
                             {getActiveFiltersCount() > 0 && (
                                 <View style={[styles.filterBadge, { backgroundColor: theme.colors.error[500] }]}>
                                     <Text style={[styles.filterBadgeText, { color: theme.colors.onError }]}>
@@ -359,11 +365,12 @@ export const TransactionListScreen: React.FC = () => {
                             />
                         ))}
                     </View>
-                </View>
+                </Card>
 
-                {/* Advanced Filters */}
-                {showFilters && (
+                {/* Advanced Filters Modal */}
+                {showFilters &&
                     <TransactionFilters
+                        visible={showFilters}
                         dateRange={dateRange}
                         onDateRangeChange={setDateRange}
                         selectedCategories={selectedCategories}
@@ -372,8 +379,10 @@ export const TransactionListScreen: React.FC = () => {
                         onAccountsChange={setSelectedAccounts}
                         onClose={() => setShowFilters(false)}
                         onClear={clearFilters}
+                        categories={categories}
+                        accounts={accounts}
                     />
-                )}
+                }
 
                 {/* Transaction List */}
                 {groupedTransactions.length === 0 ? (
@@ -406,10 +415,9 @@ export const TransactionListScreen: React.FC = () => {
                         renderItem={({ item }) => (
                             <View>
                                 {renderSectionHeader({ section: item })}
-                                {item.data.map((transaction, index) => (
+                                {item.data.map((transaction) => (
                                     <View key={transaction.id}>
                                         {renderTransaction({ item: transaction })}
-                                        {index < item.data.length - 1 && renderSeparator()}
                                     </View>
                                 ))}
                             </View>
@@ -427,13 +435,10 @@ export const TransactionListScreen: React.FC = () => {
                         contentContainerStyle={styles.listContent}
                     />
                 )}
-
-                {/* Floating Action Button */}
-                <FloatingActionButton
-                    onPress={handleAddTransaction}
-                    icon="+"
-                />
             </View>
+
+            {/* Bottom spacing for tab bar */}
+            <BottomSpacing />
         </SafeContainer>
     );
 };
@@ -513,9 +518,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         position: 'relative',
     },
-    filterIcon: {
-        fontSize: 16,
-    },
     filterBadge: {
         position: 'absolute',
         top: -2,
@@ -541,14 +543,16 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 20,
+        paddingHorizontal: 20,
+        paddingVertical: 40,
     },
     clearFiltersButton: {
-        marginTop: 16,
+        marginTop: 24,
         paddingHorizontal: 24,
         paddingVertical: 12,
         borderRadius: 8,
         borderWidth: 1,
+        marginBottom: 20,
     },
     clearFiltersText: {
         fontSize: 14,

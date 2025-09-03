@@ -220,7 +220,7 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
         >
 
           {/* Transaction Type Selector */}
-          <Card style={styles.card} padding='small'>
+          <Card style={styles.card}>
             <Text style={styles.sectionTitle}>Transaction Type</Text>
             <View style={styles.typeSelector}>
               {(['income', 'expense', 'transfer'] as TransactionType[]).map((type) => (
@@ -238,7 +238,7 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
           </Card>
 
           {/* Amount Display */}
-          <Card style={styles.card} padding='small'>
+          <Card style={styles.card}>
             <Text style={styles.sectionTitle}>Amount</Text>
             <Text style={styles.amountDisplay}>{getAmountDisplay()}</Text>
             <Button
@@ -252,7 +252,7 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
           </Card>
 
           {/* Account Selection */}
-          <Card style={styles.card} padding='small'>
+          <Card style={styles.card}>
             <Text style={styles.sectionTitle}>
               {transactionType === 'transfer' ? 'From Account' : 'Account'}
             </Text>
@@ -275,7 +275,7 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
 
           {/* Transfer To Account */}
           {transactionType === 'transfer' && (
-            <Card style={styles.card} padding='small'>
+            <Card style={styles.card}>
               <Text style={styles.sectionTitle}>To Account</Text>
               <Controller
                 control={control}
@@ -297,7 +297,7 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
 
           {/* Category Selection */}
           {transactionType !== 'transfer' && (
-            <Card style={styles.card} padding='small'>
+            <Card style={styles.card}>
               <Text style={styles.sectionTitle}>Category</Text>
               <Controller
                 control={control}
@@ -318,7 +318,7 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
           )}
 
           {/* Date Selection */}
-          <Card style={styles.card} padding='small'>
+          <Card style={styles.card}>
             <Text style={styles.sectionTitle}>Date</Text>
             <Controller
               control={control}
@@ -334,7 +334,7 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
           </Card>
 
           {/* Note */}
-          <Card style={styles.card} padding='small'>
+          <Card style={styles.card}>
             <Controller
               control={control}
               name="note"
@@ -352,7 +352,7 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
           </Card>
 
           {/* Tags */}
-          <Card style={styles.card} padding='small'>
+          <Card style={styles.card}>
             <Text style={styles.sectionTitle}>Tags</Text>
             <Controller
               control={control}

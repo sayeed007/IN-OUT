@@ -94,7 +94,6 @@ const QuickActions: React.FC<QuickActionsProps> = ({ onAction }) => {
 const styles = StyleSheet.create({
   container: {
     marginVertical: 8,
-    padding: 0,
   },
   header: {
     marginBottom: 16,

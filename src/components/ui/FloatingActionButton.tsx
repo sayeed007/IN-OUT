@@ -105,7 +105,7 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
     const getPositionStyle = (): ViewStyle => {
         const basePosition = {
             position: 'absolute' as const,
-            bottom: 20,
+            bottom: 40,
         };
 
         switch (position) {

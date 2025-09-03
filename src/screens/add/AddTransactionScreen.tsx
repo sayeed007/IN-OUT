@@ -16,7 +16,6 @@ import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Chip } from '../../components/ui/Chip';
 import { Modal } from '../../components/ui/Modal';
-import { AmountKeypad } from '../../components/forms/AmountKeypad';
 import { FormField, SelectField, TagsField } from '../../components/forms/FormFields';
 import { useTransactionForm } from '../../features/transactions/hooks/useTransactionForm';
 import { useGetAccountsQuery, useGetCategoriesQuery } from '../../state/api';
@@ -26,7 +25,6 @@ import { Spacing } from '../../theme';
 
 export const AddTransactionScreen: React.FC = () => {
     const navigation = useNavigation();
-    const [showAmountKeypad, setShowAmountKeypad] = useState(false);
     const [showAccountSelector, setShowAccountSelector] = useState(false);
     const [showCategorySelector, setShowCategorySelector] = useState(false);
     const [showDatePicker, setShowDatePicker] = useState(false);
@@ -143,16 +141,15 @@ export const AddTransactionScreen: React.FC = () => {
                     {/* Amount Section */}
                     <Card style={styles.card}>
                         <Text style={styles.sectionTitle}>Amount</Text>
-                        <TouchableOpacity
-                            style={styles.amountContainer}
-                            onPress={() => setShowAmountKeypad(true)}
-                        >
-                            <Text style={styles.amountLabel}>Amount</Text>
-                            <Text style={styles.amountValue}>
-                                {formData.amount ? `$${parseFloat(formData.amount).toFixed(2)}` : 'Enter amount'}
-                            </Text>
-                            {errors.amount && <Text style={styles.errorText}>{errors.amount}</Text>}
-                        </TouchableOpacity>
+                        <FormField
+                            label="Amount"
+                            value={formData.amount}
+                            onChangeText={(text) => updateField('amount', text)}
+                            placeholder="0.00"
+                            keyboardType="numeric"
+                            error={errors.amount}
+                            required
+                        />
                     </Card>
 
                     {/* Account Section */}
@@ -243,20 +240,6 @@ export const AddTransactionScreen: React.FC = () => {
                         />
                     </View>
                 </ScrollView>
-
-                {/* Amount Keypad Modal */}
-                <Modal
-                    visible={showAmountKeypad}
-                    onClose={() => setShowAmountKeypad(false)}
-                    title="Enter Amount"
-                >
-                    <AmountKeypad
-                        value={formData.amount}
-                        onChange={(value) => updateField('amount', value)}
-                        currencyCode="USD"
-                        onDone={() => setShowAmountKeypad(false)}
-                    />
-                </Modal>
 
                 {/* Account Selector Modal */}
                 <Modal
@@ -353,24 +336,6 @@ const styles = StyleSheet.create({
     },
     typeChip: {
         flex: 1,
-    },
-    amountContainer: {
-        paddingVertical: Spacing.md,
-    },
-    amountLabel: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#374151',
-        marginBottom: Spacing.sm,
-    },
-    amountValue: {
-        fontSize: 24,
-        fontWeight: '700',
-        color: '#111827',
-        textAlign: 'center',
-        paddingVertical: Spacing.lg,
-        backgroundColor: '#F9FAFB',
-        borderRadius: 12,
     },
     errorText: {
         color: '#EF4444',

@@ -8,6 +8,7 @@ import {
     Animated,
     Easing,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import Card from '../../../components/ui/Card';
 import ProgressBar from '../../../components/ui/ProgressBar';
 import { useTheme } from '../../../app/providers/ThemeProvider';
@@ -32,7 +33,7 @@ export const KPICards: React.FC<KPICardsProps> = ({
 }) => {
     const { theme } = useTheme();
     const navigation = useNavigation<any>();
-    const animatedValue = new Animated.Value(0);
+    const animatedValue = React.useRef(new Animated.Value(0)).current;
 
     React.useEffect(() => {
         Animated.timing(animatedValue, {
@@ -99,7 +100,11 @@ export const KPICards: React.FC<KPICardsProps> = ({
                         <Card style={StyleSheet.flatten([styles.kpiCard, styles.incomeCard])}>
                             <View style={styles.cardHeader}>
                                 <View style={[styles.iconContainer, { backgroundColor: (theme.colors.success[500]) + '20' }]}>
-                                    <Text style={[styles.icon, { color: theme.colors.success[500] }]}>↗</Text>
+                                    <Icon
+                                        name="trending-up"
+                                        size={18}
+                                        color={theme.colors.success[500]}
+                                    />
                                 </View>
                                 <Text style={[styles.cardTitle, { color: theme.colors.textSecondary }]}>
                                     Income
@@ -138,7 +143,11 @@ export const KPICards: React.FC<KPICardsProps> = ({
                         <Card style={StyleSheet.flatten([styles.kpiCard, styles.expenseCard])}>
                             <View style={styles.cardHeader}>
                                 <View style={[styles.iconContainer, { backgroundColor: (theme.colors.error[500]) + '20' }]}>
-                                    <Text style={[styles.icon, { color: theme.colors.error[500] }]}>↙</Text>
+                                    <Icon
+                                        name="trending-down"
+                                        size={18}
+                                        color={theme.colors.error[500]}
+                                    />
                                 </View>
                                 <Text style={[styles.cardTitle, { color: theme.colors.textSecondary }]}>
                                     Expenses
@@ -298,16 +307,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginRight: 6,
     },
-    icon: {
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
     cardTitle: {
         fontSize: 14,
         fontWeight: '500',
     },
     amount: {
-        fontSize: 24,
+        fontSize: 14,
         fontWeight: 'bold',
         marginBottom: 4,
     },
@@ -315,8 +320,6 @@ const styles = StyleSheet.create({
         fontSize: 12,
     },
     netCard: {
-        padding: 0,
-        paddingVertical: 8,
     },
     netHeader: {
         flexDirection: 'row',
@@ -341,7 +344,6 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     budgetCard: {
-        padding: 16,
     },
     budgetHeader: {
         flexDirection: 'row',

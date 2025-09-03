@@ -8,6 +8,7 @@ import {
   ScrollView,
   Animated,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../../app/providers/ThemeProvider';
 import dayjs from 'dayjs';
 
@@ -239,9 +240,11 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
           style={styles.navButton}
           activeOpacity={0.7}
         >
-          <Text style={[styles.navButtonText, { color: theme.colors.primary[500] }]}>
-            ←
-          </Text>
+          <Icon
+            name="chevron-back"
+            size={24}
+            color={theme.colors.primary[500]}
+          />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -252,9 +255,11 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
           <Text style={[styles.monthTitle, { color: theme.colors.text }]}>
             {getCurrentMonthLabel()}
           </Text>
-          <Text style={[styles.dropdownIcon, { color: theme.colors.textSecondary }]}>
-            ▼
-          </Text>
+          <Icon
+            name="chevron-down"
+            size={16}
+            color={theme.colors.textSecondary}
+          />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -262,9 +267,11 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
           style={styles.navButton}
           activeOpacity={0.7}
         >
-          <Text style={[styles.navButtonText, { color: theme.colors.primary[500] }]}>
-            →
-          </Text>
+          <Icon
+            name="chevron-forward"
+            size={24}
+            color={theme.colors.primary[500]}
+          />
         </TouchableOpacity>
       </View>
 
@@ -332,9 +339,10 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
 
 const styles = StyleSheet.create({
   container: {
+    borderWidth: 0,
     paddingVertical: 16,
     paddingHorizontal: 16,
-    marginHorizontal: 4,
+    marginHorizontal: 8,
     marginBottom: 12,
     borderRadius: 12,
     elevation: 2,
@@ -342,6 +350,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
+    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',
@@ -377,10 +386,11 @@ const styles = StyleSheet.create({
   },
   monthsScroll: {
     marginHorizontal: -16,
+    paddingHorizontal: 16,
   },
   monthsContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 4,
+    paddingVertical: 12,
   },
   monthChip: {
     paddingHorizontal: 16,

@@ -13,6 +13,7 @@ import { useTheme } from '../../../app/providers/ThemeProvider';
 import Chip from '../../../components/ui/Chip';
 
 interface TransactionFiltersProps {
+  visible: boolean;
   dateRange: { start: string; end: string };
   onDateRangeChange: (range: { start: string; end: string }) => void;
   selectedCategories: string[];
@@ -21,9 +22,12 @@ interface TransactionFiltersProps {
   onAccountsChange: (accounts: string[]) => void;
   onClose: () => void;
   onClear: () => void;
+  categories?: any[];
+  accounts?: any[];
 }
 
 const TransactionFilters: React.FC<TransactionFiltersProps> = ({
+  visible,
   dateRange,
   onDateRangeChange,
   selectedCategories,
@@ -32,6 +36,8 @@ const TransactionFilters: React.FC<TransactionFiltersProps> = ({
   onAccountsChange,
   onClose,
   onClear,
+  categories = [],
+  accounts = [],
 }) => {
   const { theme } = useTheme();
   const [tempStartDate, setTempStartDate] = useState(dateRange.start);
@@ -69,22 +75,22 @@ const TransactionFilters: React.FC<TransactionFiltersProps> = ({
 
   const applyDatePreset = (days: number) => {
     let start: string;
-    let end: string = dayjs().format('YYYY-MM-DD');
+    let end: string = dayjs().endOf('day').toISOString();
 
     if (days === 0) {
       // Today
-      start = dayjs().format('YYYY-MM-DD');
+      start = dayjs().startOf('day').toISOString();
     } else if (days === -1) {
       // This month
-      start = dayjs().startOf('month').format('YYYY-MM-DD');
-      end = dayjs().endOf('month').format('YYYY-MM-DD');
+      start = dayjs().startOf('month').startOf('day').toISOString();
+      end = dayjs().endOf('month').endOf('day').toISOString();
     } else if (days === -2) {
       // Last month
-      start = dayjs().subtract(1, 'month').startOf('month').format('YYYY-MM-DD');
-      end = dayjs().subtract(1, 'month').endOf('month').format('YYYY-MM-DD');
+      start = dayjs().subtract(1, 'month').startOf('month').startOf('day').toISOString();
+      end = dayjs().subtract(1, 'month').endOf('month').endOf('day').toISOString();
     } else {
       // Last X days
-      start = dayjs().subtract(days, 'days').format('YYYY-MM-DD');
+      start = dayjs().subtract(days, 'days').startOf('day').toISOString();
     }
 
     setTempStartDate(start);
@@ -121,118 +127,129 @@ const TransactionFilters: React.FC<TransactionFiltersProps> = ({
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.surface }]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.colors.text }]}>
-          Filter Transactions
-        </Text>
-        <View style={styles.headerActions}>
-          <TouchableOpacity onPress={onClear} style={styles.clearButton}>
-            <Text style={[styles.clearText, { color: theme.colors.textSecondary }]}>
-              Clear All
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Text style={[styles.closeText, { color: theme.colors.primary[500] }]}>
-              Done
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Date Range Section */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-            Date Range
-          </Text>
-
-          {/* Date Presets */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.presets}>
-            {datePresets.map((preset) => (
-              <TouchableOpacity
-                key={preset.label}
-                onPress={() => applyDatePreset(preset.days)}
-                style={[
-                  styles.presetButton,
-                  { backgroundColor: theme.colors.background }
-                ]}
-              >
-                <Text style={[styles.presetText, { color: theme.colors.textSecondary }]}>
-                  {preset.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-
-          {/* Custom Date Range */}
-          <View style={styles.dateInputs}>
-            <View style={styles.dateInput}>
-              <Text style={[styles.dateLabel, { color: theme.colors.textSecondary }]}>
-                From
+    <>
+      <Modal
+        visible={visible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={onClose}
+      >
+        <View style={styles.modalContainer}>
+          <View style={[styles.container, { backgroundColor: theme.colors.surface }]}>
+            {/* Header */}
+            <View style={styles.header}>
+              <Text style={[styles.title, { color: theme.colors.text }]}>
+                Filter Transactions
               </Text>
-              <TouchableOpacity
-                style={[styles.dateButton, { backgroundColor: theme.colors.background }]}
-                onPress={() => setShowDatePicker('start')}
-              >
-                <Text style={[styles.dateText, { color: theme.colors.text }]}>
-                  {dayjs(tempStartDate).format('MMM DD, YYYY')}
-                </Text>
-              </TouchableOpacity>
+              <View style={styles.headerActions}>
+                <TouchableOpacity onPress={onClear} style={styles.clearButton}>
+                  <Text style={[styles.clearText, { color: theme.colors.textSecondary }]}>
+                    Clear All
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                  <Text style={[styles.closeText, { color: theme.colors.primary[500] }]}>
+                    Done
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
-            <View style={styles.dateInput}>
-              <Text style={[styles.dateLabel, { color: theme.colors.textSecondary }]}>
-                To
-              </Text>
-              <TouchableOpacity
-                style={[styles.dateButton, { backgroundColor: theme.colors.background }]}
-                onPress={() => setShowDatePicker('end')}
-              >
-                <Text style={[styles.dateText, { color: theme.colors.text }]}>
-                  {dayjs(tempEndDate).format('MMM DD, YYYY')}
+
+            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+              {/* Date Range Section */}
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                  Date Range
                 </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
 
-        {/* Categories Section */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-            Categories
-          </Text>
-          <View style={styles.chipContainer}>
-            {mockCategories.map((category) => (
-              <Chip
-                key={category.id}
-                label={`${getCategoryIcon(category.type)} ${category.name}`}
-                selected={selectedCategories.includes(category.id)}
-                onPress={() => toggleCategory(category.id)}
-                style={styles.chip}
-              />
-            ))}
-          </View>
-        </View>
+                {/* Date Presets */}
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.presets}>
+                  {datePresets.map((preset) => (
+                    <TouchableOpacity
+                      key={preset.label}
+                      onPress={() => applyDatePreset(preset.days)}
+                      style={[
+                        styles.presetButton,
+                        { backgroundColor: theme.colors.background }
+                      ]}
+                    >
+                      <Text style={[styles.presetText, { color: theme.colors.textSecondary }]}>
+                        {preset.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
 
-        {/* Accounts Section */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-            Accounts
-          </Text>
-          <View style={styles.chipContainer}>
-            {mockAccounts.map((account) => (
-              <Chip
-                key={account.id}
-                label={`${getAccountIcon(account.type)} ${account.name}`}
-                selected={selectedAccounts.includes(account.id)}
-                onPress={() => toggleAccount(account.id)}
-                style={styles.chip}
-              />
-            ))}
+                {/* Custom Date Range */}
+                <View style={styles.dateInputs}>
+                  <View style={styles.dateInput}>
+                    <Text style={[styles.dateLabel, { color: theme.colors.textSecondary }]}>
+                      From
+                    </Text>
+                    <TouchableOpacity
+                      style={[styles.dateButton, { backgroundColor: theme.colors.background }]}
+                      onPress={() => setShowDatePicker('start')}
+                    >
+                      <Text style={[styles.dateText, { color: theme.colors.text }]}>
+                        {dayjs(tempStartDate).format('MMM DD, YYYY')}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={styles.dateInput}>
+                    <Text style={[styles.dateLabel, { color: theme.colors.textSecondary }]}>
+                      To
+                    </Text>
+                    <TouchableOpacity
+                      style={[styles.dateButton, { backgroundColor: theme.colors.background }]}
+                      onPress={() => setShowDatePicker('end')}
+                    >
+                      <Text style={[styles.dateText, { color: theme.colors.text }]}>
+                        {dayjs(tempEndDate).format('MMM DD, YYYY')}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+
+              {/* Categories Section */}
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                  Categories
+                </Text>
+                <View style={styles.chipContainer}>
+                  {(categories.length > 0 ? categories : mockCategories).map((category) => (
+                    <Chip
+                      key={category.id}
+                      label={`${getCategoryIcon(category.type)} ${category.name}`}
+                      selected={selectedCategories.includes(category.id)}
+                      onPress={() => toggleCategory(category.id)}
+                      style={styles.chip}
+                    />
+                  ))}
+                </View>
+              </View>
+
+              {/* Accounts Section */}
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                  Accounts
+                </Text>
+                <View style={styles.chipContainer}>
+                  {(accounts.length > 0 ? accounts : mockAccounts).map((account) => (
+                    <Chip
+                      key={account.id}
+                      label={`${getAccountIcon(account.type)} ${account.name}`}
+                      selected={selectedAccounts.includes(account.id)}
+                      onPress={() => toggleAccount(account.id)}
+                      style={styles.chip}
+                    />
+                  ))}
+                </View>
+              </View>
+            </ScrollView>
           </View>
         </View>
-      </ScrollView>
+      </Modal>
 
       {/* Simple Date Picker Modal */}
       <Modal
@@ -251,12 +268,16 @@ const TransactionFilters: React.FC<TransactionFiltersProps> = ({
                 color: theme.colors.text,
                 borderColor: theme.colors.border
               }]}
-              value={showDatePicker === 'start' ? tempStartDate : tempEndDate}
+              value={showDatePicker === 'start' 
+                ? dayjs(tempStartDate).format('YYYY-MM-DD')
+                : dayjs(tempEndDate).format('YYYY-MM-DD')}
               onChangeText={(text) => {
+                // Convert YYYY-MM-DD back to ISO string
+                const isoDate = dayjs(text).toISOString();
                 if (showDatePicker === 'start') {
-                  setTempStartDate(text);
+                  setTempStartDate(isoDate);
                 } else {
-                  setTempEndDate(text);
+                  setTempEndDate(isoDate);
                 }
               }}
               placeholder="YYYY-MM-DD"
@@ -289,20 +310,28 @@ const TransactionFilters: React.FC<TransactionFiltersProps> = ({
           </View>
         </View>
       </Modal>
-    </View>
+
+    </>
+
   );
 };
 
 const styles = StyleSheet.create({
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)'
+  },
   container: {
-    maxHeight: 400,
-    margin: 16,
-    borderRadius: 12,
-    elevation: 3,
+    flex: 1,
+    maxHeight: '90%',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    elevation: 5,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
-    shadowRadius: 3,
+    shadowRadius: 4,
   },
   header: {
     flexDirection: 'row',

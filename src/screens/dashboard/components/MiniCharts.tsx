@@ -40,6 +40,8 @@ const MiniCharts: React.FC<MiniChartsProps> = ({
 }) => {
   const { theme } = useTheme();
 
+  console.log(trendData, categoryData);
+
   // Create trend line path for income/expense
   const createTrendPath = (data: number[]) => {
     if (data.length === 0) return '';
@@ -64,9 +66,9 @@ const MiniCharts: React.FC<MiniChartsProps> = ({
   const totalBalance = accounts.reduce((sum, account) => sum + account.openingBalance, 0);
 
   return (
-    <View style={styles.container}>
+    <>
       {/* Income vs Expense Trend */}
-      <Card style={styles.chartCard}>
+      <Card>
         <View style={styles.chartHeader}>
           <Text style={[styles.chartTitle, { color: theme.colors.text }]}>
             Income vs Expenses
@@ -200,19 +202,11 @@ const MiniCharts: React.FC<MiniChartsProps> = ({
           </View>
         </Card>
       </View>
-    </View>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  chartCard: {
-    marginBottom: 12,
-    padding: 16,
-  },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',

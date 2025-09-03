@@ -94,26 +94,38 @@ const AccountManagerScreen: React.FC<Props> = ({ navigation }) => {
       tx => tx.accountId === account.id || tx.accountIdTo === account.id
     );
 
+    // Debug logging
+    console.log(`Account: ${account.name} (ID: ${account.id})`);
+    console.log(`Opening Balance: ${account.openingBalance}`);
+    console.log(`Transactions for this account:`, accountTransactions);
+
     const balance = accountTransactions.reduce((total, tx) => {
+      console.log(`Processing transaction: ${tx.type} - ${tx.amount} (Account: ${tx.accountId})`);
+      
       if (tx.accountId === account.id) {
         // This account is the source
         if (tx.type === 'income') {
+          console.log(`Adding income: ${total} + ${tx.amount} = ${total + tx.amount}`);
           return total + tx.amount;
         } else if (tx.type === 'expense') {
+          console.log(`Subtracting expense: ${total} - ${tx.amount} = ${total - tx.amount}`);
           return total - tx.amount;
         } else if (tx.type === 'transfer') {
+          console.log(`Transfer out: ${total} - ${tx.amount} = ${total - tx.amount}`);
           return total - tx.amount; // Money going out
         }
       }
       
       if (tx.accountIdTo === account.id && tx.type === 'transfer') {
         // This account is the destination for a transfer
+        console.log(`Transfer in: ${total} + ${tx.amount} = ${total + tx.amount}`);
         return total + tx.amount; // Money coming in
       }
       
       return total;
     }, account.openingBalance);
 
+    console.log(`Final balance for ${account.name}: ${balance}`);
     return balance;
   };
 

@@ -1,10 +1,9 @@
 // src/screens/transactions/AddTransactionScreen.tsx
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
 import { useFocusEffect } from '@react-navigation/native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import {
   Alert,
-  Animated,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -17,7 +16,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 import type { TabScreenProps } from '../../app/navigation/types';
 import { AccountSelector } from '../../components/forms/AccountSelector';
-import { AmountKeypad } from '../../components/forms/AmountKeypad';
 import { CategorySelector } from '../../components/forms/CategorySelector';
 import { DatePicker } from '../../components/forms/DatePicker';
 import { TagInput } from '../../components/forms/TagInput';
@@ -33,8 +31,8 @@ import {
   useGetCategoriesQuery,
 } from '../../state/api';
 import type { Transaction, TransactionType } from '../../types/global';
-import { formatCurrency } from '../../utils/helpers/currencyUtils';
 import { validateTransaction } from '../../utils/helpers/validationUtils';
+import Animated from 'react-native-reanimated';
 
 type Props = TabScreenProps<'Add'>;
 
@@ -53,10 +51,8 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
   const { type: initialType, accountId, categoryId } = route?.params || {};
 
   const [transactionType, setTransactionType] = useState<TransactionType>(initialType || 'expense');
-  const [showAmountKeypad, setShowAmountKeypad] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['essentials']));
-  const amountLabelAnimation = useRef(new Animated.Value(0)).current;
 
   // Quick add modals state
   const [showAccountModal, setShowAccountModal] = useState(false);
@@ -110,7 +106,7 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
       if (!initialType && !accountId && !categoryId && accounts.length > 0) {
         const defaultAccount = accounts[0];
         const defaultCategory = categories.find(cat => cat.type === transactionType);
-        
+
         reset({
           type: transactionType,
           amount: '',
@@ -125,30 +121,6 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
     }, [reset, transactionType, initialType, accountId, categoryId, accounts, categories])
   );
 
-  useEffect(() => {
-    Animated.timing(amountLabelAnimation, {
-      toValue: watchedAmount ? 1 : 0,
-      duration: 200,
-      useNativeDriver: false,
-    }).start();
-  }, [watchedAmount, amountLabelAnimation]);
-
-  const amountLabelStyle = {
-    fontSize: amountLabelAnimation.interpolate({
-      inputRange: [0, 1],
-      outputRange: [16, 12],
-    }),
-    color: amountLabelAnimation.interpolate({
-      inputRange: [0, 1],
-      outputRange: ['#9CA3AF', '#6366F1'],
-    }),
-    transform: [{
-      translateY: amountLabelAnimation.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, -12],
-      })
-    }]
-  };
 
   // Calculate form completion - use useMemo to prevent infinite re-renders
   const formSteps = useMemo(() => {
@@ -205,9 +177,6 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
     }
   };
 
-  const handleAmountChange = (amount: string) => {
-    setValue('amount', amount);
-  };
 
   const handleQuickAddAccount = () => {
     setShowAccountModal(true);
@@ -326,16 +295,6 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
     transactionType === 'transfer' ? false : category.type === transactionType
   );
 
-  const getSelectedAccount = () => {
-    return accounts.find(acc => acc.id === watchedAccountId);
-  };
-
-  const getAmountDisplay = () => {
-    if (!watchedAmount) return '$0.00';
-    const amount = parseFloat(watchedAmount) || 0;
-    const selectedAccount = getSelectedAccount();
-    return formatCurrency(amount, selectedAccount?.currencyCode || 'USD');
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -371,7 +330,7 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
           keyboardShouldPersistTaps="handled"
         >
           {/* Quick Type Selector - Always visible */}
-          <Card style={styles.card} padding='small'>
+          <Card style={styles.card}>
             <View style={styles.typeSelector}>
               {(['income', 'expense', 'transfer'] as TransactionType[]).map((type) => (
                 <Button
@@ -388,7 +347,7 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
           </Card>
 
           {/* Essential Information - Always expanded */}
-          <Card style={styles.card} padding='small'>
+          <Card style={styles.card}>
 
             {/* Title - Essential Details */}
             <View style={styles.sectionHeader}>
@@ -408,26 +367,21 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
               />
             </View>
 
-            {/* Amount - Floating Label Design */}
-            <View style={styles.floatingInputContainer}>
-              <Animated.Text style={[
-                styles.floatingInputLabel,
-                amountLabelStyle
-              ]}>
-                Amount
-              </Animated.Text>
-              <TouchableOpacity
-                style={styles.floatingAmountInput}
-                onPress={() => setShowAmountKeypad(true)}
-              >
-                <Text style={[
-                  styles.amountDisplay,
-                  !watchedAmount && styles.amountPlaceholder
-                ]}>
-                  {watchedAmount ? getAmountDisplay() : ''}
-                </Text>
-              </TouchableOpacity>
-            </View>
+            {/* Amount Input */}
+            <Controller
+              control={control}
+              name="amount"
+              rules={{ required: 'Amount is required' }}
+              render={({ field: { value, onChange } }) => (
+                <Input
+                  label="Amount"
+                  value={value}
+                  onChangeText={onChange}
+                  placeholder="0.00"
+                  keyboardType="numeric"
+                />
+              )}
+            />
 
             {/* Account Selection with Floating Label */}
             <Controller
@@ -489,7 +443,7 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
           </Card>
 
           {/* Optional Details - Collapsible */}
-          <Card style={styles.card} padding='small'>
+          <Card style={styles.card}>
             <TouchableOpacity
               style={styles.collapsibleHeader}
               onPress={() => toggleSection('optional')}
@@ -558,16 +512,6 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
           />
         </View>
       </KeyboardAvoidingView>
-
-      {/* Amount Keypad Modal */}
-      {showAmountKeypad && (
-        <AmountKeypad
-          value={watchedAmount}
-          onChange={handleAmountChange}
-          onDone={() => setShowAmountKeypad(false)}
-          currencyCode={getSelectedAccount()?.currencyCode || 'USD'}
-        />
-      )}
 
       {/* Account Creation Modal */}
       <AccountCreationModal
@@ -643,42 +587,11 @@ const styles = StyleSheet.create({
   typeButtonText: {
     fontSize: 12,
   },
-  amountDisplay: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1f2937',
-    textAlign: 'left',
-  },
-  amountPlaceholder: {
-    color: '#9ca3af',
-    fontSize: 14,
-  },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
-  },
-  floatingInputContainer: {
-    position: 'relative',
-    marginBottom: 20,
-  },
-  floatingInputLabel: {
-    position: 'absolute',
-    left: 16,
-    top: 16,
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 4,
-    zIndex: 1,
-  },
-  floatingAmountInput: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1.5,
-    borderColor: '#D1D5DB',
-    minHeight: 56,
-    justifyContent: 'center',
   },
   collapsibleHeader: {
     flexDirection: 'row',
@@ -731,7 +644,7 @@ const styles = StyleSheet.create({
 
 
 // {/* Quick Actions for common scenarios */ }
-// <Card style={styles.card} padding='small'>
+// <Card style={styles.card}>
 //   <Text style={styles.sectionTitle}>Quick Actions</Text>
 //   <View style={styles.quickActions}>
 //     <Button

@@ -15,11 +15,12 @@ import { SafeContainer } from '../../components/layout/SafeContainer';
 import Card from '../../components/ui/Card';
 import EmptyState from '../../components/ui/EmptyState';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import { useGetAccountsQuery, useGetBudgetsQuery, useGetTransactionsQuery } from '../../state/api';
+import { useGetAccountsQuery, useGetBudgetsQuery, useGetCategoriesQuery, useGetTransactionsQuery } from '../../state/api';
 import { KPICards } from './components/KPICards';
 import MiniCharts from './components/MiniCharts';
 import { MonthSelector } from './components/MonthSelector';
 import QuickActions from './components/QuickActions';
+import BottomSpacing from '../../components/ui/BottomSpacing';
 
 
 export const DashboardScreen: React.FC = () => {
@@ -50,6 +51,10 @@ export const DashboardScreen: React.FC = () => {
         isLoading: loadingBudgets,
         refetch: refetchBudgets
     } = useGetBudgetsQuery({ month: selectedMonth });
+
+    const {
+        data: categories = [],
+    } = useGetCategoriesQuery();
 
     const isLoading = loadingTransactions || loadingAccounts || loadingBudgets;
 
@@ -89,8 +94,19 @@ export const DashboardScreen: React.FC = () => {
             };
         });
 
-        // This would need actual data from the last 12 months
-        // For now, we'll use current month data for the selected month
+        // For demo purposes, distribute current month's data across the year
+        // In a real app, you'd query actual historical data for each month
+        const monthlyIncome = kpis.income / 12; // Simulate monthly average
+        const monthlyExpense = kpis.expense / 12; // Simulate monthly average
+
+        last12Months.forEach((month, index) => {
+            // Add some variation to make the chart more realistic
+            const variation = 0.3 + (Math.sin(index * 0.5) * 0.4); // Creates wave pattern
+            month.income = monthlyIncome * (0.8 + variation);
+            month.expense = monthlyExpense * (0.9 + variation * 0.6);
+        });
+
+        // Set current selected month to actual values
         const currentMonthIndex = last12Months.findIndex(
             m => m.fullMonth === selectedMonth
         );
@@ -121,6 +137,30 @@ export const DashboardScreen: React.FC = () => {
             .sort((a, b) => b.amount - a.amount)
             .slice(0, 6); // Top 6 categories
     }, [transactions]);
+
+    // Helper function to get meaningful transaction description
+    const getTransactionDescription = (transaction: any) => {
+        if (transaction.note) {
+            return transaction.note;
+        }
+
+        if (transaction.categoryId) {
+            const category = categories.find(cat => cat.id === transaction.categoryId);
+            if (category) {
+                return category.name;
+            }
+        }
+
+        if (transaction.type === 'transfer') {
+            const fromAccount = accounts.find(acc => acc.id === transaction.accountId);
+            const toAccount = accounts.find(acc => acc.id === transaction.accountIdTo);
+            if (fromAccount && toAccount) {
+                return `Transfer: ${fromAccount.name} → ${toAccount.name}`;
+            }
+        }
+
+        return `${transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}`;
+    };
 
     const handleRefresh = async () => {
         setRefreshing(true);
@@ -166,6 +206,9 @@ export const DashboardScreen: React.FC = () => {
             </SafeContainer>
         );
     }
+
+    console.log(transactions);
+
 
     return (
         <SafeContainer>
@@ -230,7 +273,7 @@ export const DashboardScreen: React.FC = () => {
 
                 {/* Recent Transactions Preview */}
                 {transactions.length > 0 && (
-                    <Card style={styles.recentCard}>
+                    <Card>
                         <View style={styles.sectionHeader}>
                             <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
                                 Recent Transactions
@@ -249,7 +292,7 @@ export const DashboardScreen: React.FC = () => {
                             <View key={transaction.id} style={styles.transactionItem}>
                                 <View style={styles.transactionInfo}>
                                     <Text style={[styles.transactionNote, { color: theme.colors.text }]}>
-                                        {transaction.note || `${transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}`}
+                                        {getTransactionDescription(transaction)}
                                     </Text>
                                     <Text style={[styles.transactionDate, { color: theme.colors.textSecondary }]}>
                                         {dayjs(transaction.date).format('MMM D')}
@@ -274,7 +317,7 @@ export const DashboardScreen: React.FC = () => {
                 )}
 
                 {/* Bottom spacing for tab bar */}
-                <View style={styles.bottomSpacing} />
+                <BottomSpacing />
             </ScrollView>
         </SafeContainer>
     );
@@ -294,7 +337,8 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     header: {
-        padding: 10,
+        paddingHorizontal: 10,
+        paddingBottom: 10,
     },
     title: {
         fontSize: 28,
@@ -305,10 +349,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     emptyCard: {
-        margin: 16,
-        marginTop: 8,
-    },
-    recentCard: {
         margin: 16,
         marginTop: 8,
     },
@@ -348,8 +388,5 @@ const styles = StyleSheet.create({
     transactionAmount: {
         fontSize: 16,
         fontWeight: '600',
-    },
-    bottomSpacing: {
-        height: 100, // Space for tab bar
     },
 });

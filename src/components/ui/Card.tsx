@@ -32,9 +32,9 @@ const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpaci
 const Card: React.FC<CardProps> = ({
     children,
     variant = 'elevated',
-    padding = 'medium',
-    margin = 'medium',
-    borderRadius = 'medium',
+    padding = 'small',
+    margin = 'none',
+    borderRadius = 'small',
     pressable = false,
     style,
     animatePress = true,

@@ -21,8 +21,8 @@ export const SafeContainer: React.FC<SafeContainerProps> = ({
 }) => {
     const insets = useSafeAreaInsets();
 
-    const spacingValue = typeof Spacing[padding] === 'number' ? Spacing[padding] : Spacing.md;
-    
+    const spacingValue = typeof Spacing[padding] === 'number' ? Spacing[padding] : Spacing.xs;
+
     const containerStyle: ViewStyle = {
         flex: 1,
         backgroundColor,

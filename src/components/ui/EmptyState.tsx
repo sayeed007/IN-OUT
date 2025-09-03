@@ -4,11 +4,9 @@ import {
     Text,
     View,
     ViewStyle,
-    useColorScheme,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../state/store';
+import { useTheme } from '../../app/providers/ThemeProvider';
 import { Button } from './Button';
 
 interface EmptyStateProps {
@@ -30,20 +28,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
     style,
     size = 'medium',
 }) => {
-    const colorScheme = useColorScheme();
-    const theme = useSelector((state: RootState) =>
-        state.preferences.theme === 'system' ? colorScheme : state.preferences.theme
-    );
-
-    const isDark = theme === 'dark';
-
-    // Theme colors
-    const colors = {
-        text: isDark ? '#FFFFFF' : '#000000',
-        textSecondary: isDark ? '#A1A1AA' : '#6B7280',
-        textTertiary: isDark ? '#71717A' : '#9CA3AF',
-        primary: '#6366F1',
-    };
+    const { theme } = useTheme();
 
     // Size configurations
     const sizeConfig = {
@@ -74,13 +59,13 @@ const EmptyState: React.FC<EmptyStateProps> = ({
 
     const titleStyle = {
         fontSize: config.titleSize,
-        color: colors.text,
+        color: theme.colors.text,
         marginBottom: description ? 8 : config.spacing,
     };
 
     const descriptionStyle = {
         fontSize: config.descriptionSize,
-        color: colors.textSecondary,
+        color: theme.colors.textSecondary,
         marginBottom: actionLabel ? config.spacing : 0,
     };
 
@@ -98,7 +83,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
                     <Icon
                         name={icon}
                         size={config.iconSize}
-                        color={colors.textTertiary}
+                        color={theme.colors.textSecondary}
                     />
                 </View>
             )}
