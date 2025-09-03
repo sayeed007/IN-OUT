@@ -244,7 +244,7 @@ export const ReportsScreen: React.FC = () => {
                 </View>
 
                 {/* Period Selector */}
-                <Card style={styles.periodSelector}>
+                <Card>
                     <View style={styles.periodTabs}>
                         {periodOptions.map((option) => (
                             <Chip
@@ -283,7 +283,7 @@ export const ReportsScreen: React.FC = () => {
 
                 {/* Summary Cards */}
                 <View style={styles.summaryContainer}>
-                    <Card style={StyleSheet.flatten([styles.summaryCard, styles.incomeCard])}>
+                    <Card style={StyleSheet.flatten([styles.summaryCard, styles.incomeCard])} variant='normal'>
                         <Text style={styles.summaryLabel}>Total Income</Text>
                         <Text style={styles.summaryAmount}>{formatCurrency(reportData.totals.income)}</Text>
                         <Text style={styles.summarySubtext}>
@@ -291,7 +291,7 @@ export const ReportsScreen: React.FC = () => {
                         </Text>
                     </Card>
 
-                    <Card style={StyleSheet.flatten([styles.summaryCard, styles.expenseCard])}>
+                    <Card style={StyleSheet.flatten([styles.summaryCard, styles.expenseCard])} variant='normal'>
                         <Text style={styles.summaryLabel}>Total Expenses</Text>
                         <Text style={styles.summaryAmount}>{formatCurrency(reportData.totals.expense)}</Text>
                         <Text style={styles.summarySubtext}>
@@ -299,7 +299,7 @@ export const ReportsScreen: React.FC = () => {
                         </Text>
                     </Card>
 
-                    <Card style={StyleSheet.flatten([styles.summaryCard, styles.netCard])}>
+                    <Card style={StyleSheet.flatten([styles.summaryCard, styles.netCard])} variant='normal'>
                         <Text style={styles.summaryLabel}>Net Amount</Text>
                         <Text style={[
                             styles.summaryAmount,
@@ -315,7 +315,9 @@ export const ReportsScreen: React.FC = () => {
 
                 {/* Category Breakdown */}
                 <Card style={styles.categoryCard}>
-                    <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Category Breakdown</Text>
+                    <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                        Category Breakdown
+                    </Text>
 
                     {reportData.categoryBreakdown.length > 0 ? (
                         <View>
@@ -458,30 +460,26 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     header: {
-        paddingHorizontal: 12,
         paddingVertical: 12,
     },
     title: {
-        fontSize: 28,
+        fontSize: 24,
         fontWeight: '700',
         marginBottom: 4,
     },
     subtitle: {
         fontSize: 16,
     },
-    periodSelector: {
-        paddingHorizontal: 12,
-    },
     periodTabs: {
         flexDirection: 'row',
+        justifyContent: 'space-between',
         gap: 8,
     },
     periodTab: {
         flex: 1,
     },
     dateSelector: {
-        padding: 0,
-        paddingHorizontal: 12,
+        marginVertical: 12,
     },
     dateSelectorContent: {
         flexDirection: 'row',
@@ -506,8 +504,7 @@ const styles = StyleSheet.create({
     },
     summaryContainer: {
         flexDirection: screenWidth > 400 ? 'row' : 'column',
-        paddingHorizontal: 12,
-        gap: 6,
+        gap: 8,
     },
     summaryCard: {
         flex: screenWidth > 400 ? 1 : undefined,
@@ -543,8 +540,6 @@ const styles = StyleSheet.create({
         fontSize: 12,
     },
     categoryCard: {
-        padding: 0,
-        paddingHorizontal: 12,
         marginBottom: 8,
     },
     sectionTitle: {
@@ -553,9 +548,7 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
     chartCard: {
-        padding: 0,
-        paddingHorizontal: 12,
-        marginBottom: 8,
+        marginBottom: 12,
     },
     chartContainer: {
         height: 220,

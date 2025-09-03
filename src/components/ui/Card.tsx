@@ -18,7 +18,7 @@ import { RootState } from '../../state/store';
 
 interface CardProps extends TouchableOpacityProps {
     children: React.ReactNode;
-    variant?: 'elevated' | 'outlined' | 'filled';
+    variant?: 'elevated' | 'outlined' | 'filled' | 'normal';
     padding?: 'none' | 'small' | 'medium' | 'large';
     margin?: 'none' | 'small' | 'medium' | 'large';
     borderRadius?: 'small' | 'medium' | 'large' | 'xl';
@@ -110,6 +110,12 @@ const Card: React.FC<CardProps> = ({
                 return {
                     ...baseStyle,
                     backgroundColor: colors.surfaceVariant,
+                };
+
+            case 'normal':
+                return {
+                    ...baseStyle,
+                    backgroundColor: 'transparent',
                 };
 
             default:

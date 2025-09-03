@@ -640,26 +640,3 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 });
-
-
-
-// {/* Quick Actions for common scenarios */ }
-// <Card style={styles.card}>
-//   <Text style={styles.sectionTitle}>Quick Actions</Text>
-//   <View style={styles.quickActions}>
-//     <Button
-//       title="Copy Last Transaction"
-//       variant="outline"
-//       size="small"
-//       textStyle={styles.quickActionText}
-//       onPress={() => {/* Copy last similar transaction */ }}
-//     />
-//     <Button
-//       title="Save as Template"
-//       variant="outline"
-//       size="small"
-//       textStyle={styles.quickActionText}
-//       onPress={() => {/* Save current as template */ }}
-//     />
-//   </View>
-// </Card>

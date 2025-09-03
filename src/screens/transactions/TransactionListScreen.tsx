@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
         shadowRadius: 2,
     },
     title: {
-        fontSize: 28,
+        fontSize: 24,
         fontWeight: 'bold',
         marginBottom: 16,
     },
