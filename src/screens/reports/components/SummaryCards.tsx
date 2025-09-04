@@ -33,12 +33,12 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ data }) => {
 
     return (
         <View style={styles.summaryContainer}>
-            <Card style={[styles.summaryCard, styles.incomeCard]}>
+            <Card style={StyleSheet.flatten([styles.summaryCard, styles.incomeCard])} variant='normal'>
                 <View style={styles.summaryHeader}>
-                    <Icon name="trending-up" size={20} color="#10B981" />
-                    <Text style={[styles.summaryLabel, { color: '#10B981' }]}>Income</Text>
+                    <Icon name="trending-up" size={20} color={theme.colors.income.main} />
+                    <Text style={[styles.summaryLabel, { color: theme.colors.income.main }]}>Income</Text>
                 </View>
-                <Text style={[styles.summaryAmount, { color: '#10B981' }]}>
+                <Text style={[styles.summaryAmount, { color: theme.colors.income.main }]}>
                     ${data.totals.income.toFixed(2)}
                 </Text>
                 <Text style={[styles.summarySubtext, { color: theme.colors.textSecondary }]}>
@@ -46,12 +46,12 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ data }) => {
                 </Text>
             </Card>
 
-            <Card style={[styles.summaryCard, styles.expenseCard]}>
+            <Card style={StyleSheet.flatten([styles.summaryCard, styles.expenseCard])} variant='normal'>
                 <View style={styles.summaryHeader}>
-                    <Icon name="trending-down" size={20} color="#EF4444" />
-                    <Text style={[styles.summaryLabel, { color: '#EF4444' }]}>Expenses</Text>
+                    <Icon name="trending-down" size={20} color={theme.colors.expense.main} />
+                    <Text style={[styles.summaryLabel, { color: theme.colors.expense.main }]}>Expenses</Text>
                 </View>
-                <Text style={[styles.summaryAmount, { color: '#EF4444' }]}>
+                <Text style={[styles.summaryAmount, { color: theme.colors.expense.main }]}>
                     ${data.totals.expense.toFixed(2)}
                 </Text>
                 <Text style={[styles.summarySubtext, { color: theme.colors.textSecondary }]}>
@@ -59,16 +59,16 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ data }) => {
                 </Text>
             </Card>
 
-            <Card style={[styles.summaryCard, styles.netCard]}>
+            <Card style={StyleSheet.flatten([styles.summaryCard, styles.netCard])} variant='normal'>
                 <View style={styles.summaryHeader}>
-                    <Icon name="analytics" size={20} color={data.totals.net >= 0 ? '#10B981' : '#EF4444'} />
-                    <Text style={[styles.summaryLabel, { color: data.totals.net >= 0 ? '#10B981' : '#EF4444' }]}>
+                    <Icon name="analytics" size={20} color={data.totals.net >= 0 ? theme.colors.income.main : theme.colors.expense.main} />
+                    <Text style={[styles.summaryLabel, { color: data.totals.net >= 0 ? theme.colors.income.main : theme.colors.expense.main }]}>
                         Net
                     </Text>
                 </View>
                 <Text style={[
                     styles.summaryAmount,
-                    { color: data.totals.net >= 0 ? '#10B981' : '#EF4444' }
+                    { color: data.totals.net >= 0 ? theme.colors.income.main : theme.colors.expense.main }
                 ]}>
                     ${Math.abs(data.totals.net).toFixed(2)}
                 </Text>

@@ -142,7 +142,7 @@ export const CustomComparison: React.FC<CustomComparisonProps> = ({
                                     <Icon 
                                         name="close" 
                                         size={16} 
-                                        color={typeof theme.colors.error === 'string' ? theme.colors.error : '#EF4444'} 
+                                        color={theme.colors.expense.main} 
                                     />
                                 </TouchableOpacity>
                             </View>

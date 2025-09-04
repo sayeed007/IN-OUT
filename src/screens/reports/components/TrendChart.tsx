@@ -44,11 +44,11 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, title }) => {
             <View style={styles.topLegend}>
                 <View style={styles.legendRow}>
                     <View style={styles.legendItem}>
-                        <View style={[styles.legendDot, { backgroundColor: '#10B981' }]} />
+                        <View style={[styles.legendDot, { backgroundColor: theme.colors.income.main }]} />
                         <Text style={[styles.legendLabel, { color: theme.colors.text }]}>Income</Text>
                     </View>
                     <View style={styles.legendItem}>
-                        <View style={[styles.legendDot, { backgroundColor: '#EF4444' }]} />
+                        <View style={[styles.legendDot, { backgroundColor: theme.colors.expense.main }]} />
                         <Text style={[styles.legendLabel, { color: theme.colors.text }]}>Expenses</Text>
                     </View>
                 </View>
@@ -86,14 +86,14 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, title }) => {
                                 {/* Income Line */}
                                 <Line
                                     points={points.income}
-                                    color="#10B981"
+                                    color={theme.colors.income.main}
                                     strokeWidth={3}
                                 />
                                 
                                 {/* Expense Line */}
                                 <Line
                                     points={points.expense}
-                                    color="#EF4444"
+                                    color={theme.colors.expense.main}
                                     strokeWidth={3}
                                 />
                             </>
@@ -119,10 +119,10 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, title }) => {
                         <Text style={[styles.tableHeaderCell, { color: theme.colors.textSecondary }]}>
                             Period
                         </Text>
-                        <Text style={[styles.tableHeaderCell, { color: '#10B981' }]}>
+                        <Text style={[styles.tableHeaderCell, { color: theme.colors.income.main }]}>
                             Income
                         </Text>
-                        <Text style={[styles.tableHeaderCell, { color: '#EF4444' }]}>
+                        <Text style={[styles.tableHeaderCell, { color: theme.colors.expense.main }]}>
                             Expenses
                         </Text>
                         <Text style={[styles.tableHeaderCell, { color: theme.colors.text }]}>
@@ -134,15 +134,15 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, title }) => {
                             <Text style={[styles.tableCell, { color: theme.colors.text }]}>
                                 {item.date}
                             </Text>
-                            <Text style={[styles.tableCell, { color: '#10B981' }]}>
+                            <Text style={[styles.tableCell, { color: theme.colors.income.main }]}>
                                 ${item.income.toFixed(0)}
                             </Text>
-                            <Text style={[styles.tableCell, { color: '#EF4444' }]}>
+                            <Text style={[styles.tableCell, { color: theme.colors.expense.main }]}>
                                 ${item.expense.toFixed(0)}
                             </Text>
                             <Text style={[
                                 styles.tableCell, 
-                                { color: item.net >= 0 ? '#10B981' : '#EF4444' }
+                                { color: item.net >= 0 ? theme.colors.income.main : theme.colors.expense.main }
                             ]}>
                                 ${Math.abs(item.net).toFixed(0)}
                             </Text>
@@ -157,7 +157,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, title }) => {
                     <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
                         Total Income
                     </Text>
-                    <Text style={[styles.statValue, { color: '#10B981' }]}>
+                    <Text style={[styles.statValue, { color: theme.colors.income.main }]}>
                         ${data.reduce((sum, d) => sum + d.income, 0).toFixed(0)}
                     </Text>
                 </View>
@@ -165,7 +165,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, title }) => {
                     <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
                         Total Expenses
                     </Text>
-                    <Text style={[styles.statValue, { color: '#EF4444' }]}>
+                    <Text style={[styles.statValue, { color: theme.colors.expense.main }]}>
                         ${data.reduce((sum, d) => sum + d.expense, 0).toFixed(0)}
                     </Text>
                 </View>
@@ -177,8 +177,8 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, title }) => {
                         styles.statValue, 
                         { 
                             color: data.reduce((sum, d) => sum + d.net, 0) >= 0 
-                                ? '#10B981' 
-                                : '#EF4444' 
+                                ? theme.colors.income.main 
+                                : theme.colors.expense.main 
                         }
                     ]}>
                         ${Math.abs(data.reduce((sum, d) => sum + d.net, 0)).toFixed(0)}

@@ -202,19 +202,19 @@ export const ReportsScreen: React.FC = () => {
         }
 
         // Pie chart data
-        const incomeChartColors = ['#10B981', '#059669', '#047857', '#065F46', '#064E3B'];
-        const expenseChartColors = ['#EF4444', '#DC2626', '#B91C1C', '#991B1B', '#7F1D1D'];
+        const incomeChartColors = [theme.colors.income.main, '#059669', '#047857', '#065F46', '#064E3B'];
+        const expenseChartColors = [theme.colors.expense.main, '#DC2626', '#B91C1C', '#991B1B', '#7F1D1D'];
 
         const incomePieData = incomeCategoryData.slice(0, 5).map((item, index) => ({
             label: item.category.name,
             value: item.amount,
-            color: incomeChartColors[index] || '#10B981'
+            color: incomeChartColors[index] || theme.colors.income.main
         }));
 
         const expensePieData = expenseCategoryData.slice(0, 5).map((item, index) => ({
             label: item.category.name,
             value: item.amount,
-            color: expenseChartColors[index] || '#EF4444'
+            color: expenseChartColors[index] || theme.colors.expense.main
         }));
 
         return {
@@ -458,10 +458,10 @@ export const ReportsScreen: React.FC = () => {
                 <SummaryCards data={reportData} />
 
                 {/* Trend Chart */}
-                {/* <TrendChart 
-                    data={reportData.trendData} 
-                    title={getTrendChartTitle()} 
-                /> */}
+                <TrendChart
+                    data={reportData.trendData}
+                    title={getTrendChartTitle()}
+                />
 
                 {/* Income Categories */}
                 {reportData.incomePieData.length > 0 && (
