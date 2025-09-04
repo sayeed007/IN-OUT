@@ -17,10 +17,12 @@ import EmptyState from '../../components/ui/EmptyState';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { useGetAccountsQuery, useGetBudgetsQuery, useGetCategoriesQuery, useGetTransactionsQuery } from '../../state/api';
 import { KPICards } from './components/KPICards';
-import MiniCharts from './components/MiniCharts';
 import { MonthSelector } from './components/MonthSelector';
 import QuickActions from './components/QuickActions';
 import BottomSpacing from '../../components/ui/BottomSpacing';
+import TrendChart from './components/TrendChart';
+import AccountOverview from './components/AccountOverview';
+import CategoryBreakdown from './components/CategoryBreakdown';
 
 
 export const DashboardScreen: React.FC = () => {
@@ -220,9 +222,6 @@ export const DashboardScreen: React.FC = () => {
         );
     }
 
-    console.log(transactions);
-
-
     return (
         <SafeContainer>
             <ScrollView
@@ -268,12 +267,17 @@ export const DashboardScreen: React.FC = () => {
 
                 {/* Mini Charts */}
                 {transactions.length > 0 ? (
-                    <MiniCharts
-                        trendData={chartData}
-                        categoryData={categoryData}
-                        accounts={accounts}
-                        categories={categories}
-                    />
+                    <>
+                        {/* Income vs Expense Trend */}
+                        <TrendChart trendData={chartData} />
+
+                        {/* Account Overview & Category Breakdown Row */}
+                        <View style={styles.row}>
+                            <AccountOverview accounts={accounts} />
+                            <CategoryBreakdown categoryData={categoryData} categories={categories} />
+                        </View>
+                    </>
+
                 ) : (
                     <Card style={styles.emptyCard}>
                         <EmptyState
@@ -404,5 +408,10 @@ const styles = StyleSheet.create({
     transactionAmount: {
         fontSize: 16,
         fontWeight: '600',
+    },
+    row: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap: 8,
     },
 });

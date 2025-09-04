@@ -267,7 +267,7 @@ export const TransactionListScreen: React.FC = () => {
     }
 
     if (error) {
-        console.log('Transaction loading error:', error);
+        console.error('Transaction loading error:', error);
 
         // Determine error type and message
         const errorData = error as any;

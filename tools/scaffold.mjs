@@ -73,7 +73,6 @@ const files = [
     "screens/dashboard/DashboardScreen.tsx",
     "screens/dashboard/components/KPICards.tsx",
     "screens/dashboard/components/MonthSelector.tsx",
-    "screens/dashboard/components/MiniCharts.tsx",
     "screens/dashboard/components/QuickActions.tsx",
 
     "screens/transactions/TransactionListScreen.tsx",
