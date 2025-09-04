@@ -4,13 +4,12 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
-  Modal,
   Animated,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { formatCurrency } from '../../utils/helpers/currencyUtils';
 import type { Account } from '../../types/global';
+import { AccountPickerModal } from './AccountPickerModal';
 
 interface AccountSelectorProps {
   accounts: Account[];
@@ -37,7 +36,6 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
   const labelAnimation = useRef(new Animated.Value(0)).current;
 
   const selectedAccount = accounts.find(account => account.id === selectedAccountId);
-  const activeAccounts = accounts.filter(account => !account.isArchived);
 
   const getAccountTypeIcon = (type: Account['type']) => {
     switch (type) {
@@ -47,11 +45,6 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
       case 'wallet': return 'phone-portrait-outline';
       default: return 'ellipse-outline';
     }
-  };
-
-  const handleSelectAccount = (accountId: string) => {
-    onSelectAccount(accountId);
-    setIsModalVisible(false);
   };
 
   const hasValue = !!selectedAccount;
@@ -144,70 +137,14 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
         </View>
       </TouchableOpacity>
 
-      {isModalVisible &&
-        <Modal
-          visible={isModalVisible}
-          animationType="slide"
-          presentationStyle="pageSheet"
-          onRequestClose={() => setIsModalVisible(false)}
-        >
-          <View style={styles.modal}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Account</Text>
-              <TouchableOpacity
-                style={styles.closeButton}
-                onPress={() => setIsModalVisible(false)}
-              >
-                <Icon name="close" size={24} color="#6B7280" />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView style={styles.accountList}>
-              {activeAccounts.length > 0 ? (
-                activeAccounts.map((account) => (
-                  <TouchableOpacity
-                    key={account.id}
-                    style={[
-                      styles.accountItem,
-                      selectedAccountId === account.id && styles.selectedAccountItem
-                    ]}
-                    onPress={() => handleSelectAccount(account.id)}
-                  >
-                    <View style={styles.accountItemContent}>
-                      <Icon
-                        name={getAccountTypeIcon(account.type)}
-                        size={24}
-                        color="#6366F1"
-                        style={styles.accountItemIcon}
-                      />
-                      <View style={styles.accountItemInfo}>
-                        <Text style={styles.accountItemName}>{account.name}</Text>
-                        <Text style={styles.accountItemType}>
-                          {account.type.charAt(0).toUpperCase() + account.type.slice(1)}
-                        </Text>
-                      </View>
-                      <Text style={styles.accountItemBalance}>
-                        {formatCurrency(account.openingBalance, account.currencyCode)}
-                      </Text>
-                    </View>
-                    {selectedAccountId === account.id && (
-                      <Icon name="checkmark" size={20} color="#10B981" />
-                    )}
-                  </TouchableOpacity>
-                ))
-              ) : (
-                <View style={styles.emptyState}>
-                  <Icon name="wallet-outline" size={48} color="#9CA3AF" />
-                  <Text style={styles.emptyStateTitle}>No accounts found</Text>
-                  <Text style={styles.emptyStateSubtitle}>
-                    Add an account in settings to get started
-                  </Text>
-                </View>
-              )}
-            </ScrollView>
-          </View>
-        </Modal>
-      }
+      <AccountPickerModal
+        visible={isModalVisible}
+        accounts={accounts}
+        selectedAccountId={selectedAccountId}
+        onSelectAccount={onSelectAccount}
+        onClose={() => setIsModalVisible(false)}
+        title="Select Account"
+      />
 
     </View >
   );
@@ -288,84 +225,6 @@ const styles = StyleSheet.create({
   },
   floatingPlaceholder: {
     color: 'transparent',
-  },
-  modal: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
-  },
-  closeButton: {
-    padding: 4,
-  },
-  accountList: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  accountItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-  },
-  selectedAccountItem: {
-    backgroundColor: '#F0FDF4',
-  },
-  accountItemContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  accountItemIcon: {
-    marginRight: 12,
-  },
-  accountItemInfo: {
-    flex: 1,
-  },
-  accountItemName: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#111827',
-  },
-  accountItemType: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginTop: 2,
-  },
-  accountItemBalance: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#111827',
-    marginRight: 12,
-  },
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: 40,
-  },
-  emptyStateTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
-    marginTop: 16,
-  },
-  emptyStateSubtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-    marginTop: 4,
   },
 });
 

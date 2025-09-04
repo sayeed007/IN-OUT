@@ -10,7 +10,17 @@
       "Bash(taskkill:*)",
       "Bash(npm run start:*)",
       "Bash(npm run lint)",
-      "Read(/C:\\in_out\\src\\screens\\dashboard\\components/**)"
+      "Read(/C:\\in_out\\src\\screens\\dashboard\\components/**)",
+      "Read(/C:\\in_out\\src\\screens\\auth/**)",
+      "Read(/C:\\in_out\\src\\screens\\transactions/**)",
+      "Read(/C:\\in_out\\src\\services\\storage/**)",
+      "Read(/C:\\in_out\\src\\screens\\auth\\components/**)",
+      "Read(/C:\\in_out\\src\\services\\storage/**)",
+      "Read(/C:\\in_out\\src\\screens\\reports\\components/**)",
+      "Read(/C:\\in_out\\src\\components\\forms/**)",
+      "Read(/C:\\in_out\\src\\components\\forms/**)",
+      "Read(/C:\\in_out\\src\\components\\forms/**)",
+      "Read(/C:\\in_out\\src\\components\\forms/**)"
     ],
     "deny": [],
     "ask": []

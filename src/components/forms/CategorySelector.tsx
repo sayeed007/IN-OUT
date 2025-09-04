@@ -11,6 +11,10 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import type { Category } from '../../types/global';
 
+const ITEM_HEIGHT = 60;
+const VISIBLE_ITEMS = 3;
+const WHEEL_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
+
 interface CategorySelectorProps {
   categories: Category[];
   selectedCategoryId?: string;
@@ -33,7 +37,9 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
   onQuickAdd
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const labelAnimation = useRef(new Animated.Value(0)).current;
+  const scrollRef = useRef<ScrollView>(null);
 
   const selectedCategory = categories.find(category => category.id === selectedCategoryId);
   const activeCategories = categories.filter(category => !category.isArchived);
@@ -41,6 +47,20 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
   const handleSelectCategory = (categoryId: string) => {
     onSelectCategory(categoryId);
     setIsModalVisible(false);
+  };
+
+  const handleCategoryScroll = (event: any) => {
+    const y = event.nativeEvent.contentOffset.y;
+    const index = Math.round(y / ITEM_HEIGHT);
+    const clampedIndex = Math.max(0, Math.min(activeCategories.length - 1, index));
+    
+    if (clampedIndex !== selectedIndex) {
+      setSelectedIndex(clampedIndex);
+      const selectedCategory = activeCategories[clampedIndex];
+      if (selectedCategory) {
+        onSelectCategory(selectedCategory.id);
+      }
+    }
   };
 
   const getCategoryTypeColor = (type: Category['type']) => {
@@ -88,6 +108,24 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
       }).start();
     }
   }, [hasValue, floatingLabel, labelAnimation]);
+
+  useEffect(() => {
+    const currentIndex = activeCategories.findIndex(category => category.id === selectedCategoryId);
+    if (currentIndex !== -1) {
+      setSelectedIndex(currentIndex);
+    }
+  }, [selectedCategoryId, activeCategories]);
+
+  useEffect(() => {
+    if (isModalVisible && scrollRef.current) {
+      setTimeout(() => {
+        scrollRef.current?.scrollTo({
+          y: selectedIndex * ITEM_HEIGHT,
+          animated: false
+        });
+      }, 100);
+    }
+  }, [isModalVisible, selectedIndex]);
 
   const labelStyle = {
     fontSize: labelAnimation.interpolate({
@@ -192,43 +230,120 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.categoryList}>
-              {activeCategories.length > 0 ? (
-                activeCategories.map((category) => (
-                  <TouchableOpacity
-                    key={category.id}
-                    style={[
-                      styles.categoryItem,
-                      selectedCategoryId === category.id && styles.selectedCategoryItem
-                    ]}
-                    onPress={() => handleSelectCategory(category.id)}
-                  >
-                    <View style={styles.categoryItemContent}>
-                      <View
-                        style={[
-                          styles.categoryItemColorDot,
-                          { backgroundColor: category.color }
-                        ]}
-                      />
-                      <View style={styles.categoryItemInfo}>
-                        <Text style={styles.categoryItemName}>{category.name}</Text>
-                        <Text style={[
-                          styles.categoryItemType,
-                          { color: getCategoryTypeColor(category.type) }
-                        ]}>
-                          {category.type.charAt(0).toUpperCase() + category.type.slice(1)}
-                        </Text>
-                      </View>
-                      {category.icon && (
-                        <Text style={styles.categoryItemIcon}>{getDisplayIcon(category.icon)}</Text>
-                      )}
-                    </View>
-                    {selectedCategoryId === category.id && (
-                      <Icon name="checkmark" size={20} color="#10B981" />
+            {activeCategories.length > 0 ? (
+              <>
+                {/* Selected Display */}
+                <View style={styles.selectedDisplay}>
+                  <Text style={styles.selectedLabel}>Selected Category:</Text>
+                  <View style={styles.selectedCategoryDisplay}>
+                    {selectedCategory && (
+                      <>
+                        <View
+                          style={[
+                            styles.selectedCategoryColorDot,
+                            { backgroundColor: selectedCategory.color }
+                          ]}
+                        />
+                        <View style={styles.selectedCategoryInfo}>
+                          <Text style={styles.selectedCategoryName}>{selectedCategory.name}</Text>
+                          <Text style={[
+                            styles.selectedCategoryType,
+                            { color: getCategoryTypeColor(selectedCategory.type) }
+                          ]}>
+                            {selectedCategory.type.charAt(0).toUpperCase() + selectedCategory.type.slice(1)}
+                          </Text>
+                        </View>
+                        {selectedCategory.icon && (
+                          <Text style={styles.selectedCategoryIcon}>{getDisplayIcon(selectedCategory.icon)}</Text>
+                        )}
+                      </>
                     )}
+                  </View>
+                </View>
+
+                {/* Wheel Picker */}
+                <View style={styles.wheelContainer}>
+                  <Text style={styles.wheelLabel}>Select Category</Text>
+                  <View style={styles.wheelWrapper}>
+                    <ScrollView
+                      ref={scrollRef}
+                      style={styles.wheel}
+                      contentContainerStyle={styles.wheelContent}
+                      showsVerticalScrollIndicator={false}
+                      snapToInterval={ITEM_HEIGHT}
+                      decelerationRate="fast"
+                      onMomentumScrollEnd={handleCategoryScroll}
+                    >
+                      {activeCategories.map((category) => {
+                        const isSelected = selectedCategoryId === category.id;
+                        return (
+                          <View key={category.id} style={styles.wheelItem}>
+                            <View style={styles.wheelItemContent}>
+                              <View
+                                style={[
+                                  styles.wheelItemColorDot,
+                                  { backgroundColor: category.color },
+                                  isSelected && styles.wheelItemColorDotSelected
+                                ]}
+                              />
+                              <View style={styles.wheelItemInfo}>
+                                <Text style={[
+                                  styles.wheelItemName,
+                                  {
+                                    color: isSelected ? '#111827' : '#6B7280',
+                                    fontWeight: isSelected ? '600' : '400',
+                                    fontSize: isSelected ? 16 : 14
+                                  }
+                                ]}>
+                                  {category.name}
+                                </Text>
+                                <Text style={[
+                                  styles.wheelItemType,
+                                  {
+                                    color: isSelected ? getCategoryTypeColor(category.type) : '#9CA3AF',
+                                    fontSize: isSelected ? 14 : 12,
+                                    fontWeight: isSelected ? '500' : '400'
+                                  }
+                                ]}>
+                                  {category.type.charAt(0).toUpperCase() + category.type.slice(1)}
+                                </Text>
+                              </View>
+                              {category.icon && (
+                                <Text style={[
+                                  styles.wheelItemIcon,
+                                  { fontSize: isSelected ? 20 : 16 }
+                                ]}>
+                                  {getDisplayIcon(category.icon)}
+                                </Text>
+                              )}
+                            </View>
+                          </View>
+                        );
+                      })}
+                    </ScrollView>
+                    {/* Selection overlay */}
+                    <View style={styles.selectionOverlay} />
+                  </View>
+                </View>
+
+                {/* Action Buttons */}
+                <View style={styles.actions}>
+                  <TouchableOpacity
+                    style={styles.cancelButton}
+                    onPress={() => setIsModalVisible(false)}
+                  >
+                    <Text style={styles.cancelButtonText}>Cancel</Text>
                   </TouchableOpacity>
-                ))
-              ) : (
+                  <TouchableOpacity
+                    style={styles.confirmButton}
+                    onPress={() => setIsModalVisible(false)}
+                  >
+                    <Text style={styles.confirmButtonText}>Confirm</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            ) : (
+              <ScrollView style={styles.categoryList}>
                 <View style={styles.emptyState}>
                   <Icon name="pricetag-outline" size={48} color="#9CA3AF" />
                   <Text style={styles.emptyStateTitle}>No categories found</Text>
@@ -236,8 +351,8 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
                     Add categories in settings to get started
                   </Text>
                 </View>
-              )}
-            </ScrollView>
+              </ScrollView>
+            )}
           </View>
         </Modal>
       }
@@ -406,6 +521,156 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     textAlign: 'center',
     marginTop: 4,
+  },
+  selectedDisplay: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    backgroundColor: '#F9FAFB',
+  },
+  selectedLabel: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginBottom: 8,
+  },
+  selectedCategoryDisplay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  selectedCategoryColorDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  selectedCategoryInfo: {
+    alignItems: 'center',
+  },
+  selectedCategoryName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  selectedCategoryType: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginTop: 2,
+  },
+  selectedCategoryIcon: {
+    fontSize: 20,
+    marginLeft: 8,
+  },
+  wheelContainer: {
+    paddingHorizontal: 40,
+    paddingVertical: 24,
+    alignItems: 'center',
+  },
+  wheelLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 16,
+    textAlign: 'center',
+    color: '#111827',
+  },
+  wheelWrapper: {
+    height: WHEEL_HEIGHT,
+    width: 280,
+    borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  wheel: {
+    flex: 1,
+  },
+  wheelContent: {
+    paddingVertical: ITEM_HEIGHT * 1,
+  },
+  wheelItem: {
+    height: ITEM_HEIGHT,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  wheelItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+  },
+  wheelItemColorDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 12,
+  },
+  wheelItemColorDotSelected: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+  },
+  wheelItemInfo: {
+    flex: 1,
+  },
+  wheelItemName: {
+    textAlign: 'center',
+  },
+  wheelItemType: {
+    textAlign: 'center',
+    marginTop: 2,
+  },
+  wheelItemIcon: {
+    marginLeft: 8,
+  },
+  selectionOverlay: {
+    position: 'absolute',
+    top: ITEM_HEIGHT * 1,
+    left: 0,
+    right: 0,
+    height: ITEM_HEIGHT,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#6366F1',
+    backgroundColor: 'rgba(99, 102, 241, 0.05)',
+    pointerEvents: 'none',
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 12,
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    backgroundColor: 'transparent',
+  },
+  cancelButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  confirmButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#6366F1',
+  },
+  confirmButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });
 

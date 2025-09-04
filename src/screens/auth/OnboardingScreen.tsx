@@ -9,18 +9,22 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackScreenProps } from '../../app/navigation/types';
-import { Button, Input } from '../../components/ui';
+import { Button } from '../../components/ui';
 import AppInitializationService from '../../services/storage/appInitialization';
-import { getSupportedCurrencies } from '../../utils/helpers/currencyUtils';
-import { validateAccountName, validateRequired } from '../../utils/helpers/validationUtils';
+import { validateRequired } from '../../utils/helpers/validationUtils';
+import { CurrencyStep } from './components/CurrencyStep';
+import { AccountSetupStep } from './components/AccountSetupStep';
+import { SummaryStep } from './components/SummaryStep';
 
 type Props = RootStackScreenProps<'Onboarding'>;
 
 interface OnboardingData {
   currency: string;
-  firstAccountName: string;
-  firstAccountType: 'cash' | 'bank' | 'wallet' | 'card';
-  firstAccountBalance: string;
+  firstAccount: {
+    name: string;
+    type: 'cash' | 'bank' | 'wallet' | 'card' | 'other';
+    balance: string;
+  };
 }
 
 const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
@@ -28,13 +32,14 @@ const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [data, setData] = useState<OnboardingData>({
     currency: 'BDT',
-    firstAccountName: 'Cash',
-    firstAccountType: 'cash',
-    firstAccountBalance: '0',
+    firstAccount: {
+      name: 'Cash',
+      type: 'cash',
+      balance: '0',
+    },
   });
 
   const appInit = AppInitializationService.getInstance();
-  const currencies = getSupportedCurrencies();
 
   const handleNext = () => {
     if (step < 3) {
@@ -56,8 +61,8 @@ const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
 
       // Validate data
       const currencyValid = validateRequired(data.currency);
-      const accountNameValid = validateAccountName(data.firstAccountName);
-      const balanceValid = !isNaN(parseFloat(data.firstAccountBalance)) && parseFloat(data.firstAccountBalance) >= 0;
+      const accountNameValid = validateRequired(data.firstAccount.name);
+      const balanceValid = !isNaN(parseFloat(data.firstAccount.balance)) && parseFloat(data.firstAccount.balance) >= 0;
 
       if (!currencyValid.isValid || !accountNameValid.isValid || !balanceValid) {
         Alert.alert('Error', 'Please check your inputs and try again.');
@@ -69,9 +74,9 @@ const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
 
       // Add user's first account
       const firstAccount = {
-        name: data.firstAccountName,
-        type: data.firstAccountType,
-        openingBalance: parseFloat(data.firstAccountBalance) || 0,
+        name: data.firstAccount.name,
+        type: data.firstAccount.type,
+        openingBalance: parseFloat(data.firstAccount.balance) || 0,
         currencyCode: data.currency,
         isArchived: false,
       };
@@ -111,104 +116,25 @@ const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const renderStep1 = () => (
-    <>
-      <Text style={styles.stepTitle}>Welcome to Expense Tracker!</Text>
-      <Text style={styles.stepDescription}>
-        Let's set up your account in a few simple steps to get you started tracking your income and expenses.
-      </Text>
-
-      <View style={styles.stepContent}>
-        <Text style={styles.inputLabel}>Select your primary currency:</Text>
-        {currencies.map((currency) => (
-          <Button
-            key={currency.code}
-            title={`${currency.symbol} ${currency.name} (${currency.code})`}
-            variant={data.currency === currency.code ? 'primary' : 'secondary'}
-            onPress={() => setData({ ...data, currency: currency.code })}
-            style={styles.currencyButton}
-          />
-        ))}
-      </View>
-    </>
-
+    <CurrencyStep
+      selectedCurrency={data.currency}
+      onCurrencySelect={(currency) => setData({ ...data, currency })}
+    />
   );
 
   const renderStep2 = () => (
-    <>
-      <Text style={styles.stepTitle}>Create Your First Account</Text>
-      <Text style={styles.stepDescription}>
-        Add your first account to start tracking transactions.
-      </Text>
-
-      <View style={styles.stepContent}>
-        <Input
-          label="Account Name"
-          value={data.firstAccountName}
-          onChangeText={(text) => setData({ ...data, firstAccountName: text })}
-          placeholder="e.g., Cash, Bank Account"
-          inputStyle={styles.input}
-        />
-
-        <Text style={styles.inputLabel}>Account Type:</Text>
-        <View style={styles.accountTypeContainer}>
-          {[
-            { key: 'cash', label: '💵 Cash' },
-            { key: 'bank', label: '🏦 Bank' },
-            { key: 'wallet', label: '👛 Wallet' },
-            { key: 'card', label: '💳 Card' },
-          ].map((type) => (
-            <Button
-              key={type.key}
-              title={type.label}
-              variant={data.firstAccountType === type.key ? 'primary' : 'secondary'}
-              onPress={() => setData({ ...data, firstAccountType: type.key as any })}
-              style={styles.typeButton}
-            />
-          ))}
-        </View>
-
-        <Input
-          label="Starting Balance (Optional)"
-          value={data.firstAccountBalance}
-          onChangeText={(text) => setData({ ...data, firstAccountBalance: text })}
-          placeholder="0.00"
-          keyboardType="numeric"
-          inputStyle={styles.input}
-        />
-      </View>
-    </>
+    <AccountSetupStep
+      selectedAccount={data.firstAccount}
+      onAccountChange={(account) => setData({ ...data, firstAccount: account })}
+      currency={data.currency}
+    />
   );
 
   const renderStep3 = () => (
-    <>
-      <Text style={styles.stepTitle}>You're All Set!</Text>
-      <Text style={styles.stepDescription}>
-        Review your setup and start tracking your finances.
-      </Text>
-
-      <View style={styles.stepContent}>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>Currency:</Text>
-          <Text style={styles.summaryValue}>{data.currency}</Text>
-        </View>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>First Account:</Text>
-          <Text style={styles.summaryValue}>{data.firstAccountName}</Text>
-        </View>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>Account Type:</Text>
-          <Text style={styles.summaryValue}>{data.firstAccountType}</Text>
-        </View>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>Starting Balance:</Text>
-          <Text style={styles.summaryValue}>{data.firstAccountBalance || '0'} {data.currency}</Text>
-        </View>
-
-        <Text style={styles.readyText}>
-          🎉 You're ready to start managing your finances!
-        </Text>
-      </View>
-    </>
+    <SummaryStep
+      currency={data.currency}
+      account={data.firstAccount}
+    />
   );
 
   const renderStepContent = () => {
@@ -325,58 +251,6 @@ const styles = StyleSheet.create({
     color: '#64748b',
     textAlign: 'center',
     marginBottom: 24,
-  },
-  stepContent: {
-    gap: 16,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#374151',
-    marginBottom: 8,
-  },
-  input: {
-    marginBottom: 16,
-  },
-  currencyList: {
-    maxHeight: 320,
-  },
-  currencyButton: {
-    marginBottom: 8,
-  },
-  accountTypeContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 16,
-  },
-  typeButton: {
-    flex: 1,
-    minWidth: '45%',
-  },
-  summaryItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
-  },
-  summaryLabel: {
-    fontSize: 16,
-    color: '#64748b',
-  },
-  summaryValue: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#1e293b',
-  },
-  readyText: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#059669',
-    textAlign: 'center',
-    marginTop: 20,
   },
   footer: {
     flexDirection: 'row',

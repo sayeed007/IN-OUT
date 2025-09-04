@@ -95,15 +95,15 @@ const TabNavigator: React.FC = () => {
                 // Hide label for Add button
                 tabBarLabel: route.name === 'Add' ? '' : route.name,
             })}
-            screenListeners={({ route, navigation }) => ({
-                tabPress: (e) => {
-                    // Custom logic for tab press if needed
-                    if (route.name === 'Add') {
-                        // Could add haptic feedback here
-                        // console.log(navigation, e);
-                    }
-                },
-            })}
+            // screenListeners={({ route, navigation }) => ({
+            //     tabPress: (e) => {
+            //         // Custom logic for tab press if needed
+            //         if (route.name === 'Add') {
+            //             // Could add haptic feedback here
+            //             // console.log(navigation, e);
+            //         }
+            //     },
+            // })}
             initialRouteName="Dashboard"
         >
             <Tab.Screen
