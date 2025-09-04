@@ -39,7 +39,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, title }) => {
             <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
                 {title}
             </Text>
-            
+
             {/* Chart Legend - moved to top for better visibility */}
             <View style={styles.topLegend}>
                 <View style={styles.legendRow}>
@@ -89,7 +89,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, title }) => {
                                     color={theme.colors.income.main}
                                     strokeWidth={3}
                                 />
-                                
+
                                 {/* Expense Line */}
                                 <Line
                                     points={points.expense}
@@ -141,7 +141,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, title }) => {
                                 ${item.expense.toFixed(0)}
                             </Text>
                             <Text style={[
-                                styles.tableCell, 
+                                styles.tableCell,
                                 { color: item.net >= 0 ? theme.colors.income.main : theme.colors.expense.main }
                             ]}>
                                 ${Math.abs(item.net).toFixed(0)}
@@ -174,11 +174,11 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, title }) => {
                         Net Amount
                     </Text>
                     <Text style={[
-                        styles.statValue, 
-                        { 
-                            color: data.reduce((sum, d) => sum + d.net, 0) >= 0 
-                                ? theme.colors.income.main 
-                                : theme.colors.expense.main 
+                        styles.statValue,
+                        {
+                            color: data.reduce((sum, d) => sum + d.net, 0) >= 0
+                                ? theme.colors.income.main
+                                : theme.colors.expense.main
                         }
                     ]}>
                         ${Math.abs(data.reduce((sum, d) => sum + d.net, 0)).toFixed(0)}
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
         marginTop: 2,
     },
     dataTable: {
-        marginVertical: 16,
+        marginVertical: 8,
         backgroundColor: 'rgba(0, 0, 0, 0.02)',
         borderRadius: 8,
         padding: 12,

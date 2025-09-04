@@ -97,20 +97,24 @@ export const KPICards: React.FC<KPICardsProps> = ({
                         onPress={() => handleCardPress('income')}
                         activeOpacity={0.8}
                     >
-                        <Card style={StyleSheet.flatten([styles.kpiCard, styles.incomeCard])}>
+                        <Card style={StyleSheet.flatten([
+                            styles.kpiCard,
+                            styles.incomeCard,
+                            { borderColor: theme.colors.income.main }
+                        ])} margin='small'>
                             <View style={styles.cardHeader}>
-                                <View style={[styles.iconContainer, { backgroundColor: (theme.colors.success[500]) + '20' }]}>
+                                <View style={[styles.iconContainer, { backgroundColor: theme.colors.income.main + '20' }]}>
                                     <Icon
                                         name="trending-up"
                                         size={18}
-                                        color={theme.colors.success[500]}
+                                        color={theme.colors.income.main}
                                     />
                                 </View>
                                 <Text style={[styles.cardTitle, { color: theme.colors.textSecondary }]}>
                                     Income
                                 </Text>
                             </View>
-                            <Text style={[styles.amount, { color: theme.colors.success[500] }]}>
+                            <Text style={[styles.amount, { color: theme.colors.income.main }]}>
                                 +${income.toFixed(2)}
                             </Text>
                             <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
@@ -140,20 +144,24 @@ export const KPICards: React.FC<KPICardsProps> = ({
                         onPress={() => handleCardPress('expense')}
                         activeOpacity={0.8}
                     >
-                        <Card style={StyleSheet.flatten([styles.kpiCard, styles.expenseCard])}>
+                        <Card style={StyleSheet.flatten([
+                            styles.kpiCard,
+                            styles.expenseCard,
+                            { borderColor: theme.colors.expense.main }
+                        ])} margin='small'>
                             <View style={styles.cardHeader}>
-                                <View style={[styles.iconContainer, { backgroundColor: (theme.colors.error[500]) + '20' }]}>
+                                <View style={[styles.iconContainer, { backgroundColor: theme.colors.expense.main + '20' }]}>
                                     <Icon
                                         name="trending-down"
                                         size={18}
-                                        color={theme.colors.error[500]}
+                                        color={theme.colors.expense.main}
                                     />
                                 </View>
                                 <Text style={[styles.cardTitle, { color: theme.colors.textSecondary }]}>
                                     Expenses
                                 </Text>
                             </View>
-                            <Text style={[styles.amount, { color: theme.colors.error[500] }]}>
+                            <Text style={[styles.amount, { color: theme.colors.expense.main }]}>
                                 -${expense.toFixed(2)}
                             </Text>
                             <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
@@ -188,18 +196,18 @@ export const KPICards: React.FC<KPICardsProps> = ({
                             </Text>
                             <Text style={[
                                 styles.netAmount,
-                                { color: net >= 0 ? (theme.colors.success[500]) : (theme.colors.error[500]) }
+                                { color: net >= 0 ? theme.colors.income.main : theme.colors.expense.main }
                             ]}>
                                 {net >= 0 ? '+' : ''}${net.toFixed(2)}
                             </Text>
                         </View>
                         <View style={[
                             styles.netBadge,
-                            { backgroundColor: net >= 0 ? (theme.colors.success[500]) + '20' : (theme.colors.error[500]) + '20' }
+                            { backgroundColor: net >= 0 ? theme.colors.income.main + '20' : theme.colors.expense.main + '20' }
                         ]}>
                             <Text style={[
                                 styles.netBadgeText,
-                                { color: net >= 0 ? (theme.colors.success[500]) : (theme.colors.error[500]) }
+                                { color: net >= 0 ? theme.colors.income.main : theme.colors.expense.main }
                             ]}>
                                 {net >= 0 ? 'Positive' : 'Negative'}
                             </Text>
@@ -287,12 +295,10 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderTopWidth: 1,
         borderLeftWidth: 5,
-        borderColor: '#10B981', // Green
     },
     expenseCard: {
         borderWidth: 1,
         borderLeftWidth: 5,
-        borderColor: '#EF4444', // Red
     },
     cardHeader: {
         flexDirection: 'row',
@@ -320,6 +326,7 @@ const styles = StyleSheet.create({
         fontSize: 12,
     },
     netCard: {
+        marginVertical: 8,
     },
     netHeader: {
         flexDirection: 'row',
@@ -331,7 +338,7 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
     netAmount: {
-        fontSize: 28,
+        fontSize: 24,
         fontWeight: 'bold',
     },
     netBadge: {

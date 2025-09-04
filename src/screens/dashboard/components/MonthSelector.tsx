@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../../app/providers/ThemeProvider';
+import { YearPicker } from '../../reports/components/YearPicker';
 import dayjs from 'dayjs';
 
 interface MonthSelectorProps {
@@ -22,7 +23,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
   onMonthChange,
 }) => {
   const { theme } = useTheme();
-  const [showYearSelector, setShowYearSelector] = useState(false);
+  const [showYearPicker, setShowYearPicker] = useState(false);
   const fadeAnim = new Animated.Value(1);
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -45,11 +46,6 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
     return monthsArray;
   }, [selectedMonth]);
 
-  // Generate years (3 years back, current, 1 year forward)
-  const years = React.useMemo(() => {
-    const currentYear = dayjs().year();
-    return Array.from({ length: 5 }, (_, i) => currentYear - 3 + i);
-  }, []);
 
   const handleMonthSelect = (month: string) => {
     if (month !== selectedMonth) {
@@ -71,10 +67,10 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
     }
   };
 
-  const handleYearSelect = (year: number) => {
-    const newMonth = dayjs(selectedMonth).year(year).format('YYYY-MM');
+  const handleYearSelect = (date: dayjs.Dayjs) => {
+    const newMonth = dayjs(selectedMonth).year(date.year()).format('YYYY-MM');
     onMonthChange(newMonth);
-    setShowYearSelector(false);
+    setShowYearPicker(false);
   };
 
   const getCurrentMonthLabel = () => {
@@ -107,7 +103,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
 
   // Auto-scroll to selected month when component mounts or selectedMonth changes
   useEffect(() => {
-    if (scrollViewRef.current && !showYearSelector) {
+    if (scrollViewRef.current && !showYearPicker) {
       const selectedIndex = months.findIndex(month => month.isSelected);
       if (selectedIndex >= 0) {
         const scrollToX = selectedIndex * 68 - 50; // 68 = width + margin, 50 = offset
@@ -119,25 +115,11 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
         }, 100);
       }
     }
-  }, [selectedMonth, months, showYearSelector]);
+  }, [selectedMonth, months, showYearPicker]);
 
   // Create dynamic styles to replace inline styles
   const getDynamicStyles = () => {
     return StyleSheet.create({
-      yearItemSelected: {
-        backgroundColor: theme.colors.primary[500] + '15',
-      },
-      yearItemDefault: {
-        backgroundColor: 'transparent',
-      },
-      yearTextSelected: {
-        color: theme.colors.primary[500],
-        fontWeight: '600' as const,
-      },
-      yearTextDefault: {
-        color: theme.colors.text,
-        fontWeight: '400' as const,
-      },
       monthChipSelected: {
         backgroundColor: theme.colors.primary[500],
         borderColor: 'transparent',
@@ -176,55 +158,6 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
 
   const dynamicStyles = getDynamicStyles();
 
-  if (showYearSelector) {
-    return (
-      <View style={[styles.container, { backgroundColor: theme.colors.surface }]}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => setShowYearSelector(false)}
-            style={styles.backButton}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.backText, { color: theme.colors.primary[500] }]}>
-              ← Back
-            </Text>
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
-            Select Year
-          </Text>
-        </View>
-
-        <ScrollView
-          style={styles.yearsList}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.yearsContent}
-        >
-          {years.map((year) => (
-            <TouchableOpacity
-              key={year}
-              onPress={() => handleYearSelect(year)}
-              style={[
-                styles.yearItem,
-                dayjs(selectedMonth).year() === year
-                  ? dynamicStyles.yearItemSelected
-                  : dynamicStyles.yearItemDefault
-              ]}
-              activeOpacity={0.7}
-            >
-              <Text style={[
-                styles.yearText,
-                dayjs(selectedMonth).year() === year
-                  ? dynamicStyles.yearTextSelected
-                  : dynamicStyles.yearTextDefault
-              ]}>
-                {year}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-    );
-  }
 
   return (
     <Animated.View
@@ -248,7 +181,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => setShowYearSelector(true)}
+          onPress={() => setShowYearPicker(true)}
           style={styles.monthButton}
           activeOpacity={0.7}
         >
@@ -333,6 +266,15 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
           </TouchableOpacity>
         )}
       </View>
+
+      {/* Year Picker Modal */}
+      <YearPicker
+        visible={showYearPicker}
+        value={dayjs(selectedMonth)}
+        onSelect={handleYearSelect}
+        onClose={() => setShowYearPicker(false)}
+        title="Select Year"
+      />
     </Animated.View>
   );
 };
@@ -425,35 +367,5 @@ const styles = StyleSheet.create({
   todayButtonText: {
     fontSize: 12,
     fontWeight: '500',
-  },
-  // Year selector styles
-  backButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  backText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  yearsList: {
-    flex: 1,
-  },
-  yearsContent: {
-    paddingVertical: 8,
-  },
-  yearItem: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderRadius: 8,
-    marginVertical: 2,
-    marginHorizontal: 16,
-  },
-  yearText: {
-    fontSize: 18,
-    textAlign: 'center',
   },
 });

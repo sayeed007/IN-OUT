@@ -82,49 +82,55 @@ export const DashboardScreen: React.FC = () => {
         };
     }, [transactions, budgets]);
 
-    // Get last 12 months data for mini charts
+    // Get daily breakdown for the selected month
     const chartData = useMemo(() => {
-        const last12Months = Array.from({ length: 12 }, (_, i) => {
-            const month = dayjs().subtract(11 - i, 'months');
+        const selectedMonthObj = dayjs(selectedMonth);
+        const daysInMonth = selectedMonthObj.daysInMonth();
+
+        // Group transactions by day
+        const dailyData: { [key: string]: { income: number; expense: number } } = {};
+
+        transactions.forEach(transaction => {
+            const transactionDate = dayjs(transaction.date);
+            const dayKey = transactionDate.format('D');
+
+            if (!dailyData[dayKey]) {
+                dailyData[dayKey] = { income: 0, expense: 0 };
+            }
+
+            if (transaction.type === 'income') {
+                dailyData[dayKey].income += transaction.amount;
+            } else if (transaction.type === 'expense') {
+                dailyData[dayKey].expense += transaction.amount;
+            }
+        });
+
+        // Create array for each day of the month
+        return Array.from({ length: Math.min(daysInMonth, 30) }, (_, i) => {
+            const day = i + 1;
+            const dayKey = day.toString();
+            const data = dailyData[dayKey] || { income: 0, expense: 0 };
+
             return {
-                month: month.format('MMM'),
-                fullMonth: month.format('YYYY-MM'),
-                income: 0,
-                expense: 0,
+                month: day.toString(),
+                fullMonth: selectedMonthObj.date(day).format('YYYY-MM-DD'),
+                income: data.income,
+                expense: data.expense,
             };
         });
+    }, [transactions, selectedMonth]);
 
-        // For demo purposes, distribute current month's data across the year
-        // In a real app, you'd query actual historical data for each month
-        const monthlyIncome = kpis.income / 12; // Simulate monthly average
-        const monthlyExpense = kpis.expense / 12; // Simulate monthly average
-
-        last12Months.forEach((month, index) => {
-            // Add some variation to make the chart more realistic
-            const variation = 0.3 + (Math.sin(index * 0.5) * 0.4); // Creates wave pattern
-            month.income = monthlyIncome * (0.8 + variation);
-            month.expense = monthlyExpense * (0.9 + variation * 0.6);
-        });
-
-        // Set current selected month to actual values
-        const currentMonthIndex = last12Months.findIndex(
-            m => m.fullMonth === selectedMonth
-        );
-
-        if (currentMonthIndex >= 0) {
-            last12Months[currentMonthIndex] = {
-                ...last12Months[currentMonthIndex],
-                income: kpis.income,
-                expense: kpis.expense,
-            };
-        }
-
-        return last12Months;
-    }, [kpis, selectedMonth]);
-
-    // Category breakdown for pie chart
+    // Category breakdown separated by income and expense
     const categoryData = useMemo(() => {
-        const categoryTotals = transactions
+        const incomeCategories = transactions
+            .filter(t => t.type === 'income' && t.categoryId)
+            .reduce((acc, t) => {
+                const categoryId = t.categoryId!;
+                acc[categoryId] = (acc[categoryId] || 0) + t.amount;
+                return acc;
+            }, {} as Record<string, number>);
+
+        const expenseCategories = transactions
             .filter(t => t.type === 'expense' && t.categoryId)
             .reduce((acc, t) => {
                 const categoryId = t.categoryId!;
@@ -132,10 +138,17 @@ export const DashboardScreen: React.FC = () => {
                 return acc;
             }, {} as Record<string, number>);
 
-        return Object.entries(categoryTotals)
-            .map(([categoryId, amount]) => ({ categoryId, amount }))
+        const income = Object.entries(incomeCategories)
+            .map(([categoryId, amount]) => ({ categoryId, amount, type: 'income' as const }))
             .sort((a, b) => b.amount - a.amount)
-            .slice(0, 6); // Top 6 categories
+            .slice(0, 3);
+
+        const expense = Object.entries(expenseCategories)
+            .map(([categoryId, amount]) => ({ categoryId, amount, type: 'expense' as const }))
+            .sort((a, b) => b.amount - a.amount)
+            .slice(0, 3);
+
+        return { income, expense };
     }, [transactions]);
 
     // Helper function to get meaningful transaction description
@@ -259,6 +272,7 @@ export const DashboardScreen: React.FC = () => {
                         trendData={chartData}
                         categoryData={categoryData}
                         accounts={accounts}
+                        categories={categories}
                     />
                 ) : (
                     <Card style={styles.emptyCard}>
@@ -273,7 +287,7 @@ export const DashboardScreen: React.FC = () => {
 
                 {/* Recent Transactions Preview */}
                 {transactions.length > 0 && (
-                    <Card>
+                    <Card style={styles.recentTransactionsCard}>
                         <View style={styles.sectionHeader}>
                             <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
                                 Recent Transactions
@@ -341,7 +355,7 @@ const styles = StyleSheet.create({
         paddingBottom: 10,
     },
     title: {
-        fontSize: 28,
+        fontSize: 24,
         fontWeight: 'bold',
         marginBottom: 4,
     },
@@ -349,8 +363,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     emptyCard: {
-        margin: 16,
-        marginTop: 8,
+        marginVertical: 8,
     },
     sectionHeader: {
         flexDirection: 'row',
@@ -359,8 +372,11 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     sectionTitle: {
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: '600',
+    },
+    recentTransactionsCard: {
+        marginVertical: 8,
     },
     seeAllText: {
         fontSize: 14,
@@ -378,7 +394,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     transactionNote: {
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: '500',
         marginBottom: 2,
     },
