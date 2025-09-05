@@ -352,14 +352,14 @@ const styles = StyleSheet.create({
     },
     loadingText: {
         marginTop: 16,
-        fontSize: 16,
+        fontSize: 14,
     },
     header: {
         paddingHorizontal: 10,
         paddingBottom: 10,
     },
     title: {
-        fontSize: 24,
+        fontSize: 18,
         fontWeight: 'bold',
         marginBottom: 4,
     },

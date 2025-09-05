@@ -22,6 +22,7 @@ import BottomSpacing from '../../components/ui/BottomSpacing';
 import Chip from '../../components/ui/Chip';
 import EmptyState from '../../components/ui/EmptyState';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import TransactionDetailsModal from '../../components/modals/TransactionDetailsModal';
 import { useDeleteTransactionMutation, useGetAccountsQuery, useGetCategoriesQuery, useGetTransactionsQuery } from '../../state/api';
 import { Transaction } from '../../types/global';
 import TransactionFilters from './components/TransactionFilters';
@@ -49,7 +50,7 @@ interface AddScreenParams {
 
 export const TransactionListScreen: React.FC = () => {
     const navigation = useNavigation<{
-        navigate: (screen: 'Add' | 'TransactionDetail', params?: AddScreenParams | { transactionId: string }) => void;
+        navigate: (screen: 'Add', params?: AddScreenParams) => void;
     }>();
     const route = useRoute<{ key: string; name: string; params?: RouteParams }>();
     const { theme } = useTheme();
@@ -65,6 +66,8 @@ export const TransactionListScreen: React.FC = () => {
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
     const [refreshing, setRefreshing] = useState(false);
+    const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+    const [showTransactionDetails, setShowTransactionDetails] = useState(false);
 
     // Get initial filter from route params
     React.useEffect(() => {
@@ -163,7 +166,13 @@ export const TransactionListScreen: React.FC = () => {
     };
 
     const handleTransactionPress = (transaction: Transaction) => {
-        navigation.navigate('TransactionDetail', { transactionId: transaction.id });
+        setSelectedTransaction(transaction);
+        setShowTransactionDetails(true);
+    };
+
+    const handleCloseTransactionDetails = () => {
+        setShowTransactionDetails(false);
+        setSelectedTransaction(null);
     };
 
     const handleTransactionEdit = (transaction: Transaction) => {
@@ -309,7 +318,6 @@ export const TransactionListScreen: React.FC = () => {
         <SafeContainer>
             <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
                 {/* Header */}
-                {/* <Card style={[styles.header, { backgroundColor: theme.colors.surface }]}> */}
                 <Card>
                     <Text style={[styles.title, { color: theme.colors.text }]}>
                         Transactions
@@ -413,14 +421,14 @@ export const TransactionListScreen: React.FC = () => {
                     <FlatList
                         data={groupedTransactions}
                         renderItem={({ item }) => (
-                            <View>
+                            <>
                                 {renderSectionHeader({ section: item })}
                                 {item.data.map((transaction) => (
                                     <View key={transaction.id}>
                                         {renderTransaction({ item: transaction })}
                                     </View>
                                 ))}
-                            </View>
+                            </>
                         )}
                         keyExtractor={(item) => item.title}
                         refreshControl={
@@ -439,6 +447,15 @@ export const TransactionListScreen: React.FC = () => {
 
             {/* Bottom spacing for tab bar */}
             <BottomSpacing />
+
+            {/* Transaction Details Modal */}
+            <TransactionDetailsModal
+                visible={showTransactionDetails}
+                onClose={handleCloseTransactionDetails}
+                transaction={selectedTransaction}
+                accounts={accounts}
+                categories={categories}
+            />
         </SafeContainer>
     );
 };
@@ -454,7 +471,7 @@ const styles = StyleSheet.create({
     },
     loadingText: {
         marginTop: 16,
-        fontSize: 16,
+        fontSize: 14,
     },
     errorContainer: {
         flex: 1,
@@ -463,7 +480,7 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     errorText: {
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: '600',
         marginBottom: 8,
         textAlign: 'center',
@@ -480,7 +497,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
     },
     retryText: {
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: '500',
     },
     header: {
@@ -493,9 +510,9 @@ const styles = StyleSheet.create({
         shadowRadius: 2,
     },
     title: {
-        fontSize: 24,
+        fontSize: 18,
         fontWeight: 'bold',
-        marginBottom: 16,
+        marginBottom: 8,
     },
     searchContainer: {
         flexDirection: 'row',
@@ -507,7 +524,7 @@ const styles = StyleSheet.create({
     },
     searchInput: {
         flex: 1,
-        fontSize: 16,
+        fontSize: 14,
         paddingVertical: 12,
     },
     filterButton: {
@@ -559,7 +576,7 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
     listContent: {
-        padding: 16,
+        marginTop: 16,
         paddingBottom: 100,
     },
     separator: {

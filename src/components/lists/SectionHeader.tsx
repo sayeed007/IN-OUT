@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    // paddingVertical: 8,
     marginTop: 8,
     marginBottom: 4,
   },
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   title: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     marginBottom: 2,
   },
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   amount: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 2,
   },

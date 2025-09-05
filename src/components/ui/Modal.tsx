@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     title: {
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: '600',
         marginBottom: 4,
     },

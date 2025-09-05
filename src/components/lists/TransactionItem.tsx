@@ -115,7 +115,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
       >
         <Icon
           name={getTransactionIcon()}
-          size={20}
+          size={24}
           color={getTransactionColor()}
         />
       </View>
@@ -211,12 +211,12 @@ const styles = StyleSheet.create({
   },
   note: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: '500',
     marginRight: 12,
   },
   amount: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: 'bold',
   },
   subDetails: {
@@ -226,20 +226,20 @@ const styles = StyleSheet.create({
   },
   type: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 10,
     marginRight: 12,
   },
   tags: {
-    fontSize: 12,
+    fontSize: 10,
   },
   time: {
-    fontSize: 12,
+    fontSize: 10,
   },
   attachmentIndicator: {
     marginLeft: 8,
   },
   attachmentIcon: {
-    fontSize: 16,
+    fontSize: 10,
   },
 });
 

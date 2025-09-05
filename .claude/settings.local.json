@@ -20,7 +20,17 @@
       "Read(/C:\\in_out\\src\\components\\forms/**)",
       "Read(/C:\\in_out\\src\\components\\forms/**)",
       "Read(/C:\\in_out\\src\\components\\forms/**)",
-      "Read(/C:\\in_out\\src\\components\\forms/**)"
+      "Read(/C:\\in_out\\src\\components\\forms/**)",
+      "Read(/C:\\in_out\\src\\screens\\transactions/**)",
+      "Read(/C:\\in_out\\src\\types/**)",
+      "Read(/C:\\in_out\\src\\app\\providers/**)",
+      "Read(/C:\\in_out\\src\\theme/**)",
+      "Read(/C:\\in_out\\src\\components\\ui/**)",
+      "Read(/C:\\in_out\\src\\components\\modals/**)",
+      "Read(/C:\\in_out/**)",
+      "Read(/C:\\in_out\\src\\components\\ui/**)",
+      "Read(/C:\\in_out\\src\\components\\modals/**)",
+      "Read(/C:\\in_out\\src\\components\\modals/**)"
     ],
     "deny": [],
     "ask": []
