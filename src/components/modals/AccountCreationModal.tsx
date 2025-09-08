@@ -2,8 +2,11 @@
 import React, { useState } from 'react';
 import {
   Alert,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -11,8 +14,14 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useSelector } from 'react-redux';
+import { useTheme } from '../../app/providers/ThemeProvider';
+import { ACCOUNT_TYPES } from '../../constants/accountTypes';
 import { useAddAccountMutation } from '../../state/api';
+import { RootState } from '../../state/store';
 import type { Account } from '../../types/global';
+import Card from '../ui/Card';
+import LoadingSpinner from '../ui/LoadingSpinner';
 
 interface AccountCreationModalProps {
   visible: boolean;
@@ -25,14 +34,19 @@ export const AccountCreationModal: React.FC<AccountCreationModalProps> = ({
   onClose,
   onAccountCreated,
 }) => {
+  const { theme } = useTheme();
+  const defaultCurrency = useSelector((state: RootState) => state.preferences.currencyCode);
+
   const [accountName, setAccountName] = useState('');
-  const [accountType, setAccountType] = useState<'cash' | 'bank' | 'wallet' | 'card' | 'other'>('bank');
+  const [accountType, setAccountType] = useState<Account['type']>('bank');
+  const [openingBalance, setOpeningBalance] = useState('0');
   const [isCreating, setIsCreating] = useState(false);
   const [addAccount] = useAddAccountMutation();
 
   const resetForm = () => {
     setAccountName('');
     setAccountType('bank');
+    setOpeningBalance('0');
     setIsCreating(false);
   };
 
@@ -49,12 +63,15 @@ export const AccountCreationModal: React.FC<AccountCreationModalProps> = ({
 
     setIsCreating(true);
     try {
+      const balance = parseFloat(openingBalance) || 0;
       const newAccount = await addAccount({
         name: accountName.trim(),
         type: accountType,
-        openingBalance: 0,
-        currencyCode: 'BDT',
+        openingBalance: balance,
+        currencyCode: defaultCurrency,
         isArchived: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       }).unwrap();
 
       onAccountCreated(newAccount);
@@ -69,15 +86,151 @@ export const AccountCreationModal: React.FC<AccountCreationModalProps> = ({
     }
   };
 
-  const getAccountTypeIcon = (type: typeof accountType) => {
+  const getAccountTypeColor = (type: Account['type']) => {
     switch (type) {
-      case 'bank': return 'card-outline';
-      case 'cash': return 'wallet-outline';
-      case 'wallet': return 'phone-portrait-outline';
-      case 'card': return 'card-outline';
-      default: return 'ellipse-outline';
+      case 'bank': return theme.colors.primary[500];
+      case 'cash': return theme.colors.success[500];
+      case 'card': return theme.colors.info[500];
+      case 'wallet': return theme.colors.secondary[500];
+      default: return theme.colors.neutral[500];
     }
   };
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
+      backgroundColor: theme.colors.surface,
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.colors.text,
+    },
+    headerButton: {
+      padding: 4,
+      minWidth: 60,
+    },
+    cancelText: {
+      fontSize: 16,
+      color: theme.colors.textSecondary,
+    },
+    saveText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: theme.colors.primary[500],
+      textAlign: 'right',
+    },
+    saveTextDisabled: {
+      color: theme.colors.textTertiary,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      padding: 20,
+    },
+    section: {
+      marginBottom: 24,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: theme.colors.text,
+      marginBottom: 12,
+    },
+    inputCard: {
+      padding: 16,
+    },
+    textInput: {
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      fontSize: 16,
+      color: theme.colors.text,
+      backgroundColor: theme.colors.surface,
+    },
+    inputFocused: {
+      borderColor: theme.colors.primary[500],
+      borderWidth: 2,
+    },
+    placeholder: {
+      color: theme.colors.textSecondary,
+    },
+    typeSelector: {
+      gap: 12,
+    },
+    typeButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      borderRadius: 12,
+      borderWidth: 2,
+      borderColor: theme.colors.border,
+      backgroundColor: theme.colors.surface,
+    },
+    typeButtonActive: {
+      borderColor: getAccountTypeColor(accountType),
+      backgroundColor: `${getAccountTypeColor(accountType)}10`,
+    },
+    typeIconContainer: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 12,
+      backgroundColor: theme.colors.surfaceVariant,
+    },
+    typeIconContainerActive: {
+      backgroundColor: getAccountTypeColor(accountType),
+    },
+    typeContent: {
+      flex: 1,
+    },
+    typeName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: theme.colors.text,
+      marginBottom: 2,
+    },
+    typeDescription: {
+      fontSize: 13,
+      color: theme.colors.textSecondary,
+    },
+    amountInputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      borderRadius: 12,
+      backgroundColor: theme.colors.surface,
+      paddingHorizontal: 16,
+    },
+    currencyCode: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: theme.colors.primary[500],
+      marginRight: 8,
+    },
+    amountInput: {
+      flex: 1,
+      paddingVertical: 14,
+      fontSize: 16,
+      color: theme.colors.text,
+      backgroundColor: 'transparent',
+    },
+  });
 
   return (
     <Modal
@@ -88,160 +241,110 @@ export const AccountCreationModal: React.FC<AccountCreationModalProps> = ({
     >
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity
-            onPress={handleClose}
-            style={styles.closeButton}
-          >
-            <Text style={styles.closeText}>Cancel</Text>
+          <TouchableOpacity onPress={handleClose} style={styles.headerButton}>
+            <Text style={styles.cancelText}>Cancel</Text>
           </TouchableOpacity>
           <Text style={styles.title}>Add Account</Text>
           <TouchableOpacity
             onPress={handleCreateAccount}
-            style={[styles.saveButton, isCreating && styles.saveButtonDisabled]}
+            style={styles.headerButton}
             disabled={isCreating}
           >
-            <Text style={[styles.saveText, isCreating && styles.saveTextDisabled]}>
-              {isCreating ? 'Creating...' : 'Save'}
-            </Text>
+            {isCreating ? (
+              <LoadingSpinner size="small" color={theme.colors.primary[500]} />
+            ) : (
+              <Text style={[styles.saveText, isCreating && styles.saveTextDisabled]}>
+                Save
+              </Text>
+            )}
           </TouchableOpacity>
         </View>
 
-        <View style={styles.content}>
-          <View style={styles.field}>
-            <Text style={styles.label}>Account Name</Text>
-            <TextInput
-              style={styles.input}
-              value={accountName}
-              onChangeText={setAccountName}
-              placeholder="Enter account name"
-              autoFocus
-            />
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Account Type</Text>
-            <View style={styles.typeSelector}>
-              {(['bank', 'cash', 'wallet', 'card', 'other'] as const).map((type) => (
-                <TouchableOpacity
-                  key={type}
-                  style={[
-                    styles.typeButton,
-                    accountType === type && styles.typeButtonActive
-                  ]}
-                  onPress={() => setAccountType(type)}
-                >
-                  <Icon
-                    name={getAccountTypeIcon(type)}
-                    size={20}
-                    color={accountType === type ? '#FFFFFF' : '#6366F1'}
-                    style={styles.typeIcon}
-                  />
-                  <Text style={[
-                    styles.typeButtonText,
-                    accountType === type && styles.typeButtonTextActive
-                  ]}>
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Account Name */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Account Name</Text>
+              <Card style={styles.inputCard}>
+                <TextInput
+                  style={styles.textInput}
+                  value={accountName}
+                  onChangeText={setAccountName}
+                  placeholder="e.g. Main Checking Account"
+                  placeholderTextColor={theme.colors.textSecondary}
+                  autoCapitalize="words"
+                  autoFocus
+                />
+              </Card>
             </View>
-          </View>
-        </View>
+
+            {/* Account Type */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Account Type</Text>
+              <View style={styles.typeSelector}>
+                {ACCOUNT_TYPES.map((type) => (
+                  <TouchableOpacity
+                    key={type.value}
+                    style={[
+                      styles.typeButton,
+                      accountType === type.value && styles.typeButtonActive
+                    ]}
+                    onPress={() => setAccountType(type.value)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[
+                      styles.typeIconContainer,
+                      accountType === type.value && styles.typeIconContainerActive
+                    ]}>
+                      <Icon
+                        name={type.icon}
+                        size={20}
+                        color={accountType === type.value ? theme.colors.surface : getAccountTypeColor(type.value)}
+                      />
+                    </View>
+                    <View style={styles.typeContent}>
+                      <Text style={styles.typeName}>{type.label}</Text>
+                      <Text style={styles.typeDescription}>
+                        {type.description}
+                      </Text>
+                    </View>
+                    {accountType === type.value && (
+                      <Icon name="checkmark-circle" size={24} color={getAccountTypeColor(type.value)} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Opening Balance */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Opening Balance</Text>
+              <Card style={styles.inputCard}>
+                <View style={styles.amountInputContainer}>
+                  <Text style={styles.currencyCode}>{defaultCurrency}</Text>
+                  <TextInput
+                    style={styles.amountInput}
+                    value={openingBalance}
+                    onChangeText={setOpeningBalance}
+                    placeholder="0.00"
+                    placeholderTextColor={theme.colors.textSecondary}
+                    keyboardType="numeric"
+                    returnKeyType="done"
+                  />
+                </View>
+              </Card>
+            </View>
+          </ScrollView>
+
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
-  },
-  closeButton: {
-    padding: 4,
-  },
-  closeText: {
-    fontSize: 16,
-    color: '#6B7280',
-  },
-  saveButton: {
-    padding: 4,
-  },
-  saveText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#6366F1',
-  },
-  saveButtonDisabled: {
-    opacity: 0.6,
-  },
-  saveTextDisabled: {
-    color: '#9CA3AF',
-  },
-  content: {
-    padding: 20,
-  },
-  field: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    backgroundColor: '#FFFFFF',
-  },
-  typeSelector: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  typeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    backgroundColor: '#FFFFFF',
-    minWidth: 90,
-  },
-  typeButtonActive: {
-    backgroundColor: '#6366F1',
-    borderColor: '#6366F1',
-  },
-  typeIcon: {
-    marginRight: 8,
-  },
-  typeButtonText: {
-    fontSize: 14,
-    color: '#374151',
-    fontWeight: '500',
-  },
-  typeButtonTextActive: {
-    color: '#FFFFFF',
-  },
-});

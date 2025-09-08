@@ -69,6 +69,11 @@ export const api = createApi({
           : [{ type: 'Category', id: 'LIST' }],
     }),
 
+    getCategory: builder.query<Category, string>({
+      query: (id) => `/categories/${id}`,
+      providesTags: (result, error, id) => [{ type: 'Category', id }],
+    }),
+
     addCategory: builder.mutation<Category, Partial<Category>>({
       query: (body) => ({
         url: '/categories',
@@ -88,6 +93,14 @@ export const api = createApi({
         { type: 'Category', id },
         { type: 'Category', id: 'LIST' },
       ],
+    }),
+
+    deleteCategory: builder.mutation<{ id: string }, string>({
+      query: (id) => ({
+        url: `/categories/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: [{ type: 'Category', id: 'LIST' }],
     }),
 
     // Transaction endpoints
@@ -185,6 +198,11 @@ export const api = createApi({
           : [{ type: 'Budget', id: 'LIST' }],
     }),
 
+    getBudget: builder.query<Budget, string>({
+      query: (id) => `/budgets/${id}`,
+      providesTags: (result, error, id) => [{ type: 'Budget', id }],
+    }),
+
     addBudget: builder.mutation<Budget, Partial<Budget>>({
       query: (body) => ({
         url: '/budgets',
@@ -205,6 +223,14 @@ export const api = createApi({
         { type: 'Budget', id: 'LIST' },
       ],
     }),
+
+    deleteBudget: builder.mutation<{ id: string }, string>({
+      query: (id) => ({
+        url: `/budgets/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: [{ type: 'Budget', id: 'LIST' }],
+    }),
   }),
 });
 
@@ -217,8 +243,10 @@ export const {
   useDeleteAccountMutation,
 
   useGetCategoriesQuery,
+  useGetCategoryQuery,
   useAddCategoryMutation,
   useUpdateCategoryMutation,
+  useDeleteCategoryMutation,
 
   useGetTransactionsQuery,
   useGetTransactionQuery,
@@ -227,6 +255,8 @@ export const {
   useDeleteTransactionMutation,
 
   useGetBudgetsQuery,
+  useGetBudgetQuery,
   useAddBudgetMutation,
   useUpdateBudgetMutation,
+  useDeleteBudgetMutation,
 } = api;

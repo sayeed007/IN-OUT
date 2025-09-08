@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { v4 as uuidv4 } from 'uuid';
 import { Account, Category, Transaction, Budget } from '../../types/global';
+import { ACCOUNT_TYPES } from '../../constants/accountTypes';
 
 // Storage keys
 export const STORAGE_KEYS = {
@@ -48,11 +49,14 @@ const DEFAULT_INCOME_CATEGORIES: Omit<Category, 'id' | 'createdAt' | 'updatedAt'
   { name: 'Other Income', type: 'income', parentId: null, color: '#6B7280', icon: 'add-circle-outline', isArchived: false },
 ];
 
-// Default accounts
-const DEFAULT_ACCOUNTS: Omit<Account, 'id' | 'createdAt' | 'updatedAt'>[] = [
-  { name: 'Cash', type: 'cash', openingBalance: 0, currencyCode: 'BDT', isArchived: false },
-  { name: 'Bank', type: 'bank', openingBalance: 0, currencyCode: 'BDT', isArchived: false },
-];
+// Generate default accounts from centralized ACCOUNT_TYPES
+const DEFAULT_ACCOUNTS: Omit<Account, 'id' | 'createdAt' | 'updatedAt'>[] = ACCOUNT_TYPES.map(accountType => ({
+  name: accountType.label,
+  type: accountType.value,
+  openingBalance: 0,
+  currencyCode: 'BDT', // Will be replaced with user's currency during initialization
+  isArchived: false,
+}));
 
 class AppInitializationService {
   private static instance: AppInitializationService;

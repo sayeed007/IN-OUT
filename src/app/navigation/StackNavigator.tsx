@@ -5,7 +5,7 @@ import { useColorScheme, Platform } from 'react-native';
 
 // Screens
 import TransactionDetailScreen from '../../screens/transactions/TransactionDetailScreen';
-import AccountManagerScreen from '../../screens/accounts/AccountManagerScreen';
+import { AccountManagerScreen } from '../../screens/settings/AccountManagerScreen';
 import CategoryManagerScreen from '../../screens/categories/CategoryManagerScreen';
 import BudgetScreen from '../../screens/budgets/BudgetScreen';
 

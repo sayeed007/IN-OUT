@@ -11,94 +11,29 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { SafeContainer } from '../../components/layout/SafeContainer';
-import Card from '../../components/ui/Card';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import EmptyState from '../../components/ui/EmptyState';
 import { Spacing } from '../../theme';
+import { useTheme } from '../../app/providers/ThemeProvider';
 import { useGetAccountsQuery, useDeleteAccountMutation } from '../../state/api';
-import { formatCurrency } from '../../features/transactions/utils/transactionUtils';
+import { AccountItem } from './components/AccountItem';
 import type { Account } from '../../types/global';
 
-const AccountItem: React.FC<{
-  account: Account;
-  onEdit: () => void;
-  onDelete: () => void;
-}> = ({ account, onEdit, onDelete }) => {
-  const getAccountTypeIcon = (type: Account['type']) => {
-    switch (type) {
-      case 'bank': return 'card-outline';
-      case 'cash': return 'wallet-outline';
-      case 'card': return 'card-outline';
-      case 'wallet': return 'wallet-outline';
-      default: return 'ellipse-outline';
-    }
-  };
-
-  const getAccountTypeLabel = (type: Account['type']) => {
-    switch (type) {
-      case 'bank': return 'Bank Account';
-      case 'cash': return 'Cash';
-      case 'card': return 'Credit/Debit Card';
-      case 'wallet': return 'Digital Wallet';
-      case 'other': return 'Other';
-      default: return type;
-    }
-  };
-
-  return (
-    <Card style={styles.accountCard}>
-      <View style={styles.accountHeader}>
-        <View style={styles.accountInfo}>
-          <Icon 
-            name={getAccountTypeIcon(account.type)} 
-            size={24} 
-            color="#6366F1" 
-            style={styles.accountIcon}
-          />
-          <View style={styles.accountDetails}>
-            <Text style={styles.accountName}>{account.name}</Text>
-            <Text style={styles.accountType}>{getAccountTypeLabel(account.type)}</Text>
-          </View>
-        </View>
-        <View style={styles.accountActions}>
-          <Text style={[
-            styles.accountBalance,
-            account.openingBalance >= 0 ? styles.positiveBalance : styles.negativeBalance
-          ]}>
-            {formatCurrency(account.openingBalance, account.currencyCode)}
-          </Text>
-          <View style={styles.actionButtons}>
-            <TouchableOpacity style={styles.actionButton} onPress={onEdit}>
-              <Icon name="pencil" size={16} color="#6B7280" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} onPress={onDelete}>
-              <Icon name="trash-outline" size={16} color="#EF4444" />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-      {account.isArchived && (
-        <View style={styles.archivedBadge}>
-          <Text style={styles.archivedText}>Archived</Text>
-        </View>
-      )}
-    </Card>
-  );
-};
 
 export const AccountManagerScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { theme } = useTheme();
   const [showArchived, setShowArchived] = useState(false);
-  
-  const { data: accounts = [], isLoading, error, refetch } = useGetAccountsQuery();
+
+  const { data: accounts = [], isLoading } = useGetAccountsQuery();
   const [deleteAccount] = useDeleteAccountMutation();
 
   const handleAddAccount = () => {
-    navigation.navigate('AccountForm' as any, { accountId: undefined });
+    navigation.navigate('AccountForm', { accountId: undefined });
   };
 
   const handleEditAccount = (accountId: string) => {
-    navigation.navigate('AccountForm' as any, { accountId });
+    navigation.navigate('AccountForm', { accountId });
   };
 
   const handleDeleteAccount = (account: Account) => {
@@ -123,7 +58,7 @@ export const AccountManagerScreen: React.FC = () => {
     );
   };
 
-  const filteredAccounts = accounts.filter(account => 
+  const filteredAccounts = accounts.filter(account =>
     showArchived ? true : !account.isArchived
   );
 
@@ -144,34 +79,32 @@ export const AccountManagerScreen: React.FC = () => {
   return (
     <SafeContainer>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Header */}
+
+        {/* Header with Add Button */}
         <View style={styles.header}>
-          <Text style={styles.title}>Manage Accounts</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
             {activeAccounts.length} active account{activeAccounts.length !== 1 ? 's' : ''}
             {archivedAccounts.length > 0 && `, ${archivedAccounts.length} archived`}
           </Text>
+          <TouchableOpacity style={[styles.addButton, { backgroundColor: theme.colors.primary[500] }]} onPress={handleAddAccount}>
+            <Icon name="add" size={18} color={theme.colors.neutral[0]} />
+            <Text style={[styles.addButtonText, { color: theme.colors.neutral[0] }]}>Add</Text>
+          </TouchableOpacity>
         </View>
-
-        {/* Add Account Button */}
-        <TouchableOpacity style={styles.addButton} onPress={handleAddAccount}>
-          <Icon name="add-circle" size={24} color="#FFFFFF" />
-          <Text style={styles.addButtonText}>Add New Account</Text>
-        </TouchableOpacity>
 
         {/* Show Archived Toggle */}
         {archivedAccounts.length > 0 && (
-          <TouchableOpacity 
-            style={styles.toggleButton} 
+          <TouchableOpacity
+            style={[styles.toggleButton, { backgroundColor: theme.colors.neutral[100] }]}
             onPress={() => setShowArchived(!showArchived)}
           >
-            <Text style={styles.toggleButtonText}>
+            <Text style={[styles.toggleButtonText, { color: theme.colors.primary[500] }]}>
               {showArchived ? 'Hide' : 'Show'} Archived Accounts
             </Text>
-            <Icon 
-              name={showArchived ? 'chevron-up' : 'chevron-down'} 
-              size={20} 
-              color="#6366F1" 
+            <Icon
+              name={showArchived ? 'chevron-up' : 'chevron-down'}
+              size={20}
+              color={theme.colors.primary[500]}
             />
           </TouchableOpacity>
         )}
@@ -192,12 +125,12 @@ export const AccountManagerScreen: React.FC = () => {
           <EmptyState
             icon="wallet-outline"
             title="No accounts found"
-            subtitle={showArchived 
-              ? "No archived accounts to display" 
+            description={showArchived
+              ? "No archived accounts to display"
               : "Get started by adding your first account"
             }
-            actionText={!showArchived ? "Add Account" : undefined}
-            onAction={!showArchived ? handleAddAccount : undefined}
+            actionLabel={!showArchived ? "Add Account" : undefined}
+            onActionPress={!showArchived ? handleAddAccount : undefined}
           />
         )}
       </ScrollView>
@@ -217,36 +150,30 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#6B7280',
+    color: '#6B7280', // This will be used statically since it's in the loading component
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.base,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 4,
+    paddingBottom: Spacing.sm,
   },
   subtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: '#6B7280', // Will be overridden by theme in component
   },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#6366F1',
-    marginHorizontal: Spacing.base,
-    marginBottom: Spacing.base,
-    paddingVertical: 16,
-    borderRadius: 12,
-    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    gap: 4,
   },
   addButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
   },
   toggleButton: {
@@ -257,80 +184,15 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.base,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: '#F3F4F6',
     borderRadius: 8,
   },
   toggleButtonText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#6366F1',
   },
   accountList: {
     paddingHorizontal: Spacing.base,
     gap: 12,
   },
-  accountCard: {
-    padding: 16,
-  },
-  accountHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  accountInfo: {
-    flexDirection: 'row',
-    flex: 1,
-  },
-  accountIcon: {
-    marginRight: 12,
-  },
-  accountDetails: {
-    flex: 1,
-  },
-  accountName: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  accountType: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  accountActions: {
-    alignItems: 'flex-end',
-  },
-  accountBalance: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  positiveBalance: {
-    color: '#10B981',
-  },
-  negativeBalance: {
-    color: '#EF4444',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  actionButton: {
-    padding: 8,
-    borderRadius: 6,
-    backgroundColor: '#F3F4F6',
-  },
-  archivedBadge: {
-    marginTop: 12,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    backgroundColor: '#FEF3C7',
-    borderRadius: 4,
-    alignSelf: 'flex-start',
-  },
-  archivedText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#92400E',
-  },
 });
+

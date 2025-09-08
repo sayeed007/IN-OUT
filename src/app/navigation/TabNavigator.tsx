@@ -5,7 +5,7 @@ import { Platform } from 'react-native';
 // Screens
 import { DashboardScreen } from '../../screens/dashboard/DashboardScreen';
 import { ReportsScreen } from '../../screens/reports/ReportsScreen';
-import { SettingsScreen } from '../../screens/settings/SettingsScreen';
+import SettingsStackNavigator from './SettingsStackNavigator';
 import { AddTransactionScreen } from '../../screens/transactions/AddTransactionScreen';
 import { TransactionListScreen } from '../../screens/transactions/TransactionListScreen';
 import { useTheme } from '../providers/ThemeProvider';
@@ -104,7 +104,7 @@ const TabNavigator: React.FC = () => {
             //         }
             //     },
             // })}
-            initialRouteName="Transactions"
+            initialRouteName="Settings"
         >
             <Tab.Screen
                 name="Dashboard"
@@ -150,7 +150,7 @@ const TabNavigator: React.FC = () => {
 
             <Tab.Screen
                 name="Settings"
-                component={SettingsScreen}
+                component={SettingsStackNavigator}
                 options={{
                     title: 'Settings',
                 }}

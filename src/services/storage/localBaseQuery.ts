@@ -247,7 +247,7 @@ export const localBaseQuery: BaseQueryFn<
   string | FetchArgs,
   unknown,
   FetchBaseQueryError
-> = async (args) => {
+> = async (args): Promise<{ data: unknown } | { error: FetchBaseQueryError }> => {
   // Create timeout promise to simulate network behavior
   const timeoutPromise = new Promise((_, reject) => {
     setTimeout(() => {
@@ -264,7 +264,8 @@ export const localBaseQuery: BaseQueryFn<
 
       // Parse URL and params
       const [pathname, search] = url.split('?');
-      const resource = pathname.replace('/', '');
+      const pathParts = pathname.split('/').filter(Boolean); // Remove empty strings
+      const resource = pathParts[0]; // First part is the resource name
       const params = new URLSearchParams(search || '');
 
       console.log(`LocalBaseQuery: ${method.toUpperCase()} ${pathname}`, body ? { body } : '');
@@ -278,14 +279,22 @@ export const localBaseQuery: BaseQueryFn<
           if (pathname.includes('/') && pathname.split('/').length === 3) {
             // GET /resource/:id
             const [, resourceName, id] = pathname.split('/');
-            const item = db[resourceName as keyof LocalDBData]?.find((item: any) => item.id === id);
+            const resourceData = db[resourceName as keyof LocalDBData];
+            if (!Array.isArray(resourceData)) {
+              return { error: { status: 400, data: `Invalid resource: ${resourceName}` } as FetchBaseQueryError };
+            }
+            const item = resourceData.find((item: any) => item.id === id);
             if (!item) {
-              return { error: { status: 404, data: 'Not found' } };
+              return { error: { status: 404, data: 'Not found' } as FetchBaseQueryError };
             }
             result = item;
           } else {
             // GET /resource with optional query params
-            let data = [...(db[resource as keyof LocalDBData] || [])];
+            const resourceData = db[resource as keyof LocalDBData];
+            if (!Array.isArray(resourceData)) {
+              return { error: { status: 400, data: `Invalid resource: ${resource}` } as FetchBaseQueryError };
+            }
+            let data = [...resourceData];
 
             // Apply filters
             if (params.get('type')) {
@@ -297,7 +306,7 @@ export const localBaseQuery: BaseQueryFn<
               data = data.filter((item: any) => new Date(item.date) >= startDate);
             }
 
-            if (params.get('date_lte')) {
+            if (params?.get('date_lte')) {
               const endDate = new Date(params.get('date_lte')!);
               data = data.filter((item: any) => new Date(item.date) <= endDate);
             }
@@ -346,6 +355,11 @@ export const localBaseQuery: BaseQueryFn<
           };
 
           const resourceArray = db[resource as keyof LocalDBData] as any[];
+
+          if (!resourceArray || !Array.isArray(resourceArray)) {
+            return { error: { status: 400, data: `Invalid resource: ${resource}` } as FetchBaseQueryError };
+          }
+
           resourceArray.push(newItem);
           await localDB.saveDB(db);
           result = newItem;
@@ -356,10 +370,15 @@ export const localBaseQuery: BaseQueryFn<
         case 'PATCH': {
           const id = pathname.split('/').pop() || (body as any)?.id;
           const resourceArray = db[resource as keyof LocalDBData] as any[];
+
+          if (!resourceArray || !Array.isArray(resourceArray)) {
+            return { error: { status: 400, data: `Invalid resource: ${resource}` } as FetchBaseQueryError };
+          }
+
           const index = resourceArray.findIndex((item: any) => item.id === id);
 
           if (index === -1) {
-            return { error: { status: 404, data: 'Not found' } };
+            return { error: { status: 404, data: 'Not found' } as FetchBaseQueryError };
           }
 
           const updatedItem = {
@@ -377,10 +396,15 @@ export const localBaseQuery: BaseQueryFn<
         case 'DELETE': {
           const id = pathname.split('/').pop();
           const resourceArray = db[resource as keyof LocalDBData] as any[];
+
+          if (!resourceArray || !Array.isArray(resourceArray)) {
+            return { error: { status: 400, data: `Invalid resource: ${resource}` } as FetchBaseQueryError };
+          }
+
           const index = resourceArray.findIndex((item: any) => item.id === id);
 
           if (index === -1) {
-            return { error: { status: 404, data: 'Not found' } };
+            return { error: { status: 404, data: 'Not found' } as FetchBaseQueryError };
           }
 
           resourceArray.splice(index, 1);
@@ -390,7 +414,7 @@ export const localBaseQuery: BaseQueryFn<
         }
 
         default:
-          return { error: { status: 405, data: 'Method not allowed' } };
+          return { error: { status: 405, data: 'Method not allowed' } as FetchBaseQueryError };
       }
 
       console.log(`LocalBaseQuery result:`, result);
@@ -399,7 +423,7 @@ export const localBaseQuery: BaseQueryFn<
 
     // Race between operation and timeout
     const result = await Promise.race([operationPromise, timeoutPromise]);
-    return result;
+    return result as { data: unknown } | { error: FetchBaseQueryError };
   } catch (error) {
     console.error('LocalBaseQuery error:', error);
 
@@ -409,7 +433,7 @@ export const localBaseQuery: BaseQueryFn<
         error: {
           status: 'TIMEOUT_ERROR',
           data: error.message
-        }
+        } as FetchBaseQueryError
       };
     }
 
@@ -417,7 +441,7 @@ export const localBaseQuery: BaseQueryFn<
       error: {
         status: 500,
         data: error instanceof Error ? error.message : 'Unknown error'
-      }
+      } as FetchBaseQueryError
     };
   }
 };

@@ -9,7 +9,7 @@ const BottomSpacing = () => {
 
 const styles = StyleSheet.create({
     bottomSpacing: {
-        height: 70, // Space for tab bar
+        height: 50, // Space for tab bar
     },
 });
 
