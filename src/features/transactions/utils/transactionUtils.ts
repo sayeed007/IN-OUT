@@ -3,7 +3,7 @@ import { Transaction, Account, Category } from '../../../types/global';
 // Format currency amount
 export const formatCurrency = (
     amount: number,
-    currencyCode: string = 'USD',
+    currencyCode: string = 'BDT',
     locale: string = 'en-US'
 ): string => {
     return new Intl.NumberFormat(locale, {

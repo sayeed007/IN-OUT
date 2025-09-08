@@ -8,17 +8,7 @@ import SettingItem from './SettingItem';
 import { Spacing } from '../../../theme';
 import { RootState } from '../../../state/store';
 import { updatePreferences } from '../../../state/slices/preferencesSlice';
-
-const CURRENCY_OPTIONS = [
-  { code: 'USD', name: 'US Dollar', symbol: '$' },
-  { code: 'EUR', name: 'Euro', symbol: '€' },
-  { code: 'GBP', name: 'British Pound', symbol: '£' },
-  { code: 'CAD', name: 'Canadian Dollar', symbol: 'C$' },
-  { code: 'AUD', name: 'Australian Dollar', symbol: 'A$' },
-  { code: 'JPY', name: 'Japanese Yen', symbol: '¥' },
-  { code: 'CHF', name: 'Swiss Franc', symbol: 'CHF' },
-  { code: 'CNY', name: 'Chinese Yuan', symbol: '¥' },
-];
+import { getSupportedCurrencies, getCurrencyInfo } from '../../../utils/helpers/currencyUtils';
 
 const AccountSettings: React.FC = () => {
   const navigation = useNavigation();
@@ -34,9 +24,10 @@ const AccountSettings: React.FC = () => {
   };
 
   const handleChangeCurrency = () => {
+    const currencies = getSupportedCurrencies();
     const buttons = [
       { text: 'Cancel', style: 'cancel' as const },
-      ...CURRENCY_OPTIONS.map(currency => ({
+      ...currencies.map(currency => ({
         text: `${currency.name} (${currency.symbol})`,
         onPress: () => {
           dispatch(updatePreferences({ currencyCode: currency.code }));
@@ -69,7 +60,7 @@ const AccountSettings: React.FC = () => {
 
       <SettingItem
         title="Currency"
-        subtitle={`${currentCurrency} (${CURRENCY_OPTIONS.find(c => c.code === currentCurrency)?.symbol || currentCurrency})`}
+        subtitle={`${currentCurrency} (${getCurrencyInfo(currentCurrency).symbol})`}
         onPress={handleChangeCurrency}
       />
     </Card>

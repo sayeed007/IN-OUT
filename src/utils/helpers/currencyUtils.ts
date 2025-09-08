@@ -46,7 +46,7 @@ export const getCurrencyInfo = (code: string): CurrencyInfo => {
  */
 export const formatCurrency = (
   amount: number,
-  currencyCode: string = 'USD',
+  currencyCode: string = 'BDT',
   options: {
     showSymbol?: boolean;
     showCode?: boolean;
@@ -63,7 +63,7 @@ export const formatCurrency = (
 
   const currency = getCurrencyInfo(currencyCode);
   const decimalPlaces = decimals !== undefined ? decimals : currency.decimals;
-  
+
   // Format the number
   const formattedAmount = amount.toLocaleString('en-US', {
     minimumFractionDigits: decimalPlaces,
@@ -93,13 +93,13 @@ export const formatCurrency = (
  */
 export const formatCompactCurrency = (
   amount: number,
-  currencyCode: string = 'USD',
+  currencyCode: string = 'BDT',
   showSymbol: boolean = true
 ): string => {
   const currency = getCurrencyInfo(currencyCode);
   const absAmount = Math.abs(amount);
   const sign = amount < 0 ? '-' : '';
-  
+
   let value: number;
   let suffix: string;
 
@@ -118,18 +118,18 @@ export const formatCompactCurrency = (
 
   const formattedValue = value % 1 === 0 ? value.toFixed(0) : value.toFixed(1);
   const symbol = showSymbol ? currency.symbol : '';
-  
+
   return `${sign}${symbol}${formattedValue}${suffix}`;
 };
 
 /**
  * Parse currency string to number
  */
-export const parseCurrency = (value: string, currencyCode: string = 'USD'): number => {
+export const parseCurrency = (value: string, currencyCode: string = 'BDT'): number => {
   if (!value || typeof value !== 'string') return 0;
-  
+
   const currency = getCurrencyInfo(currencyCode);
-  
+
   // Remove currency symbol and spaces
   let cleanValue = value
     .replace(currency.symbol, '')
@@ -149,7 +149,7 @@ export const parseCurrency = (value: string, currencyCode: string = 'USD'): numb
  */
 export const formatAmountInput = (
   amount: number,
-  currencyCode: string = 'USD'
+  currencyCode: string = 'BDT'
 ): string => {
   const currency = getCurrencyInfo(currencyCode);
   return amount.toFixed(currency.decimals);
@@ -213,7 +213,7 @@ export const getAmountColor = (amount: number): string => {
 /**
  * Round to currency decimals
  */
-export const roundToCurrency = (amount: number, currencyCode: string = 'USD'): number => {
+export const roundToCurrency = (amount: number, currencyCode: string = 'BDT'): number => {
   const currency = getCurrencyInfo(currencyCode);
   const multiplier = Math.pow(10, currency.decimals);
   return Math.round(amount * multiplier) / multiplier;

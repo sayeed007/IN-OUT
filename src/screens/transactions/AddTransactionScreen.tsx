@@ -218,7 +218,7 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
         note: data.note || undefined,
         tags: data.tags,
         attachmentIds: [],
-        currencyCode: accounts.find(acc => acc.id === data.accountId)?.currencyCode || 'USD',
+        currencyCode: accounts.find(acc => acc.id === data.accountId)?.currencyCode || 'BDT',
       };
 
       // Validate transaction

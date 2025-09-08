@@ -30,7 +30,7 @@ interface Props {
 
 const AccountManagerScreen: React.FC<Props> = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
-  
+
   const { data: accounts = [], isLoading, refetch } = useGetAccountsQuery();
   const { data: allTransactions = [] } = useGetTransactionsQuery({});
   const [deleteAccount] = useDeleteAccountMutation();
@@ -101,7 +101,7 @@ const AccountManagerScreen: React.FC<Props> = ({ navigation }) => {
 
     const balance = accountTransactions.reduce((total, tx) => {
       console.log(`Processing transaction: ${tx.type} - ${tx.amount} (Account: ${tx.accountId})`);
-      
+
       if (tx.accountId === account.id) {
         // This account is the source
         if (tx.type === 'income') {
@@ -115,13 +115,13 @@ const AccountManagerScreen: React.FC<Props> = ({ navigation }) => {
           return total - tx.amount; // Money going out
         }
       }
-      
+
       if (tx.accountIdTo === account.id && tx.type === 'transfer') {
         // This account is the destination for a transfer
         console.log(`Transfer in: ${total} + ${tx.amount} = ${total + tx.amount}`);
         return total + tx.amount; // Money coming in
       }
-      
+
       return total;
     }, account.openingBalance);
 
@@ -179,13 +179,13 @@ const AccountManagerScreen: React.FC<Props> = ({ navigation }) => {
             <View style={styles.accountInfo}>
               <Text style={styles.accountName}>{item.name}</Text>
               <View style={styles.accountTypeContainer}>
-                <View 
+                <View
                   style={[
                     styles.accountTypeBadge,
                     { backgroundColor: getAccountTypeColor(item.type) + '20' }
                   ]}
                 >
-                  <Text 
+                  <Text
                     style={[
                       styles.accountTypeText,
                       { color: getAccountTypeColor(item.type) }
@@ -205,7 +205,7 @@ const AccountManagerScreen: React.FC<Props> = ({ navigation }) => {
 
           <View style={styles.accountBalance}>
             <Text style={styles.balanceLabel}>Current Balance</Text>
-            <Text 
+            <Text
               style={[
                 styles.balanceAmount,
                 { color: currentBalance >= 0 ? '#10B981' : '#EF4444' }
@@ -242,7 +242,7 @@ const AccountManagerScreen: React.FC<Props> = ({ navigation }) => {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
-        <Header 
+        <Header
           title="Accounts"
           showBackButton
           onBackPress={() => navigation.goBack()}
@@ -257,7 +257,7 @@ const AccountManagerScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header 
+      <Header
         title="Accounts"
         showBackButton
         onBackPress={() => navigation.goBack()}
@@ -289,20 +289,20 @@ const AccountManagerScreen: React.FC<Props> = ({ navigation }) => {
             </View>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Total Balance:</Text>
-              <Text 
+              <Text
                 style={[
                   styles.summaryValue,
                   styles.totalBalance,
-                  { 
-                    color: accounts.reduce((total, acc) => total + calculateAccountBalance(acc), 0) >= 0 
-                      ? '#10B981' 
-                      : '#EF4444' 
+                  {
+                    color: accounts.reduce((total, acc) => total + calculateAccountBalance(acc), 0) >= 0
+                      ? '#10B981'
+                      : '#EF4444'
                   }
                 ]}
               >
                 {formatCurrency(
                   accounts.reduce((total, acc) => total + calculateAccountBalance(acc), 0),
-                  accounts[0]?.currencyCode || 'USD'
+                  accounts[0]?.currencyCode || 'BDT'
                 )}
               </Text>
             </View>

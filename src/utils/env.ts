@@ -7,7 +7,7 @@ export const IS_ANDROID = Platform.OS === 'android';
 
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: IS_DEV 
+  BASE_URL: IS_DEV
     ? (IS_ANDROID ? 'http://10.0.2.2:3001' : 'http://localhost:3001')
     : '', // Empty for production (uses local storage)
   TIMEOUT: 10000,
@@ -16,7 +16,7 @@ export const API_CONFIG = {
 
 // App Configuration
 export const APP_CONFIG = {
-  DEFAULT_CURRENCY: 'USD',
+  DEFAULT_CURRENCY: 'BDT',
   MAX_ATTACHMENT_SIZE: 10 * 1024 * 1024, // 10MB
   LOCK_TIMEOUT_DEFAULT: 5, // minutes
   BUDGET_ALERT_THRESHOLDS: [0.8, 1.0], // 80%, 100%
@@ -29,7 +29,7 @@ export const APP_CONFIG = {
 export const STORAGE_KEYS = {
   APP_DB: 'appDb',
   USER_PREFERENCES: 'userPreferences',
-  PIN_HASH: 'pinHash', 
+  PIN_HASH: 'pinHash',
   BIOMETRIC_ENABLED: 'biometricEnabled',
   LAST_BACKUP_DATE: 'lastBackupDate',
 } as const;

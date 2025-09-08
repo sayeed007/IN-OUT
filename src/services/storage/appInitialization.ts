@@ -50,13 +50,13 @@ const DEFAULT_INCOME_CATEGORIES: Omit<Category, 'id' | 'createdAt' | 'updatedAt'
 
 // Default accounts
 const DEFAULT_ACCOUNTS: Omit<Account, 'id' | 'createdAt' | 'updatedAt'>[] = [
-  { name: 'Cash', type: 'cash', openingBalance: 0, currencyCode: 'USD', isArchived: false },
-  { name: 'Checking Account', type: 'bank', openingBalance: 0, currencyCode: 'USD', isArchived: false },
+  { name: 'Cash', type: 'cash', openingBalance: 0, currencyCode: 'BDT', isArchived: false },
+  { name: 'Bank', type: 'bank', openingBalance: 0, currencyCode: 'BDT', isArchived: false },
 ];
 
 class AppInitializationService {
   private static instance: AppInitializationService;
-  
+
   static getInstance(): AppInitializationService {
     if (!AppInitializationService.instance) {
       AppInitializationService.instance = new AppInitializationService();
@@ -67,17 +67,17 @@ class AppInitializationService {
   /**
    * Initialize the app database with default data
    */
-  async initializeDatabase(userCurrency: string = 'USD'): Promise<AppDatabase> {
+  async initializeDatabase(userCurrency: string = 'BDT'): Promise<AppDatabase> {
     try {
       const existingDb = await this.getDatabase();
-      
+
       if (existingDb) {
         console.log('Database already exists, skipping initialization');
         return existingDb;
       }
 
       const now = new Date().toISOString();
-      
+
       // Create categories with proper IDs
       const categories: Category[] = [
         ...DEFAULT_EXPENSE_CATEGORIES,
@@ -114,7 +114,7 @@ class AppInitializationService {
 
       await AsyncStorage.setItem(STORAGE_KEYS.APP_DB, JSON.stringify(defaultDb));
       console.log('Database initialized successfully');
-      
+
       return defaultDb;
     } catch (error) {
       console.error('Error initializing database:', error);
@@ -273,7 +273,7 @@ class AppInitializationService {
 
       if (db.version !== targetVersion) {
         console.log(`Migrating database from ${db.version} to ${targetVersion}`);
-        
+
         // Add migration logic here for future versions
         const migratedDb: AppDatabase = {
           ...db,
@@ -307,10 +307,10 @@ class AppInitializationService {
       };
 
       const backupString = JSON.stringify(backupData, null, 2);
-      
+
       // Update backup timestamp
       await AsyncStorage.setItem(STORAGE_KEYS.BACKUP_TIMESTAMP, new Date().toISOString());
-      
+
       return backupString;
     } catch (error) {
       console.error('Error creating backup:', error);
@@ -324,7 +324,7 @@ class AppInitializationService {
   async restoreFromBackup(backupString: string): Promise<void> {
     try {
       const backupData = JSON.parse(backupString);
-      
+
       // Validate backup data structure
       if (!backupData.accounts || !backupData.categories || !backupData.transactions) {
         throw new Error('Invalid backup data structure');
@@ -360,26 +360,26 @@ const appInit = AppInitializationService.getInstance();
 export const initializeApp = async (): Promise<void> => {
   try {
     console.log('Initializing app...');
-    
+
     // Check if onboarding is complete
     const isOnboardingComplete = await appInit.isOnboardingComplete();
-    
+
     if (!isOnboardingComplete) {
       console.log('First time app launch - will show onboarding');
       // Don't initialize database yet - wait for onboarding
       return;
     }
-    
+
     // Initialize/migrate database if needed
     await appInit.migrateDatabase();
-    
+
     // Get database to ensure it's initialized
     let db = await appInit.getDatabase();
     if (!db) {
       console.log('Database not found, initializing with defaults...');
       db = await appInit.initializeDatabase();
     }
-    
+
     console.log('App initialization complete');
   } catch (error) {
     console.error('App initialization failed:', error);

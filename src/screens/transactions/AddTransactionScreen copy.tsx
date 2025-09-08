@@ -122,7 +122,7 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
         note: data.note || undefined,
         tags: data.tags,
         attachmentIds: [],
-        currencyCode: accounts.find(acc => acc.id === data.accountId)?.currencyCode || 'USD',
+        currencyCode: accounts.find(acc => acc.id === data.accountId)?.currencyCode || 'BDT',
       };
 
       // Validate transaction
@@ -196,7 +196,7 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
     if (!watchedAmount) return '$0.00';
     const amount = parseFloat(watchedAmount) || 0;
     const selectedAccount = getSelectedAccount();
-    return formatCurrency(amount, selectedAccount?.currencyCode || 'USD');
+    return formatCurrency(amount, selectedAccount?.currencyCode || 'BDT');
   };
 
   return (
@@ -386,7 +386,7 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
           value={watchedAmount}
           onChange={handleAmountChange}
           onDone={() => setShowAmountKeypad(false)}
-          currencyCode={getSelectedAccount()?.currencyCode || 'USD'}
+          currencyCode={getSelectedAccount()?.currencyCode || 'BDT'}
         />
       }
     </SafeAreaView>

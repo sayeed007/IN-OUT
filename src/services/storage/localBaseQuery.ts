@@ -16,7 +16,7 @@ const DEFAULT_DB = {
       name: 'Cash',
       type: 'cash',
       openingBalance: 500,
-      currencyCode: 'USD',
+      currencyCode: 'BDT',
       isArchived: false,
       createdAt: '2024-01-01T00:00:00.000Z',
       updatedAt: '2024-01-01T00:00:00.000Z',
@@ -26,7 +26,7 @@ const DEFAULT_DB = {
       name: 'Main Bank Account',
       type: 'bank',
       openingBalance: 2500,
-      currencyCode: 'USD',
+      currencyCode: 'BDT',
       isArchived: false,
       createdAt: '2024-01-01T00:00:00.000Z',
       updatedAt: '2024-01-01T00:00:00.000Z',
@@ -180,13 +180,13 @@ class LocalDatabase {
     try {
       console.log('Loading database from AsyncStorage...');
       // Add timeout to AsyncStorage operation
-      const timeoutPromise = new Promise<never>((_, reject) => 
+      const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('AsyncStorage timeout')), 3000)
       );
-      
+
       const loadPromise = AsyncStorage.getItem(STORAGE_KEYS.APP_DB);
       const dbJson = await Promise.race([loadPromise, timeoutPromise]);
-      
+
       if (dbJson) {
         console.log('Database found in storage, parsing...');
         this.cache = JSON.parse(dbJson);
@@ -196,13 +196,13 @@ class LocalDatabase {
         // Save the default database immediately
         await this.saveDB(this.cache);
       }
-      
+
       console.log('Database loaded:', {
         accounts: this.cache.accounts.length,
         categories: this.cache.categories.length,
         transactions: this.cache.transactions.length
       });
-      
+
       return this.cache;
     } catch (error) {
       console.error('Failed to load database:', error);
@@ -221,12 +221,12 @@ class LocalDatabase {
   async saveDB(data: LocalDBData): Promise<void> {
     try {
       this.cache = data;
-      
+
       // Add timeout to save operation
-      const timeoutPromise = new Promise<never>((_, reject) => 
+      const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('AsyncStorage save timeout')), 3000)
       );
-      
+
       const savePromise = AsyncStorage.setItem(STORAGE_KEYS.APP_DB, JSON.stringify(data));
       await Promise.race([savePromise, timeoutPromise]);
     } catch (error) {
@@ -258,143 +258,143 @@ export const localBaseQuery: BaseQueryFn<
   try {
     // Normalize args
     const { url, method = 'GET', body } = typeof args === 'string' ? { url: args } : args;
-    
+
     // Wrap the operation in a race with timeout
     const operationPromise = (async () => {
-    
-    // Parse URL and params
-    const [pathname, search] = url.split('?');
-    const resource = pathname.replace('/', '');
-    const params = new URLSearchParams(search || '');
-    
-    console.log(`LocalBaseQuery: ${method.toUpperCase()} ${pathname}`, body ? { body } : '');
 
-    // Load database
-    const db = await localDB.loadDB();
-    let result;
+      // Parse URL and params
+      const [pathname, search] = url.split('?');
+      const resource = pathname.replace('/', '');
+      const params = new URLSearchParams(search || '');
 
-    switch (method.toUpperCase()) {
-      case 'GET': {
-        if (pathname.includes('/') && pathname.split('/').length === 3) {
-          // GET /resource/:id
-          const [, resourceName, id] = pathname.split('/');
-          const item = db[resourceName as keyof LocalDBData]?.find((item: any) => item.id === id);
-          if (!item) {
+      console.log(`LocalBaseQuery: ${method.toUpperCase()} ${pathname}`, body ? { body } : '');
+
+      // Load database
+      const db = await localDB.loadDB();
+      let result;
+
+      switch (method.toUpperCase()) {
+        case 'GET': {
+          if (pathname.includes('/') && pathname.split('/').length === 3) {
+            // GET /resource/:id
+            const [, resourceName, id] = pathname.split('/');
+            const item = db[resourceName as keyof LocalDBData]?.find((item: any) => item.id === id);
+            if (!item) {
+              return { error: { status: 404, data: 'Not found' } };
+            }
+            result = item;
+          } else {
+            // GET /resource with optional query params
+            let data = [...(db[resource as keyof LocalDBData] || [])];
+
+            // Apply filters
+            if (params.get('type')) {
+              data = data.filter((item: any) => item.type === params.get('type'));
+            }
+
+            if (params.get('date_gte')) {
+              const startDate = new Date(params.get('date_gte')!);
+              data = data.filter((item: any) => new Date(item.date) >= startDate);
+            }
+
+            if (params.get('date_lte')) {
+              const endDate = new Date(params.get('date_lte')!);
+              data = data.filter((item: any) => new Date(item.date) <= endDate);
+            }
+
+            if (params.get('month')) {
+              data = data.filter((item: any) => item.month === params.get('month'));
+            }
+
+            if (params.get('categoryId')) {
+              data = data.filter((item: any) => item.categoryId === params.get('categoryId'));
+            }
+
+            // Apply sorting
+            const sortBy = params.get('_sort') || 'createdAt';
+            const sortOrder = params.get('_order') || 'desc';
+
+            data.sort((a: any, b: any) => {
+              const aVal = a[sortBy];
+              const bVal = b[sortBy];
+
+              if (sortOrder === 'desc') {
+                return aVal < bVal ? 1 : -1;
+              }
+              return aVal > bVal ? 1 : -1;
+            });
+
+            // Apply pagination
+            const page = parseInt(params.get('_page') || '1');
+            const limit = parseInt(params.get('_limit') || '1000');
+            const start = (page - 1) * limit;
+            const end = start + limit;
+
+            result = data.slice(start, end);
+          }
+          break;
+        }
+
+        case 'POST': {
+          const id = uuidv4();
+          const now = new Date().toISOString();
+          const newItem = {
+            ...body,
+            id,
+            createdAt: now,
+            updatedAt: now
+          };
+
+          const resourceArray = db[resource as keyof LocalDBData] as any[];
+          resourceArray.push(newItem);
+          await localDB.saveDB(db);
+          result = newItem;
+          break;
+        }
+
+        case 'PUT':
+        case 'PATCH': {
+          const id = pathname.split('/').pop() || (body as any)?.id;
+          const resourceArray = db[resource as keyof LocalDBData] as any[];
+          const index = resourceArray.findIndex((item: any) => item.id === id);
+
+          if (index === -1) {
             return { error: { status: 404, data: 'Not found' } };
           }
-          result = item;
-        } else {
-          // GET /resource with optional query params
-          let data = [...(db[resource as keyof LocalDBData] || [])];
 
-          // Apply filters
-          if (params.get('type')) {
-            data = data.filter((item: any) => item.type === params.get('type'));
-          }
-          
-          if (params.get('date_gte')) {
-            const startDate = new Date(params.get('date_gte')!);
-            data = data.filter((item: any) => new Date(item.date) >= startDate);
-          }
-          
-          if (params.get('date_lte')) {
-            const endDate = new Date(params.get('date_lte')!);
-            data = data.filter((item: any) => new Date(item.date) <= endDate);
-          }
+          const updatedItem = {
+            ...resourceArray[index],
+            ...body,
+            updatedAt: new Date().toISOString()
+          };
 
-          if (params.get('month')) {
-            data = data.filter((item: any) => item.month === params.get('month'));
-          }
-
-          if (params.get('categoryId')) {
-            data = data.filter((item: any) => item.categoryId === params.get('categoryId'));
-          }
-
-          // Apply sorting
-          const sortBy = params.get('_sort') || 'createdAt';
-          const sortOrder = params.get('_order') || 'desc';
-          
-          data.sort((a: any, b: any) => {
-            const aVal = a[sortBy];
-            const bVal = b[sortBy];
-            
-            if (sortOrder === 'desc') {
-              return aVal < bVal ? 1 : -1;
-            }
-            return aVal > bVal ? 1 : -1;
-          });
-
-          // Apply pagination
-          const page = parseInt(params.get('_page') || '1');
-          const limit = parseInt(params.get('_limit') || '1000');
-          const start = (page - 1) * limit;
-          const end = start + limit;
-          
-          result = data.slice(start, end);
-        }
-        break;
-      }
-
-      case 'POST': {
-        const id = uuidv4();
-        const now = new Date().toISOString();
-        const newItem = { 
-          ...body, 
-          id, 
-          createdAt: now, 
-          updatedAt: now 
-        };
-
-        const resourceArray = db[resource as keyof LocalDBData] as any[];
-        resourceArray.push(newItem);
-        await localDB.saveDB(db);
-        result = newItem;
-        break;
-      }
-
-      case 'PUT':
-      case 'PATCH': {
-        const id = pathname.split('/').pop() || (body as any)?.id;
-        const resourceArray = db[resource as keyof LocalDBData] as any[];
-        const index = resourceArray.findIndex((item: any) => item.id === id);
-        
-        if (index === -1) {
-          return { error: { status: 404, data: 'Not found' } };
+          resourceArray[index] = updatedItem;
+          await localDB.saveDB(db);
+          result = updatedItem;
+          break;
         }
 
-        const updatedItem = {
-          ...resourceArray[index],
-          ...body,
-          updatedAt: new Date().toISOString()
-        };
+        case 'DELETE': {
+          const id = pathname.split('/').pop();
+          const resourceArray = db[resource as keyof LocalDBData] as any[];
+          const index = resourceArray.findIndex((item: any) => item.id === id);
 
-        resourceArray[index] = updatedItem;
-        await localDB.saveDB(db);
-        result = updatedItem;
-        break;
-      }
+          if (index === -1) {
+            return { error: { status: 404, data: 'Not found' } };
+          }
 
-      case 'DELETE': {
-        const id = pathname.split('/').pop();
-        const resourceArray = db[resource as keyof LocalDBData] as any[];
-        const index = resourceArray.findIndex((item: any) => item.id === id);
-        
-        if (index === -1) {
-          return { error: { status: 404, data: 'Not found' } };
+          resourceArray.splice(index, 1);
+          await localDB.saveDB(db);
+          result = { id };
+          break;
         }
 
-        resourceArray.splice(index, 1);
-        await localDB.saveDB(db);
-        result = { id };
-        break;
+        default:
+          return { error: { status: 405, data: 'Method not allowed' } };
       }
 
-      default:
-        return { error: { status: 405, data: 'Method not allowed' } };
-    }
-
-    console.log(`LocalBaseQuery result:`, result);
-    return { data: result };
+      console.log(`LocalBaseQuery result:`, result);
+      return { data: result };
     })();
 
     // Race between operation and timeout
@@ -402,22 +402,22 @@ export const localBaseQuery: BaseQueryFn<
     return result;
   } catch (error) {
     console.error('LocalBaseQuery error:', error);
-    
+
     // Handle timeout errors specifically
     if (error instanceof Error && error.message.includes('AbortError')) {
-      return { 
-        error: { 
-          status: 'TIMEOUT_ERROR', 
-          data: error.message 
-        } 
+      return {
+        error: {
+          status: 'TIMEOUT_ERROR',
+          data: error.message
+        }
       };
     }
-    
-    return { 
-      error: { 
-        status: 500, 
-        data: error instanceof Error ? error.message : 'Unknown error' 
-      } 
+
+    return {
+      error: {
+        status: 500,
+        data: error instanceof Error ? error.message : 'Unknown error'
+      }
     };
   }
 };

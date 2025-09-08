@@ -19,7 +19,7 @@ const KEYPAD_KEYS = [
 export const AmountKeypad: React.FC<AmountKeypadProps> = ({
     value,
     onChange,
-    currencyCode = 'USD',
+    currencyCode = 'BDT',
     maxAmount = 999999.99,
     onDone,
 }) => {

@@ -53,7 +53,7 @@ export const AccountCreationModal: React.FC<AccountCreationModalProps> = ({
         name: accountName.trim(),
         type: accountType,
         openingBalance: 0,
-        currencyCode: 'USD',
+        currencyCode: 'BDT',
         isArchived: false,
       }).unwrap();
 
@@ -105,7 +105,7 @@ export const AccountCreationModal: React.FC<AccountCreationModalProps> = ({
             </Text>
           </TouchableOpacity>
         </View>
-        
+
         <View style={styles.content}>
           <View style={styles.field}>
             <Text style={styles.label}>Account Name</Text>

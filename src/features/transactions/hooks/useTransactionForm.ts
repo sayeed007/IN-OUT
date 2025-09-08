@@ -138,7 +138,7 @@ export const useTransactionForm = ({
                 date: formData.date,
                 note: formData.note,
                 tags: formData.tags,
-                currencyCode: 'USD', // TODO: Get from user preferences
+                currencyCode: 'BDT', // TODO: Get from user preferences
             };
 
             if (initialData?.id) {
