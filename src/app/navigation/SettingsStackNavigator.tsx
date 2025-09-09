@@ -6,6 +6,8 @@ import { Platform } from 'react-native';
 import { SettingsScreen } from '../../screens/settings/SettingsScreen';
 import { AccountManagerScreen } from '../../screens/settings/AccountManagerScreen';
 import { AccountFormScreen } from '../../screens/settings/AccountFormScreen';
+import { CategoryManagerScreen } from '../../screens/settings/CategoryManagerScreen';
+import { CategoryFormScreen } from '../../screens/settings/CategoryFormScreen';
 
 // Theme
 import { useTheme } from '../providers/ThemeProvider';
@@ -62,6 +64,22 @@ const SettingsStackNavigator: React.FC = () => {
                 component={AccountFormScreen}
                 options={({ route }) => ({
                     title: route.params?.accountId ? 'Edit Account' : 'Add Account',
+                })}
+            />
+
+            <Stack.Screen
+                name="CategoryManager"
+                component={CategoryManagerScreen}
+                options={{
+                    title: 'Manage Categories',
+                }}
+            />
+
+            <Stack.Screen
+                name="CategoryForm"
+                component={CategoryFormScreen}
+                options={({ route }) => ({
+                    title: route.params?.categoryId ? 'Edit Category' : 'Add Category',
                 })}
             />
         </Stack.Navigator>

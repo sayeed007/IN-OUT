@@ -1,21 +1,20 @@
 import React from 'react';
 import {
-    TouchableOpacity,
-    Text,
-    View,
     StyleSheet,
-    ViewStyle,
+    Text,
     TextStyle,
+    TouchableOpacity,
     useColorScheme,
+    ViewStyle
 } from 'react-native';
-import { useSelector } from 'react-redux';
-import Icon from 'react-native-vector-icons/Ionicons';
 import Animated, {
     useAnimatedStyle,
     useSharedValue,
     withSpring,
     withTiming,
 } from 'react-native-reanimated';
+import Icon from 'react-native-vector-icons/Ionicons';
+import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 
 interface ChipProps {
@@ -208,7 +207,7 @@ const Chip: React.FC<ChipProps> = ({
                     name={icon}
                     size={config.iconSize}
                     color={getTextColor()}
-                    style={{ marginRight: 6 }}
+                    style={styles.iconMargin}
                 />
             )}
 
@@ -252,6 +251,9 @@ const styles = StyleSheet.create({
         marginLeft: 6,
         padding: 2,
     },
+    iconMargin: {
+        marginRight: 6
+    }
 });
 
 export default Chip;

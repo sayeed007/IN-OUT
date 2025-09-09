@@ -18,6 +18,7 @@ import { useTheme } from '../../app/providers/ThemeProvider';
 import { useGetAccountsQuery, useDeleteAccountMutation } from '../../state/api';
 import { AccountItem } from './components/AccountItem';
 import type { Account } from '../../types/global';
+import BottomSpacing from '../../components/ui/BottomSpacing';
 
 
 export const AccountManagerScreen: React.FC = () => {
@@ -133,6 +134,9 @@ export const AccountManagerScreen: React.FC = () => {
             onActionPress={!showArchived ? handleAddAccount : undefined}
           />
         )}
+
+        {/* Bottom spacing for tab bar */}
+        <BottomSpacing />
       </ScrollView>
     </SafeContainer>
   );
