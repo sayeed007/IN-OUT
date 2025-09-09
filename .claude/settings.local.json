@@ -54,7 +54,10 @@
       "Read(/C:\\in_out\\src\\services\\storage/**)",
       "Read(/C:\\in_out\\src\\screens\\transactions/**)",
       "Read(/C:\\in_out\\src\\app\\navigation/**)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(tree:*)",
+      "Bash(npx unimported:*)",
+      "Bash(npm uninstall:*)"
     ],
     "deny": [],
     "ask": []
