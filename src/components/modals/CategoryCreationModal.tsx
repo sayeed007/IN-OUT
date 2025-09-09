@@ -38,7 +38,7 @@ export const CategoryCreationModal: React.FC<CategoryCreationModalProps> = ({
   const [categoryName, setCategoryName] = useState('');
   const [categoryType, setCategoryType] = useState<Category['type']>(type as Category['type']);
   const [categoryColor, setCategoryColor] = useState<string>(CATEGORY_COLORS[0]);
-  const [categoryIcon, setCategoryIcon] = useState(() => {
+  const [categoryIcon, setCategoryIcon] = useState<string>(() => {
     return type === 'income' ? CATEGORY_ICONS.income[0] : CATEGORY_ICONS.expense[0];
   });
   const [isCreating, setIsCreating] = useState(false);
