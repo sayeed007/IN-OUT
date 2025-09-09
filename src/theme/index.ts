@@ -19,7 +19,7 @@ export interface ThemeColors {
   expense: typeof Colors.expense;
   transfer: typeof Colors.transfer;
   chart: typeof Colors.chart;
-  
+
   // Additional theme-specific properties
   background: string;
   surface: string;
@@ -32,6 +32,7 @@ export interface ThemeColors {
   onSurface: string;
   onBackground: string;
   onError: string;
+  shadow: string;
 }
 
 export interface Theme {
@@ -58,6 +59,8 @@ export const lightTheme: Theme = {
     onSurface: Colors.neutral[900],
     onBackground: Colors.neutral[900],
     onError: Colors.neutral[0],
+    shadow: 'rgba(0,0,0,0.1)',
+
   },
   typography: Typography,
   spacing: Spacing,
@@ -81,6 +84,8 @@ export const darkTheme: Theme = {
     onSurface: Colors.dark.text,
     onBackground: Colors.dark.text,
     onError: Colors.neutral[0],
+    shadow: 'rgba(0,0,0,0.8)',
+
   },
   typography: Typography,
   spacing: Spacing,

@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Spacing } from '../../../theme';
+import { useTheme } from '../../../app/providers/ThemeProvider';
 
 interface SettingItemProps {
   title: string;
@@ -24,6 +25,40 @@ const SettingItem: React.FC<SettingItemProps> = ({
   rightComponent,
   showArrow = true,
 }) => {
+  const { theme } = useTheme();
+
+  const styles = StyleSheet.create({
+    settingItem: {
+      flexDirection: 'row',
+      alignContent: 'center',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: Spacing.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
+    },
+    settingContent: {
+      flex: 1,
+    },
+    settingTitle: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: theme.colors.text,
+      marginBottom: Spacing.xs,
+    },
+    settingSubtitle: {
+      fontSize: 14,
+      color: theme.colors.textSecondary,
+    },
+    settingRight: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    arrow: {
+      marginLeft: Spacing.sm,
+    },
+  });
+
   return (
     <TouchableOpacity
       style={styles.settingItem}
@@ -38,42 +73,12 @@ const SettingItem: React.FC<SettingItemProps> = ({
       <View style={styles.settingRight}>
         {rightComponent}
         {showArrow && onPress && (
-          <Icon name="chevron-forward" size={18} color="#9CA3AF" style={styles.arrow} />
+          <Icon name="chevron-forward" size={18} color={theme.colors.textSecondary} style={styles.arrow} />
         )}
       </View>
     </TouchableOpacity>
   );
 };
 
-const styles = StyleSheet.create({
-  settingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-  },
-  settingContent: {
-    flex: 1,
-  },
-  settingTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#111827',
-    marginBottom: Spacing.xs,
-  },
-  settingSubtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  settingRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  arrow: {
-    marginLeft: Spacing.sm,
-  },
-});
 
 export default SettingItem;

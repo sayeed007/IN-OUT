@@ -1,20 +1,18 @@
 import React from 'react';
 import {
-    View,
     StyleSheet,
-    ViewStyle,
     TouchableOpacity,
     TouchableOpacityProps,
-    useColorScheme,
+    View,
+    ViewStyle
 } from 'react-native';
-import { useSelector } from 'react-redux';
 import Animated, {
     useAnimatedStyle,
     useSharedValue,
     withSpring,
     withTiming,
 } from 'react-native-reanimated';
-import { RootState } from '../../state/store';
+import { useTheme } from '../../app/providers/ThemeProvider';
 
 interface CardProps extends TouchableOpacityProps {
     children: React.ReactNode;
@@ -40,24 +38,12 @@ const Card: React.FC<CardProps> = ({
     animatePress = true,
     ...touchableProps
 }) => {
-    const colorScheme = useColorScheme();
-    const theme = useSelector((state: RootState) =>
-        state.preferences.theme === 'system' ? colorScheme : state.preferences.theme
-    );
+    const { theme } = useTheme();
 
     const scale = useSharedValue(1);
     const opacity = useSharedValue(1);
 
-    const isDark = theme === 'dark';
 
-    // Theme colors
-    const colors = {
-        background: isDark ? '#0A0A0B' : '#FFFFFF',
-        surface: isDark ? '#1F1F23' : '#FFFFFF',
-        surfaceVariant: isDark ? '#2D2D32' : '#F8F9FA',
-        border: isDark ? '#3F3F46' : '#E5E5E7',
-        shadow: isDark ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.1)',
-    };
 
     // Spacing configurations
     const paddingConfig = {
@@ -83,7 +69,7 @@ const Card: React.FC<CardProps> = ({
 
     const getVariantStyle = (): ViewStyle => {
         const baseStyle: ViewStyle = {
-            backgroundColor: colors.surface,
+            backgroundColor: theme.colors.surface,
             borderRadius: radiusConfig[borderRadius],
             padding: paddingConfig[padding],
             margin: marginConfig[margin],
@@ -94,22 +80,22 @@ const Card: React.FC<CardProps> = ({
                 return {
                     ...baseStyle,
                     ...styles.elevated,
-                    shadowColor: colors.shadow,
-                    backgroundColor: colors.surface,
+                    shadowColor: theme.colors.shadow,
+                    backgroundColor: theme.colors.surface,
                 };
 
             case 'outlined':
                 return {
                     ...baseStyle,
                     borderWidth: 1,
-                    borderColor: colors.border,
-                    backgroundColor: colors.surface,
+                    borderColor: theme.colors.border,
+                    backgroundColor: theme.colors.surface,
                 };
 
             case 'filled':
                 return {
                     ...baseStyle,
-                    backgroundColor: colors.surfaceVariant,
+                    backgroundColor: theme.colors.surfaceVariant,
                 };
 
             case 'normal':

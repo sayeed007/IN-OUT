@@ -237,14 +237,14 @@ export const DashboardScreen: React.FC = () => {
                 }
             >
                 {/* Header */}
-                <View style={styles.header}>
+                {/* <View style={styles.header}>
                     <Text style={[styles.title, { color: theme.colors.text }]}>
                         Dashboard
                     </Text>
                     <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
                         Financial Overview
                     </Text>
-                </View>
+                </View> */}
 
                 {/* Month Selector */}
                 <MonthSelector
