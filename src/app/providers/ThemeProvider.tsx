@@ -2,7 +2,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Appearance, StatusBar } from 'react-native';
 import { Theme, lightTheme, darkTheme } from '../../theme';
-import { useAppSelector } from '../../state/hooks';
+import { useAppSelector, useAppDispatch } from '../../state/hooks';
+import { updatePreferences } from '../../state/slices/preferencesSlice';
 
 interface ThemeContextType {
     theme: Theme;
@@ -26,6 +27,7 @@ interface ThemeProviderProps {
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     const themePreference = useAppSelector(state => state.preferences.theme);
+    const dispatch = useAppDispatch();
     const [isDark, setIsDark] = useState(false);
 
     useEffect(() => {
@@ -56,8 +58,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     const theme = isDark ? darkTheme : lightTheme;
 
     const toggleTheme = () => {
-        // This would dispatch an action to update preferences
-        setIsDark(!isDark);
+        const newTheme = isDark ? 'light' : 'dark';
+        dispatch(updatePreferences({ theme: newTheme }));
     };
 
     return (

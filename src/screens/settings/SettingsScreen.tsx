@@ -13,6 +13,7 @@ import PreferencesSettings from './components/PreferencesSettings';
 import DataManagementSettings from './components/DataManagementSettings';
 import AboutSettings from './components/AboutSettings';
 import DangerZoneSettings from './components/DangerZoneSettings';
+import BottomSpacing from '../../components/ui/BottomSpacing';
 
 export const SettingsScreen: React.FC = () => {
 
@@ -39,6 +40,9 @@ export const SettingsScreen: React.FC = () => {
 
         {/* Danger Zone */}
         <DangerZoneSettings />
+
+        {/* Bottom spacing for tab bar */}
+        <BottomSpacing />
       </ScrollView>
     </SafeContainer>
   );

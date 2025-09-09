@@ -3,7 +3,7 @@ import React from 'react';
 import { Text, StyleSheet, Alert } from 'react-native';
 import Card from '../../../components/ui/Card';
 import SettingItem from './SettingItem';
-import { Spacing } from '../../../theme';
+import { Colors, Spacing } from '../../../theme';
 
 const DangerZoneSettings: React.FC = () => {
   const handleResetData = () => {
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#111827',
+    color: Colors.error[500],
     marginBottom: Spacing.base,
   },
 });
