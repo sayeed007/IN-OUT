@@ -1,12 +1,36 @@
 // src/app/App.tsx
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import React, { useEffect } from 'react';
-import { StatusBar } from 'react-native';
+import { StatusBar, View, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AppNavigator from './src/app/navigation/AppNavigator';
 import { StoreProvider } from './src/app/providers/StoreProvider';
-import { ThemeProvider } from './src/app/providers/ThemeProvider';
+import { ThemeProvider, useTheme } from './src/app/providers/ThemeProvider';
 import { initializeApp } from './src/services/storage/appInitialization';
+
+const AppContent: React.FC = () => {
+    const { theme, isDark } = useTheme();
+
+    const navigationTheme = {
+        ...(isDark ? DarkTheme : DefaultTheme),
+    };
+
+    const styles = StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: theme.colors.background,
+        },
+    });
+
+    return (
+        <View style={styles.container}>
+            <StatusBar backgroundColor="transparent" translucent />
+            <NavigationContainer theme={navigationTheme}>
+                <AppNavigator />
+            </NavigationContainer>
+        </View>
+    );
+};
 
 const App: React.FC = () => {
     useEffect(() => {
@@ -16,14 +40,11 @@ const App: React.FC = () => {
 
     return (
         <StoreProvider>
-            <SafeAreaProvider>
-                <ThemeProvider>
-                    <StatusBar backgroundColor="transparent" translucent />
-                    <NavigationContainer>
-                        <AppNavigator />
-                    </NavigationContainer>
-                </ThemeProvider>
-            </SafeAreaProvider>
+            <ThemeProvider>
+                <SafeAreaProvider>
+                    <AppContent />
+                </SafeAreaProvider>
+            </ThemeProvider>
         </StoreProvider>
     );
 };

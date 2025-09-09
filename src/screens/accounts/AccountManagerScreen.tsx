@@ -1,28 +1,28 @@
 // src/screens/accounts/AccountManagerScreen.tsx
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
   Alert,
+  FlatList,
   RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Header } from '../../components/layout/Header';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
-import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { FloatingActionButton } from '../../components/ui/FloatingActionButton';
-import { Header } from '../../components/layout/Header';
+import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import {
-  useGetAccountsQuery,
   useDeleteAccountMutation,
+  useGetAccountsQuery,
   useGetTransactionsQuery,
 } from '../../state/api';
-import { formatCurrency } from '../../utils/helpers/currencyUtils';
 import type { Account } from '../../types/global';
+import { formatCurrency } from '../../utils/helpers/currencyUtils';
 
 interface Props {
   navigation: any;
@@ -94,38 +94,28 @@ const AccountManagerScreen: React.FC<Props> = ({ navigation }) => {
       tx => tx.accountId === account.id || tx.accountIdTo === account.id
     );
 
-    // Debug logging
-    console.log(`Account: ${account.name} (ID: ${account.id})`);
-    console.log(`Opening Balance: ${account.openingBalance}`);
-    console.log(`Transactions for this account:`, accountTransactions);
 
     const balance = accountTransactions.reduce((total, tx) => {
-      console.log(`Processing transaction: ${tx.type} - ${tx.amount} (Account: ${tx.accountId})`);
 
       if (tx.accountId === account.id) {
         // This account is the source
         if (tx.type === 'income') {
-          console.log(`Adding income: ${total} + ${tx.amount} = ${total + tx.amount}`);
           return total + tx.amount;
         } else if (tx.type === 'expense') {
-          console.log(`Subtracting expense: ${total} - ${tx.amount} = ${total - tx.amount}`);
           return total - tx.amount;
         } else if (tx.type === 'transfer') {
-          console.log(`Transfer out: ${total} - ${tx.amount} = ${total - tx.amount}`);
           return total - tx.amount; // Money going out
         }
       }
 
       if (tx.accountIdTo === account.id && tx.type === 'transfer') {
         // This account is the destination for a transfer
-        console.log(`Transfer in: ${total} + ${tx.amount} = ${total + tx.amount}`);
         return total + tx.amount; // Money coming in
       }
 
       return total;
     }, account.openingBalance);
 
-    console.log(`Final balance for ${account.name}: ${balance}`);
     return balance;
   };
 

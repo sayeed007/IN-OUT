@@ -12,7 +12,7 @@ const DataManagementSettings: React.FC = () => {
       'This will export all your transactions, accounts, and categories to a CSV file.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Export', onPress: () => console.log('Export data functionality') },
+        { text: 'Export', onPress: () => { } },
       ]
     );
   };
@@ -23,7 +23,7 @@ const DataManagementSettings: React.FC = () => {
       'This will import transactions from a CSV file. Existing data will not be overwritten.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Import', onPress: () => console.log('Import data functionality') },
+        { text: 'Import', onPress: () => { } },
       ]
     );
   };
@@ -34,7 +34,7 @@ const DataManagementSettings: React.FC = () => {
       'This will create a backup of all your data including attachments.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Backup', onPress: () => console.log('Backup data functionality') },
+        { text: 'Backup', onPress: () => { } },
       ]
     );
   };
@@ -45,7 +45,7 @@ const DataManagementSettings: React.FC = () => {
       'This will restore your data from a backup file. Current data will be replaced.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Restore', onPress: () => console.log('Restore data functionality') },
+        { text: 'Restore', onPress: () => { } },
       ]
     );
   };

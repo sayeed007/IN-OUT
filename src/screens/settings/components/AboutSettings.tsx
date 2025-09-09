@@ -14,11 +14,10 @@ const AboutSettings: React.FC = () => {
       'Open terms of service in browser?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Open', 
+        {
+          text: 'Open',
           onPress: () => {
             // In a real app, you'd open the actual terms URL
-            console.log('Opening Terms of Service');
             // Linking.openURL('https://yourapp.com/terms');
           }
         },
@@ -32,11 +31,10 @@ const AboutSettings: React.FC = () => {
       'Open privacy policy in browser?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Open', 
+        {
+          text: 'Open',
           onPress: () => {
             // In a real app, you'd open the actual privacy URL
-            console.log('Opening Privacy Policy');
             // Linking.openURL('https://yourapp.com/privacy');
           }
         },
@@ -50,17 +48,15 @@ const AboutSettings: React.FC = () => {
       'Choose support option',
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Email Support', 
+        {
+          text: 'Email Support',
           onPress: () => {
-            console.log('Opening email support');
             // Linking.openURL('mailto:support@yourapp.com');
           }
         },
-        { 
-          text: 'FAQ', 
+        {
+          text: 'FAQ',
           onPress: () => {
-            console.log('Opening FAQ');
             // Navigate to FAQ screen or open FAQ URL
           }
         },

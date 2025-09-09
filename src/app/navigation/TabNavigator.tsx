@@ -100,11 +100,10 @@ const TabNavigator: React.FC = () => {
             //         // Custom logic for tab press if needed
             //         if (route.name === 'Add') {
             //             // Could add haptic feedback here
-            //             // console.log(navigation, e);
             //         }
             //     },
             // })}
-            initialRouteName="Settings"
+            initialRouteName="Dashboard"
         >
             <Tab.Screen
                 name="Dashboard"

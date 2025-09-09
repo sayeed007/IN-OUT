@@ -49,7 +49,6 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
   const [transactionType, setTransactionType] = useState<TransactionType>(initialType || 'expense');
   const [showAmountKeypad, setShowAmountKeypad] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  console.log(showAmountKeypad);
 
   const { data: accounts = [] } = useGetAccountsQuery();
   const { data: categories = [] } = useGetCategoriesQuery();

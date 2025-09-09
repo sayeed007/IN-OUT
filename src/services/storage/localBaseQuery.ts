@@ -178,7 +178,6 @@ class LocalDatabase {
     if (this.cache) return this.cache;
 
     try {
-      console.log('Loading database from AsyncStorage...');
       // Add timeout to AsyncStorage operation
       const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('AsyncStorage timeout')), 3000)
@@ -188,20 +187,21 @@ class LocalDatabase {
       const dbJson = await Promise.race([loadPromise, timeoutPromise]);
 
       if (dbJson) {
-        console.log('Database found in storage, parsing...');
         this.cache = JSON.parse(dbJson);
       } else {
-        console.log('No database found, using default with seed data...');
+        console.info('No database found, using default with seed data...');
         this.cache = { ...DEFAULT_DB };
         // Save the default database immediately
         await this.saveDB(this.cache);
       }
 
-      console.log('Database loaded:', {
-        accounts: this.cache.accounts.length,
-        categories: this.cache.categories.length,
-        transactions: this.cache.transactions.length
-      });
+      if (this?.cache) {
+        console.info('Database loaded:', {
+          accounts: this?.cache.accounts.length,
+          categories: this?.cache.categories.length,
+          transactions: this?.cache.transactions.length
+        });
+      }
 
       return this.cache;
     } catch (error) {

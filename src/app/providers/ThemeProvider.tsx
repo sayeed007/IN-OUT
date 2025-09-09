@@ -55,6 +55,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         StatusBar.setBarStyle(isDark ? 'light-content' : 'dark-content', true);
     }, [isDark]);
 
+
     const theme = isDark ? darkTheme : lightTheme;
 
     const toggleTheme = () => {

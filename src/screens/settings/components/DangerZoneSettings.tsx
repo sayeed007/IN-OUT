@@ -26,7 +26,6 @@ const DangerZoneSettings: React.FC = () => {
                   text: 'Delete Everything',
                   style: 'destructive',
                   onPress: () => {
-                    console.log('Performing data reset...');
                     // Here you would implement the actual data reset logic
                   }
                 },

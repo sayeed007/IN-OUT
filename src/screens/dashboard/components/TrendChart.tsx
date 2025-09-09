@@ -38,9 +38,6 @@ const TrendChart: React.FC<TrendChartProps> = ({ trendData }) => {
     };
   });
 
-  console.log('Chart data:', chartData);
-  console.log('Trend data:', trendData);
-
   // X-axis tick values with 5-day interval
   const interval = Math.max(1, Math.floor(trendData.length / 5));
   const tickValues = [];

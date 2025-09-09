@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../state/store';
-import { StatusBar, useColorScheme } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StatusBar } from 'react-native';
+import { useTheme } from '../providers/ThemeProvider';
 
 // Navigation Components
 import TabNavigator from './TabNavigator';
@@ -22,16 +21,13 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const AppNavigator: React.FC = () => {
     const [isOnboarded, setIsOnboarded] = useState<boolean | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const colorScheme = useColorScheme();
-    const { theme } = useSelector((state: RootState) => ({
-        theme: state.preferences?.theme === 'system' ? colorScheme : state.preferences?.theme || 'light',
-    }));
+    const { theme, isDark } = useTheme();
 
     const appInit = AppInitializationService.getInstance();
 
     useEffect(() => {
         checkOnboardingStatus();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
     }, []);
 
     const checkOnboardingStatus = async () => {
@@ -46,9 +42,8 @@ const AppNavigator: React.FC = () => {
         }
     };
 
-    // Theme colors
-    const isDark = theme === 'dark';
-    const backgroundColor = isDark ? '#000000' : '#F9FAFB';
+    // Theme colors - use theme object instead of hardcoded colors
+    const backgroundColor = theme.colors.background;
     const statusBarStyle = isDark ? 'light-content' : 'dark-content';
 
     if (isLoading) {

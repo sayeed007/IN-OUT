@@ -76,7 +76,7 @@ class AppInitializationService {
       const existingDb = await this.getDatabase();
 
       if (existingDb) {
-        console.log('Database already exists, skipping initialization');
+        console.info('Database already exists, skipping initialization');
         return existingDb;
       }
 
@@ -117,7 +117,7 @@ class AppInitializationService {
       };
 
       await AsyncStorage.setItem(STORAGE_KEYS.APP_DB, JSON.stringify(defaultDb));
-      console.log('Database initialized successfully');
+      console.info('Database initialized successfully');
 
       return defaultDb;
     } catch (error) {
@@ -221,7 +221,7 @@ class AppInitializationService {
     try {
       const keys = Object.values(STORAGE_KEYS);
       await AsyncStorage.multiRemove(keys);
-      console.log('App data reset successfully');
+      console.info('App data reset successfully');
     } catch (error) {
       console.error('Error resetting app data:', error);
       throw error;
@@ -276,7 +276,7 @@ class AppInitializationService {
       if (!db) return;
 
       if (db.version !== targetVersion) {
-        console.log(`Migrating database from ${db.version} to ${targetVersion}`);
+        console.info(`Migrating database from ${db.version} to ${targetVersion}`);
 
         // Add migration logic here for future versions
         const migratedDb: AppDatabase = {
@@ -286,7 +286,7 @@ class AppInitializationService {
         };
 
         await AsyncStorage.setItem(STORAGE_KEYS.APP_DB, JSON.stringify(migratedDb));
-        console.log('Database migration completed');
+        console.info('Database migration completed');
       }
     } catch (error) {
       console.error('Error migrating database:', error);
@@ -348,7 +348,7 @@ class AppInitializationService {
       };
 
       await AsyncStorage.setItem(STORAGE_KEYS.APP_DB, JSON.stringify(restoredDb));
-      console.log('Database restored from backup successfully');
+      console.info('Database restored from backup successfully');
     } catch (error) {
       console.error('Error restoring from backup:', error);
       throw error;
@@ -363,13 +363,13 @@ const appInit = AppInitializationService.getInstance();
  */
 export const initializeApp = async (): Promise<void> => {
   try {
-    console.log('Initializing app...');
+    console.info('Initializing app...');
 
     // Check if onboarding is complete
     const isOnboardingComplete = await appInit.isOnboardingComplete();
 
     if (!isOnboardingComplete) {
-      console.log('First time app launch - will show onboarding');
+      console.info('First time app launch - will show onboarding');
       // Don't initialize database yet - wait for onboarding
       return;
     }
@@ -380,11 +380,11 @@ export const initializeApp = async (): Promise<void> => {
     // Get database to ensure it's initialized
     let db = await appInit.getDatabase();
     if (!db) {
-      console.log('Database not found, initializing with defaults...');
+      console.info('Database not found, initializing with defaults...');
       db = await appInit.initializeDatabase();
     }
 
-    console.log('App initialization complete');
+    console.info('App initialization complete');
   } catch (error) {
     console.error('App initialization failed:', error);
     // Don't throw - app should still be usable
