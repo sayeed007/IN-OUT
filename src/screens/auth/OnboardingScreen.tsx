@@ -7,8 +7,8 @@ import {
   Text,
   View
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackScreenProps } from '../../app/navigation/types';
+import { SafeContainer } from '../../components/layout/SafeContainer';
 import { Button } from '../../components/ui';
 import AppInitializationService from '../../services/storage/appInitialization';
 import { validateRequired } from '../../utils/helpers/validationUtils';
@@ -151,7 +151,7 @@ const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeContainer style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Setup</Text>
         <View style={styles.stepIndicator}>
@@ -192,7 +192,7 @@ const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
           loading={isLoading}
         />
       </View>
-    </SafeAreaView>
+    </SafeContainer>
   );
 };
 

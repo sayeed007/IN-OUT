@@ -5,7 +5,6 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,13 +12,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeContainer } from '../layout/SafeContainer';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../app/providers/ThemeProvider';
 import { useAddCategoryMutation } from '../../state/api';
 import type { Category } from '../../types/global';
+import { CATEGORY_COLORS, CATEGORY_ICONS, CATEGORY_TYPES } from '../../utils/constants/categories';
 import Card from '../ui/Card';
 import LoadingSpinner from '../ui/LoadingSpinner';
-import { CATEGORY_TYPES, CATEGORY_COLORS, CATEGORY_ICONS } from '../../utils/constants/categories';
 
 interface CategoryCreationModalProps {
   visible: boolean;
@@ -257,7 +257,7 @@ export const CategoryCreationModal: React.FC<CategoryCreationModalProps> = ({
       presentationStyle="pageSheet"
       onRequestClose={handleClose}
     >
-      <SafeAreaView style={styles.container}>
+      <SafeContainer style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={handleClose} style={styles.headerButton}>
             <Text style={styles.cancelText}>Cancel</Text>
@@ -384,7 +384,7 @@ export const CategoryCreationModal: React.FC<CategoryCreationModalProps> = ({
           </ScrollView>
 
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </SafeContainer>
     </Modal>
   );
 };

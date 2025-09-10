@@ -57,7 +57,8 @@
       "Bash(node:*)",
       "Bash(tree:*)",
       "Bash(npx unimported:*)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

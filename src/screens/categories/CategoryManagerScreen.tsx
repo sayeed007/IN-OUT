@@ -9,7 +9,7 @@ import {
   Alert,
   RefreshControl,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeContainer } from '../../components/layout/SafeContainer';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
@@ -185,7 +185,7 @@ const CategoryManagerScreen: React.FC<Props> = ({ navigation }) => {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeContainer style={styles.container}>
         <Header 
           title="Categories"
           showBackButton
@@ -195,12 +195,12 @@ const CategoryManagerScreen: React.FC<Props> = ({ navigation }) => {
           <LoadingSpinner size="large" />
           <Text style={styles.loadingText}>Loading categories...</Text>
         </View>
-      </SafeAreaView>
+      </SafeContainer>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeContainer style={styles.container}>
       <Header 
         title="Categories"
         showBackButton
@@ -281,7 +281,7 @@ const CategoryManagerScreen: React.FC<Props> = ({ navigation }) => {
         onPress={handleAddCategory}
         icon="+"
       />
-    </SafeAreaView>
+    </SafeContainer>
   );
 };
 

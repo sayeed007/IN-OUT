@@ -44,16 +44,16 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
   const selectedCategory = categories.find(category => category.id === selectedCategoryId);
   const activeCategories = categories.filter(category => !category.isArchived);
 
-  const handleSelectCategory = (categoryId: string) => {
-    onSelectCategory(categoryId);
-    setIsModalVisible(false);
-  };
+  // const handleSelectCategory = (categoryId: string) => {
+  //   onSelectCategory(categoryId);
+  //   setIsModalVisible(false);
+  // };
 
   const handleCategoryScroll = (event: any) => {
     const y = event.nativeEvent.contentOffset.y;
     const index = Math.round(y / ITEM_HEIGHT);
     const clampedIndex = Math.max(0, Math.min(activeCategories.length - 1, index));
-    
+
     if (clampedIndex !== selectedIndex) {
       setSelectedIndex(clampedIndex);
       const selectedCategory = activeCategories[clampedIndex];
@@ -69,12 +69,12 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
 
   const getDisplayIcon = (icon: string | undefined) => {
     if (!icon) return '';
-    
+
     // If it's already an emoji, return as is
     if (icon.length <= 4 && /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu.test(icon)) {
       return icon;
     }
-    
+
     // Map common icon names to emojis (fallback for old data)
     const iconMap: { [key: string]: string } = {
       'folder': '📁',
@@ -90,7 +90,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
       'health': '🏥',
       'education': '📚',
     };
-    
+
     // Try to find a match in the icon map
     const lowerIcon = icon.toLowerCase();
     return iconMap[lowerIcon] || '📁'; // Default fallback

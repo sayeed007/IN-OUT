@@ -2,13 +2,13 @@
 import React from 'react';
 import {
   Modal,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeContainer } from '../layout/SafeContainer';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../app/providers/ThemeProvider';
 import { getSupportedCurrencies } from '../../utils/helpers/currencyUtils';
@@ -128,7 +128,7 @@ export const CurrencySelectionModal: React.FC<CurrencySelectionModalProps> = ({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.container}>
+      <SafeContainer style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Text style={styles.closeText}>Cancel</Text>
@@ -181,7 +181,7 @@ export const CurrencySelectionModal: React.FC<CurrencySelectionModalProps> = ({
             </TouchableOpacity>
           ))}
         </ScrollView>
-      </SafeAreaView>
+      </SafeContainer>
     </Modal>
   );
 };

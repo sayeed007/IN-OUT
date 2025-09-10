@@ -2,13 +2,13 @@
 import React from 'react';
 import {
   Modal,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeContainer } from '../layout/SafeContainer';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../app/providers/ThemeProvider';
 import Card from '../ui/Card';
@@ -120,7 +120,7 @@ export const DateFormatSelectionModal: React.FC<DateFormatSelectionModalProps> =
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.container}>
+      <SafeContainer style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Text style={styles.closeText}>Cancel</Text>
@@ -145,10 +145,10 @@ export const DateFormatSelectionModal: React.FC<DateFormatSelectionModalProps> =
               activeOpacity={0.7}
             >
               <Card
-                style={[
+                style={StyleSheet.flatten([
                   styles.formatCard,
                   selectedFormat === format.value && styles.selectedCard
-                ]}
+                ])}
                 padding="none"
               >
                 <View style={styles.formatItem}>
@@ -170,7 +170,7 @@ export const DateFormatSelectionModal: React.FC<DateFormatSelectionModalProps> =
             </TouchableOpacity>
           ))}
         </ScrollView>
-      </SafeAreaView>
+      </SafeContainer>
     </Modal>
   );
 };

@@ -5,7 +5,6 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeContainer } from '../layout/SafeContainer';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../app/providers/ThemeProvider';
@@ -239,7 +239,7 @@ export const AccountCreationModal: React.FC<AccountCreationModalProps> = ({
       presentationStyle="pageSheet"
       onRequestClose={handleClose}
     >
-      <SafeAreaView style={styles.container}>
+      <SafeContainer style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={handleClose} style={styles.headerButton}>
             <Text style={styles.cancelText}>Cancel</Text>
@@ -344,7 +344,7 @@ export const AccountCreationModal: React.FC<AccountCreationModalProps> = ({
           </ScrollView>
 
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </SafeContainer>
     </Modal>
   );
 };

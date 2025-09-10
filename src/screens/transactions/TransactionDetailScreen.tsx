@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   Share,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeContainer } from '../../components/layout/SafeContainer';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
@@ -152,7 +152,7 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeContainer style={styles.container}>
         <Header 
           title="Transaction Details"
           showBackButton
@@ -162,13 +162,13 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           <LoadingSpinner size="large" />
           <Text style={styles.loadingText}>Loading transaction...</Text>
         </View>
-      </SafeAreaView>
+      </SafeContainer>
     );
   }
 
   if (error || !transaction) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeContainer style={styles.container}>
         <Header 
           title="Transaction Details"
           showBackButton
@@ -184,7 +184,7 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             variant="secondary"
           />
         </View>
-      </SafeAreaView>
+      </SafeContainer>
     );
   }
 
@@ -193,7 +193,7 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   const category = getCategory(transaction.categoryId);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeContainer style={styles.container}>
       <Header 
         title="Transaction Details"
         showBackButton
@@ -356,7 +356,7 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           loading={isDeleting}
         />
       </View>
-    </SafeAreaView>
+    </SafeContainer>
   );
 };
 

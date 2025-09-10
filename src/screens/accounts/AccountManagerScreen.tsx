@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeContainer } from '../../components/layout/SafeContainer';
 import { Header } from '../../components/layout/Header';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
@@ -231,7 +231,7 @@ const AccountManagerScreen: React.FC<Props> = ({ navigation }) => {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeContainer style={styles.container}>
         <Header
           title="Accounts"
           showBackButton
@@ -241,12 +241,12 @@ const AccountManagerScreen: React.FC<Props> = ({ navigation }) => {
           <LoadingSpinner size="large" />
           <Text style={styles.loadingText}>Loading accounts...</Text>
         </View>
-      </SafeAreaView>
+      </SafeContainer>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeContainer style={styles.container}>
       <Header
         title="Accounts"
         showBackButton
@@ -320,7 +320,7 @@ const AccountManagerScreen: React.FC<Props> = ({ navigation }) => {
         onPress={handleAddAccount}
         icon="+"
       />
-    </SafeAreaView>
+    </SafeContainer>
   );
 };
 

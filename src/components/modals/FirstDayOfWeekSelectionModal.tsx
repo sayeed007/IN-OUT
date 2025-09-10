@@ -2,13 +2,13 @@
 import React from 'react';
 import {
   Modal,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeContainer } from '../layout/SafeContainer';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../app/providers/ThemeProvider';
 import Card from '../ui/Card';
@@ -119,7 +119,7 @@ export const FirstDayOfWeekSelectionModal: React.FC<FirstDayOfWeekSelectionModal
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.container}>
+      <SafeContainer style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Text style={styles.closeText}>Cancel</Text>
@@ -169,7 +169,7 @@ export const FirstDayOfWeekSelectionModal: React.FC<FirstDayOfWeekSelectionModal
             </TouchableOpacity>
           ))}
         </ScrollView>
-      </SafeAreaView>
+      </SafeContainer>
     </Modal>
   );
 };

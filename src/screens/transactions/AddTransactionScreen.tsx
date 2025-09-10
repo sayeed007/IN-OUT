@@ -12,7 +12,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeContainer } from '../../components/layout/SafeContainer';
 import Icon from 'react-native-vector-icons/Ionicons';
 import type { TabScreenProps } from '../../app/navigation/types';
 import { AccountSelector } from '../../components/forms/AccountSelector';
@@ -297,7 +297,7 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
 
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeContainer style={styles.container}>
       {/* Header with Progress */}
       <Header
         title="Add Transaction"
@@ -527,7 +527,7 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
         onCategoryCreated={handleCategoryCreated}
         transactionType={transactionType}
       />
-    </SafeAreaView>
+    </SafeContainer>
   );
 };
 
