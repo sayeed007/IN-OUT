@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Card from '../../../components/ui/Card';
 import { useTheme } from '../../../app/providers/ThemeProvider';
-import { formatCurrency } from '../../../features/transactions/utils/transactionUtils';
+import { formatCurrency } from '../../../utils/helpers/currencyUtils';
 import type { Account } from '../../../types/global';
 
 interface AccountItemProps {

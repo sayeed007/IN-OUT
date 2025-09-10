@@ -76,7 +76,7 @@ export interface FilterState {
 export interface AppPreferences {
   currencyCode: string;
   dateFormat: 'MM/DD/YYYY' | 'DD/MM/YYYY' | 'YYYY-MM-DD';
-  firstDayOfWeek: 0 | 1; // 0 = Sunday, 1 = Monday
+  firstDayOfWeek: 0 | 1; // 0 = Saturday, 1 = Sunday
   budgetStartDay: number; // 1-28
   theme: 'light' | 'dark' | 'system';
   enableAppLock: boolean;

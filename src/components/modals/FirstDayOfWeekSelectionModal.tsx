@@ -21,8 +21,8 @@ interface FirstDayOfWeekSelectionModalProps {
 }
 
 const WEEK_START_OPTIONS = [
-  { value: 0 as const, label: 'Sunday', description: 'Week starts on Sunday' },
-  { value: 1 as const, label: 'Monday', description: 'Week starts on Monday' },
+  { value: 0 as const, label: 'Saturday', description: 'Week starts on Saturday' },
+  { value: 1 as const, label: 'Sunday', description: 'Week starts on Sunday' },
 ];
 
 export const FirstDayOfWeekSelectionModal: React.FC<FirstDayOfWeekSelectionModalProps> = ({
@@ -144,10 +144,10 @@ export const FirstDayOfWeekSelectionModal: React.FC<FirstDayOfWeekSelectionModal
               activeOpacity={0.7}
             >
               <Card
-                style={[
+                style={StyleSheet.flatten([
                   styles.dayCard,
                   selectedDay === option.value && styles.selectedCard
-                ]}
+                ])}
                 padding="none"
               >
                 <View style={styles.dayItem}>

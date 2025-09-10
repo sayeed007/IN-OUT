@@ -19,13 +19,13 @@ const PreferencesSettings: React.FC = () => {
   const [showDateFormatModal, setShowDateFormatModal] = useState(false);
   const [showFirstDayModal, setShowFirstDayModal] = useState(false);
 
-  const handleNotificationsToggle = (value: boolean) => {
-    dispatch(updatePreferences({ enableNotifications: value }));
-  };
+  // const handleNotificationsToggle = (value: boolean) => {
+  //   dispatch(updatePreferences({ enableNotifications: value }));
+  // };
 
-  const handleBiometricsToggle = (value: boolean) => {
-    dispatch(updatePreferences({ enableAppLock: value }));
-  };
+  // const handleBiometricsToggle = (value: boolean) => {
+  //   dispatch(updatePreferences({ enableAppLock: value }));
+  // };
 
   const handleThemeChange = (isDark: boolean) => {
     const newTheme = isDark ? 'dark' : 'light';
@@ -49,7 +49,7 @@ const PreferencesSettings: React.FC = () => {
   };
 
   const getFirstDayLabel = () => {
-    return preferences.firstDayOfWeek === 0 ? 'Sunday' : 'Monday';
+    return preferences.firstDayOfWeek === 0 ? 'Saturday' : 'Sunday';
   };
 
   const styles = StyleSheet.create({
@@ -75,7 +75,7 @@ const PreferencesSettings: React.FC = () => {
       <Card style={styles.section} padding="small">
         <Text style={styles.sectionTitle}>Preferences</Text>
 
-        <SettingItem
+        {/* <SettingItem
           title="Notifications"
           subtitle="Get alerts for budget limits and reminders"
           rightComponent={
@@ -87,9 +87,9 @@ const PreferencesSettings: React.FC = () => {
             />
           }
           showArrow={false}
-        />
+        /> */}
 
-        <SettingItem
+        {/* <SettingItem
           title="Biometric Lock"
           subtitle="Use fingerprint or face ID to unlock the app"
           rightComponent={
@@ -101,7 +101,7 @@ const PreferencesSettings: React.FC = () => {
             />
           }
           showArrow={false}
-        />
+        /> */}
 
         <SettingItem
           title="Dark Mode"

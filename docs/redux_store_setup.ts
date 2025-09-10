@@ -120,7 +120,7 @@ export const localBaseQuery: BaseQueryFn<
   try {
     // Normalize args
     const { url, method = 'GET', body } = typeof args === 'string' ? { url: args } : args;
-    
+
     // Parse URL and params
     const [pathname, search] = url.split('?');
     const resource = pathname.replace('/', '');
@@ -148,12 +148,12 @@ export const localBaseQuery: BaseQueryFn<
           if (params.get('type')) {
             data = data.filter((item: any) => item.type === params.get('type'));
           }
-          
+
           if (params.get('date_gte')) {
             const startDate = new Date(params.get('date_gte')!);
             data = data.filter((item: any) => new Date(item.date) >= startDate);
           }
-          
+
           if (params.get('date_lte')) {
             const endDate = new Date(params.get('date_lte')!);
             data = data.filter((item: any) => new Date(item.date) <= endDate);
@@ -170,11 +170,11 @@ export const localBaseQuery: BaseQueryFn<
           // Apply sorting
           const sortBy = params.get('_sort') || 'createdAt';
           const sortOrder = params.get('_order') || 'desc';
-          
+
           data.sort((a: any, b: any) => {
             const aVal = a[sortBy];
             const bVal = b[sortBy];
-            
+
             if (sortOrder === 'desc') {
               return aVal < bVal ? 1 : -1;
             }
@@ -186,7 +186,7 @@ export const localBaseQuery: BaseQueryFn<
           const limit = parseInt(params.get('_limit') || '1000');
           const start = (page - 1) * limit;
           const end = start + limit;
-          
+
           result = data.slice(start, end);
         }
         break;
@@ -195,11 +195,11 @@ export const localBaseQuery: BaseQueryFn<
       case 'POST': {
         const id = uuidv4();
         const now = new Date().toISOString();
-        const newItem = { 
-          ...body, 
-          id, 
-          createdAt: now, 
-          updatedAt: now 
+        const newItem = {
+          ...body,
+          id,
+          createdAt: now,
+          updatedAt: now
         };
 
         const resourceArray = db[resource as keyof LocalDBData] as any[];
@@ -214,7 +214,7 @@ export const localBaseQuery: BaseQueryFn<
         const id = pathname.split('/').pop() || (body as any)?.id;
         const resourceArray = db[resource as keyof LocalDBData] as any[];
         const index = resourceArray.findIndex((item: any) => item.id === id);
-        
+
         if (index === -1) {
           return { error: { status: 404, data: 'Not found' } };
         }
@@ -235,7 +235,7 @@ export const localBaseQuery: BaseQueryFn<
         const id = pathname.split('/').pop();
         const resourceArray = db[resource as keyof LocalDBData] as any[];
         const index = resourceArray.findIndex((item: any) => item.id === id);
-        
+
         if (index === -1) {
           return { error: { status: 404, data: 'Not found' } };
         }
@@ -253,11 +253,11 @@ export const localBaseQuery: BaseQueryFn<
     return { data: result };
   } catch (error) {
     console.error('LocalBaseQuery error:', error);
-    return { 
-      error: { 
-        status: 500, 
-        data: error instanceof Error ? error.message : 'Unknown error' 
-      } 
+    return {
+      error: {
+        status: 500,
+        data: error instanceof Error ? error.message : 'Unknown error'
+      }
     };
   }
 };
@@ -270,10 +270,10 @@ import type { Account, Category, Transaction, Budget } from '../types/global';
 
 // Use fetchBaseQuery in development, localBaseQuery in production
 const baseQuery = IS_DEV
-  ? fetchBaseQuery({ 
-      baseUrl: API_CONFIG.BASE_URL,
-      timeout: API_CONFIG.TIMEOUT,
-    })
+  ? fetchBaseQuery({
+    baseUrl: API_CONFIG.BASE_URL,
+    timeout: API_CONFIG.TIMEOUT,
+  })
   : localBaseQuery;
 
 export const api = createApi({
@@ -287,9 +287,9 @@ export const api = createApi({
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({ type: 'Account' as const, id })),
-              { type: 'Account', id: 'LIST' },
-            ]
+            ...result.map(({ id }) => ({ type: 'Account' as const, id })),
+            { type: 'Account', id: 'LIST' },
+          ]
           : [{ type: 'Account', id: 'LIST' }],
     }),
 
@@ -333,9 +333,9 @@ export const api = createApi({
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({ type: 'Category' as const, id })),
-              { type: 'Category', id: 'LIST' },
-            ]
+            ...result.map(({ id }) => ({ type: 'Category' as const, id })),
+            { type: 'Category', id: 'LIST' },
+          ]
           : [{ type: 'Category', id: 'LIST' }],
     }),
 
@@ -362,7 +362,7 @@ export const api = createApi({
 
     // Transaction endpoints
     getTransactions: builder.query<
-      Transaction[], 
+      Transaction[],
       {
         type?: string;
         start?: string;
@@ -375,7 +375,7 @@ export const api = createApi({
     >({
       query: (params = {}) => {
         const searchParams = new URLSearchParams();
-        
+
         if (params.type) searchParams.append('type', params.type);
         if (params.start) searchParams.append('date_gte', params.start);
         if (params.end) searchParams.append('date_lte', params.end);
@@ -383,7 +383,7 @@ export const api = createApi({
         if (params.categoryId) searchParams.append('categoryId', params.categoryId);
         if (params.page) searchParams.append('_page', params.page.toString());
         if (params.limit) searchParams.append('_limit', params.limit.toString());
-        
+
         searchParams.append('_sort', 'date');
         searchParams.append('_order', 'desc');
 
@@ -392,9 +392,9 @@ export const api = createApi({
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({ type: 'Transaction' as const, id })),
-              { type: 'Transaction', id: 'LIST' },
-            ]
+            ...result.map(({ id }) => ({ type: 'Transaction' as const, id })),
+            { type: 'Transaction', id: 'LIST' },
+          ]
           : [{ type: 'Transaction', id: 'LIST' }],
     }),
 
@@ -418,7 +418,7 @@ export const api = createApi({
     updateTransaction: builder.mutation<Transaction, Partial<Transaction> & { id: string }>({
       query: ({ id, ...body }) => ({
         url: `/transactions/${id}`,
-        method: 'PATCH', 
+        method: 'PATCH',
         body,
       }),
       invalidatesTags: (result, error, { id }) => [
@@ -449,9 +449,9 @@ export const api = createApi({
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({ type: 'Budget' as const, id })),
-              { type: 'Budget', id: 'LIST' },
-            ]
+            ...result.map(({ id }) => ({ type: 'Budget' as const, id })),
+            { type: 'Budget', id: 'LIST' },
+          ]
           : [{ type: 'Budget', id: 'LIST' }],
     }),
 
@@ -574,7 +574,7 @@ import { APP_CONFIG } from '../../utils/env';
 const initialState: AppPreferences = {
   currencyCode: APP_CONFIG.DEFAULT_CURRENCY,
   dateFormat: 'MM/DD/YYYY',
-  firstDayOfWeek: 1, // Monday
+  firstDayOfWeek: 1, // Sunday
   budgetStartDay: 1,
   theme: 'system',
   enableAppLock: false,

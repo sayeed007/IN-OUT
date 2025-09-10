@@ -6,7 +6,7 @@ import { APP_CONFIG } from '../../utils/env';
 const initialState: AppPreferences = {
   currencyCode: APP_CONFIG.DEFAULT_CURRENCY,
   dateFormat: 'MM/DD/YYYY',
-  firstDayOfWeek: 1, // Monday
+  firstDayOfWeek: 1, // Sunday
   budgetStartDay: 1,
   theme: 'system',
   enableAppLock: false,

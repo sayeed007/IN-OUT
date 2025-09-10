@@ -1,9 +1,9 @@
 // src/screens/settings/components/AboutSettings.tsx
 import React from 'react';
-import { Text, StyleSheet, Alert, Linking } from 'react-native';
+import { Alert, StyleSheet, Text } from 'react-native';
 import Card from '../../../components/ui/Card';
-import SettingItem from './SettingItem';
 import { Spacing } from '../../../theme';
+import SettingItem from './SettingItem';
 
 const AboutSettings: React.FC = () => {
   const appVersion = '1.0.0';
