@@ -6,6 +6,9 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AppNavigator from './src/app/navigation/AppNavigator';
 import { StoreProvider } from './src/app/providers/StoreProvider';
 import { ThemeProvider, useTheme } from './src/app/providers/ThemeProvider';
+import { CalculatorProvider } from './src/app/providers/CalculatorProvider';
+import { CalculatorModal } from './src/components/calculator/CalculatorModal';
+import { FloatingCalculatorButton } from './src/components/calculator/FloatingCalculatorButton';
 import { initializeApp } from './src/services/storage/appInitialization';
 
 const AppContent: React.FC = () => {
@@ -28,6 +31,8 @@ const AppContent: React.FC = () => {
             <NavigationContainer theme={navigationTheme}>
                 <AppNavigator />
             </NavigationContainer>
+            <FloatingCalculatorButton />
+            <CalculatorModal />
         </View>
     );
 };
@@ -41,9 +46,11 @@ const App: React.FC = () => {
     return (
         <StoreProvider>
             <ThemeProvider>
-                <SafeAreaProvider>
-                    <AppContent />
-                </SafeAreaProvider>
+                <CalculatorProvider>
+                    <SafeAreaProvider>
+                        <AppContent />
+                    </SafeAreaProvider>
+                </CalculatorProvider>
             </ThemeProvider>
         </StoreProvider>
     );
