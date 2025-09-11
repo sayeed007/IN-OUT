@@ -181,7 +181,6 @@ const Input = forwardRef<TextInput, InputProps>(({
         ...(Platform.OS === 'ios' && {
             lineHeight: config.fontSize * 1.2,
         }),
-        marginTop: 15,
     });
 
     return (

@@ -297,26 +297,31 @@ export const localBaseQuery: BaseQueryFn<
             let data = [...resourceData];
 
             // Apply filters
-            if (params.get('type')) {
-              data = data.filter((item: any) => item.type === params.get('type'));
+            const typeParam = params.get('type');
+            if (typeParam) {
+              data = data.filter((item: any) => item.type === typeParam);
             }
 
-            if (params.get('date_gte')) {
-              const startDate = new Date(params.get('date_gte')!);
+            const dateGteParam = params.get('date_gte');
+            if (dateGteParam) {
+              const startDate = new Date(dateGteParam);
               data = data.filter((item: any) => new Date(item.date) >= startDate);
             }
 
-            if (params?.get('date_lte')) {
-              const endDate = new Date(params.get('date_lte')!);
+            const dateLteParam = params.get('date_lte');
+            if (dateLteParam) {
+              const endDate = new Date(dateLteParam);
               data = data.filter((item: any) => new Date(item.date) <= endDate);
             }
 
-            if (params.get('month')) {
-              data = data.filter((item: any) => item.month === params.get('month'));
+            const monthParam = params.get('month');
+            if (monthParam) {
+              data = data.filter((item: any) => item.month === monthParam);
             }
 
-            if (params.get('categoryId')) {
-              data = data.filter((item: any) => item.categoryId === params.get('categoryId'));
+            const categoryIdParam = params.get('categoryId');
+            if (categoryIdParam) {
+              data = data.filter((item: any) => item.categoryId === categoryIdParam);
             }
 
             // Apply sorting
@@ -327,6 +332,18 @@ export const localBaseQuery: BaseQueryFn<
               const aVal = a[sortBy];
               const bVal = b[sortBy];
 
+              // Handle numerical sorting for balance fields
+              if (sortBy === 'openingBalance' || sortBy === 'amount') {
+                const numA = typeof aVal === 'number' ? aVal : parseFloat(aVal) || 0;
+                const numB = typeof bVal === 'number' ? bVal : parseFloat(bVal) || 0;
+                
+                if (sortOrder === 'desc') {
+                  return numB - numA;
+                }
+                return numA - numB;
+              }
+
+              // Handle string/date sorting
               if (sortOrder === 'desc') {
                 return aVal < bVal ? 1 : -1;
               }
@@ -334,8 +351,10 @@ export const localBaseQuery: BaseQueryFn<
             });
 
             // Apply pagination
-            const page = parseInt(params.get('_page') || '1');
-            const limit = parseInt(params.get('_limit') || '1000');
+            const pageParam = params.get('_page');
+            const limitParam = params.get('_limit');
+            const page = parseInt(pageParam || '1');
+            const limit = parseInt(limitParam || '1000');
             const start = (page - 1) * limit;
             const end = start + limit;
 
@@ -360,6 +379,43 @@ export const localBaseQuery: BaseQueryFn<
             return { error: { status: 400, data: `Invalid resource: ${resource}` } as FetchBaseQueryError };
           }
 
+          // Special handling for transactions - update account balances
+          if (resource === 'transactions') {
+            const transaction = newItem as any;
+            const { type, amount, accountId, accountIdTo } = transaction;
+
+            if (type && amount && accountId) {
+              const accountsArray = db.accounts as any[];
+              
+              // Update source account balance
+              const sourceAccountIndex = accountsArray.findIndex((acc: any) => acc.id === accountId);
+              if (sourceAccountIndex !== -1) {
+                const currentBalance = accountsArray[sourceAccountIndex].openingBalance || 0;
+                
+                if (type === 'income') {
+                  // Income increases account balance
+                  accountsArray[sourceAccountIndex].openingBalance = currentBalance + amount;
+                } else if (type === 'expense') {
+                  // Expense decreases account balance
+                  accountsArray[sourceAccountIndex].openingBalance = currentBalance - amount;
+                } else if (type === 'transfer' && accountIdTo) {
+                  // Transfer decreases source account balance
+                  accountsArray[sourceAccountIndex].openingBalance = currentBalance - amount;
+                  
+                  // Transfer increases destination account balance
+                  const destAccountIndex = accountsArray.findIndex((acc: any) => acc.id === accountIdTo);
+                  if (destAccountIndex !== -1) {
+                    const destCurrentBalance = accountsArray[destAccountIndex].openingBalance || 0;
+                    accountsArray[destAccountIndex].openingBalance = destCurrentBalance + amount;
+                    accountsArray[destAccountIndex].updatedAt = now;
+                  }
+                }
+                
+                accountsArray[sourceAccountIndex].updatedAt = now;
+              }
+            }
+          }
+
           resourceArray.push(newItem);
           await localDB.saveDB(db);
           result = newItem;
@@ -379,6 +435,71 @@ export const localBaseQuery: BaseQueryFn<
 
           if (index === -1) {
             return { error: { status: 404, data: 'Not found' } as FetchBaseQueryError };
+          }
+
+          // Special handling for transactions - reverse old transaction and apply new one
+          if (resource === 'transactions') {
+            const oldTransaction = resourceArray[index];
+            const accountsArray = db.accounts as any[];
+            const now = new Date().toISOString();
+
+            // Reverse the old transaction
+            if (oldTransaction.type && oldTransaction.amount && oldTransaction.accountId) {
+              const sourceAccountIndex = accountsArray.findIndex((acc: any) => acc.id === oldTransaction.accountId);
+              if (sourceAccountIndex !== -1) {
+                const currentBalance = accountsArray[sourceAccountIndex].openingBalance || 0;
+                
+                if (oldTransaction.type === 'income') {
+                  // Reverse income: decrease account balance
+                  accountsArray[sourceAccountIndex].openingBalance = currentBalance - oldTransaction.amount;
+                } else if (oldTransaction.type === 'expense') {
+                  // Reverse expense: increase account balance
+                  accountsArray[sourceAccountIndex].openingBalance = currentBalance + oldTransaction.amount;
+                } else if (oldTransaction.type === 'transfer' && oldTransaction.accountIdTo) {
+                  // Reverse transfer: increase source, decrease destination
+                  accountsArray[sourceAccountIndex].openingBalance = currentBalance + oldTransaction.amount;
+                  
+                  const destAccountIndex = accountsArray.findIndex((acc: any) => acc.id === oldTransaction.accountIdTo);
+                  if (destAccountIndex !== -1) {
+                    const destCurrentBalance = accountsArray[destAccountIndex].openingBalance || 0;
+                    accountsArray[destAccountIndex].openingBalance = destCurrentBalance - oldTransaction.amount;
+                    accountsArray[destAccountIndex].updatedAt = now;
+                  }
+                }
+                
+                accountsArray[sourceAccountIndex].updatedAt = now;
+              }
+            }
+
+            // Apply the new transaction
+            const newTransaction = { ...oldTransaction, ...body };
+            if (newTransaction.type && newTransaction.amount && newTransaction.accountId) {
+              const sourceAccountIndex = accountsArray.findIndex((acc: any) => acc.id === newTransaction.accountId);
+              if (sourceAccountIndex !== -1) {
+                const currentBalance = accountsArray[sourceAccountIndex].openingBalance || 0;
+                
+                if (newTransaction.type === 'income') {
+                  // Income increases account balance
+                  accountsArray[sourceAccountIndex].openingBalance = currentBalance + newTransaction.amount;
+                } else if (newTransaction.type === 'expense') {
+                  // Expense decreases account balance
+                  accountsArray[sourceAccountIndex].openingBalance = currentBalance - newTransaction.amount;
+                } else if (newTransaction.type === 'transfer' && newTransaction.accountIdTo) {
+                  // Transfer decreases source account balance
+                  accountsArray[sourceAccountIndex].openingBalance = currentBalance - newTransaction.amount;
+                  
+                  // Transfer increases destination account balance
+                  const destAccountIndex = accountsArray.findIndex((acc: any) => acc.id === newTransaction.accountIdTo);
+                  if (destAccountIndex !== -1) {
+                    const destCurrentBalance = accountsArray[destAccountIndex].openingBalance || 0;
+                    accountsArray[destAccountIndex].openingBalance = destCurrentBalance + newTransaction.amount;
+                    accountsArray[destAccountIndex].updatedAt = now;
+                  }
+                }
+                
+                accountsArray[sourceAccountIndex].updatedAt = now;
+              }
+            }
           }
 
           const updatedItem = {
@@ -405,6 +526,40 @@ export const localBaseQuery: BaseQueryFn<
 
           if (index === -1) {
             return { error: { status: 404, data: 'Not found' } as FetchBaseQueryError };
+          }
+
+          // Special handling for transactions - reverse the transaction effect on balances
+          if (resource === 'transactions') {
+            const transaction = resourceArray[index];
+            const accountsArray = db.accounts as any[];
+            const now = new Date().toISOString();
+
+            if (transaction.type && transaction.amount && transaction.accountId) {
+              const sourceAccountIndex = accountsArray.findIndex((acc: any) => acc.id === transaction.accountId);
+              if (sourceAccountIndex !== -1) {
+                const currentBalance = accountsArray[sourceAccountIndex].openingBalance || 0;
+                
+                if (transaction.type === 'income') {
+                  // Reverse income: decrease account balance
+                  accountsArray[sourceAccountIndex].openingBalance = currentBalance - transaction.amount;
+                } else if (transaction.type === 'expense') {
+                  // Reverse expense: increase account balance
+                  accountsArray[sourceAccountIndex].openingBalance = currentBalance + transaction.amount;
+                } else if (transaction.type === 'transfer' && transaction.accountIdTo) {
+                  // Reverse transfer: increase source, decrease destination
+                  accountsArray[sourceAccountIndex].openingBalance = currentBalance + transaction.amount;
+                  
+                  const destAccountIndex = accountsArray.findIndex((acc: any) => acc.id === transaction.accountIdTo);
+                  if (destAccountIndex !== -1) {
+                    const destCurrentBalance = accountsArray[destAccountIndex].openingBalance || 0;
+                    accountsArray[destAccountIndex].openingBalance = destCurrentBalance - transaction.amount;
+                    accountsArray[destAccountIndex].updatedAt = now;
+                  }
+                }
+                
+                accountsArray[sourceAccountIndex].updatedAt = now;
+              }
+            }
           }
 
           resourceArray.splice(index, 1);

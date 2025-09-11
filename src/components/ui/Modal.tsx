@@ -10,6 +10,7 @@ import {
     StatusBar,
     useColorScheme,
     BackHandler,
+    ViewStyle,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { BlurView } from '@react-native-community/blur';
@@ -22,6 +23,7 @@ import Animated, {
     runOnJS,
 } from 'react-native-reanimated';
 import { RootState } from '../../state/store';
+import { getTheme } from '../../theme';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -55,7 +57,7 @@ const Modal: React.FC<ModalProps> = ({
     statusBarTranslucent = true,
 }) => {
     const colorScheme = useColorScheme();
-    const theme = useSelector((state: RootState) =>
+    const themeMode = useSelector((state: RootState) =>
         state.preferences.theme === 'system' ? colorScheme : state.preferences.theme
     );
 
@@ -63,20 +65,11 @@ const Modal: React.FC<ModalProps> = ({
     const opacity = useSharedValue(0);
     const translateY = useSharedValue(position === 'bottom' ? screenHeight : position === 'top' ? -screenHeight : 0);
 
-    const isDark = theme === 'dark';
-
-    // Theme colors
-    const colors = {
-        background: isDark ? '#0A0A0B' : '#FFFFFF',
-        surface: isDark ? '#1F1F23' : '#FFFFFF',
-        text: isDark ? '#FFFFFF' : '#000000',
-        textSecondary: isDark ? '#A1A1AA' : '#6B7280',
-        border: isDark ? '#3F3F46' : '#E5E5E7',
-        overlay: isDark ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.5)',
-    };
+    const theme = getTheme(themeMode === 'dark' ? 'dark' : 'light');
+    const colors = theme.colors;
 
     // Size configurations
-    const sizeConfig = {
+    const sizeConfig: Record<string, { width: number; height?: number; maxHeight?: number }> = {
         small: { width: screenWidth * 0.8, maxHeight: screenHeight * 0.4 },
         medium: { width: screenWidth * 0.9, maxHeight: screenHeight * 0.6 },
         large: { width: screenWidth * 0.95, maxHeight: screenHeight * 0.8 },
@@ -162,8 +155,6 @@ const Modal: React.FC<ModalProps> = ({
     });
 
     const getModalContainerStyle = () => {
-        const config = sizeConfig[size];
-
         let positionStyle = {};
         if (position === 'bottom') {
             positionStyle = {
@@ -187,10 +178,10 @@ const Modal: React.FC<ModalProps> = ({
         ];
     };
 
-    const getContentStyle = () => {
+    const getContentStyle = (): ViewStyle => {
         const config = sizeConfig[size];
 
-        let baseStyle = {
+        let contentStyle: ViewStyle = {
             backgroundColor: colors.surface,
             borderRadius: size === 'fullscreen' ? 0 : 16,
             maxWidth: config.width,
@@ -198,21 +189,21 @@ const Modal: React.FC<ModalProps> = ({
         };
 
         if (size === 'fullscreen') {
-            baseStyle = {
-                ...baseStyle,
+            contentStyle = {
+                ...contentStyle,
                 height: config.height,
                 borderRadius: 0,
             };
         } else {
-            baseStyle = {
-                ...baseStyle,
+            contentStyle = {
+                ...contentStyle,
                 maxHeight: config.maxHeight,
             };
         }
 
         if (position === 'bottom') {
-            baseStyle = {
-                ...baseStyle,
+            contentStyle = {
+                ...contentStyle,
                 borderBottomLeftRadius: 0,
                 borderBottomRightRadius: 0,
                 borderTopLeftRadius: 20,
@@ -220,7 +211,7 @@ const Modal: React.FC<ModalProps> = ({
             };
         }
 
-        return baseStyle;
+        return contentStyle;
     };
 
     const handleBackdropPress = () => {
@@ -242,11 +233,11 @@ const Modal: React.FC<ModalProps> = ({
                     {Platform.OS === 'ios' ? (
                         <BlurView
                             style={StyleSheet.absoluteFill}
-                            blurType={isDark ? 'dark' : 'light'}
+                            blurType={theme.mode === 'dark' ? 'dark' : 'light'}
                             blurAmount={10}
                         />
                     ) : (
-                        <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.overlay }]} />
+                        <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.mode === 'dark' ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.5)' }]} />
                     )}
 
                     <TouchableOpacity

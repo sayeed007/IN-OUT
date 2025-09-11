@@ -81,16 +81,18 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     <View style={[styles.container, compact && styles.compactContainer]}>
       {showLabel && label && <Text style={styles.label}>{label}</Text>}
 
-      <TouchableOpacity
-        style={[styles.dateButton, compact && styles.compactDateButton]}
-        onPress={openDatePicker}
-      >
-        <Icon name="calendar-outline" size={compact ? 16 : 20} color="#6366F1" style={styles.icon} />
-        <Text style={[styles.dateText, compact && styles.compactDateText]}>
-          {date ? formatDate() : placeholder}
-        </Text>
-        {!compact && <Icon name="chevron-down" size={20} color="#9CA3AF" />}
-      </TouchableOpacity>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          style={[styles.dateButton, compact && styles.compactDateButton]}
+          onPress={openDatePicker}
+        >
+          <Icon name="calendar-outline" size={compact ? 16 : 20} color="#6366F1" style={styles.icon} />
+          <Text style={[styles.dateText, compact && styles.compactDateText]}>
+            {date ? formatDate() : placeholder}
+          </Text>
+          {!compact && <Icon name="chevron-down" size={20} color="#9CA3AF" />}
+        </TouchableOpacity>
+      </View>
 
       {Platform.OS === 'ios' ? (
         <Modal
@@ -148,6 +150,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
 const styles = StyleSheet.create({
   container: {
     marginBottom: 16,
+    flex: 1,
   },
   compactContainer: {
     marginBottom: 0,
@@ -158,9 +161,13 @@ const styles = StyleSheet.create({
     color: '#111827',
     marginBottom: 8,
   },
+  buttonContainer: {
+    alignItems: 'flex-end',
+  },
   dateButton: {
+    width: '70%',
     flexDirection: 'row',
-    alignItems: 'center',
+    // alignItems: 'center',
     padding: 12,
     borderWidth: 1,
     borderColor: '#D1D5DB',

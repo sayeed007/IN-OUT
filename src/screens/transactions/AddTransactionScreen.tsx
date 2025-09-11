@@ -285,12 +285,6 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
     return requiredSteps.every(step => step.completed);
   };
 
-  const getCompletionPercentage = () => {
-    const requiredSteps = formSteps.filter(step => step.required);
-    const completedSteps = requiredSteps.filter(step => step.completed);
-    return (completedSteps.length / requiredSteps.length) * 100;
-  };
-
   const filteredCategories = categories.filter(category =>
     transactionType === 'transfer' ? false : category.type === transactionType
   );
@@ -304,21 +298,6 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
         showBackButton
         onBackPress={() => navigation.goBack()}
       />
-
-      {/* Progress Indicator */}
-      <View style={styles.progressContainer}>
-        <View style={styles.progressBar}>
-          <View
-            style={[
-              styles.progressFill,
-              { width: `${getCompletionPercentage()}%` }
-            ]}
-          />
-        </View>
-        <Text style={styles.progressText}>
-          {Math.round(getCompletionPercentage())}% complete
-        </Text>
-      </View>
 
       <KeyboardAvoidingView
         style={styles.content}
@@ -379,6 +358,7 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
                   onChangeText={onChange}
                   placeholder="0.00"
                   keyboardType="numeric"
+                  inputStyle={styles.amountInput}
                 />
               )}
             />
@@ -501,10 +481,6 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
             onPress={handleSubmit(onSubmit)}
             loading={isSubmitting}
             disabled={!isFormValid()}
-            // style={[
-            //   styles.submitButton,
-            //   { opacity: isFormValid() ? 1 : 0.6 }
-            // ]}
             style={StyleSheet.flatten([
               styles.submitButton,
               !isFormValid() && styles.submitButtonDisabled
@@ -618,15 +594,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    padding: 16,
-    backgroundColor: '#ffffff',
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 8,
   },
   submitButton: {
     width: '100%',
@@ -638,5 +605,10 @@ const styles = StyleSheet.create({
     color: '#ef4444',
     fontSize: 12,
     marginTop: 4,
+  },
+  amountInput: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 0,
   },
 });

@@ -13,7 +13,7 @@ export const api = createApi({
   endpoints: (builder) => ({
     // Account endpoints
     getAccounts: builder.query<Account[], void>({
-      query: () => '/accounts?_sort=createdAt&_order=desc',
+      query: () => '/accounts?_sort=openingBalance&_order=desc',
       providesTags: (result) =>
         result
           ? [
