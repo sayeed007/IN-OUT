@@ -4,7 +4,7 @@ import * as RNFS from 'react-native-fs';
 import Share from 'react-native-share';
 import * as DocumentPicker from '@react-native-documents/picker';
 import { Platform } from 'react-native';
-import type { Account, Category, Transaction, Budget } from '../../types/global';
+import type { Account, Category, Transaction, Budget, TransactionType } from '../../types/global';
 
 // Import the actual storage keys used by the app
 import { STORAGE_KEYS } from '../../utils/env';
@@ -450,7 +450,7 @@ export class DataManagementService {
         const transaction: Transaction = {
           id: values[0] || `imported_${Date.now()}_${i}`,
           date: values[1] || new Date().toISOString(),
-          type: (values[2] as 'income' | 'expense' | 'transfer') || 'expense',
+          type: (values[2] as TransactionType) || 'expense',
           amount: parseFloat(values[3]) || 0,
           currencyCode: values[4] || 'USD',
           categoryId: values[5] || null,

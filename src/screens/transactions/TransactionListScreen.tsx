@@ -24,7 +24,7 @@ import EmptyState from '../../components/ui/EmptyState';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import TransactionDetailsModal from '../../components/modals/TransactionDetailsModal';
 import { useDeleteTransactionMutation, useGetAccountsQuery, useGetCategoriesQuery, useGetTransactionsQuery } from '../../state/api';
-import { Transaction } from '../../types/global';
+import { Transaction, TransactionType } from '../../types/global';
 import TransactionFilters from './components/TransactionFilters';
 
 interface GroupedTransaction {
@@ -36,7 +36,7 @@ interface GroupedTransaction {
 // Define route params interface
 interface RouteParams {
     filter?: {
-        type?: 'income' | 'expense' | 'transfer';
+        type?: TransactionType;
         categoryId?: string;
         accountId?: string;
     };
@@ -45,7 +45,7 @@ interface RouteParams {
 // Define navigation params for Add screen
 interface AddScreenParams {
     editTransaction?: Transaction;
-    type?: 'income' | 'expense' | 'transfer';
+    type?: TransactionType;
 }
 
 export const TransactionListScreen: React.FC = () => {
@@ -57,7 +57,7 @@ export const TransactionListScreen: React.FC = () => {
 
     // State
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedType, setSelectedType] = useState<'all' | 'income' | 'expense' | 'transfer'>('all');
+    const [selectedType, setSelectedType] = useState<'all' | TransactionType>('all');
     const [showFilters, setShowFilters] = useState(false);
     const [dateRange, setDateRange] = useState({
         start: dayjs().subtract(30, 'days').startOf('day').toISOString(),

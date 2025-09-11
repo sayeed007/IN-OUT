@@ -72,24 +72,40 @@ const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
       // Initialize database with user preferences
       const db = await appInit.initializeDatabase(data.currency);
 
-      // Add user's first account
-      const firstAccount = {
-        name: data.firstAccount.name,
-        type: data.firstAccount.type,
-        openingBalance: parseFloat(data.firstAccount.balance) || 0,
-        currencyCode: data.currency,
-        isArchived: false,
-      };
-
-      // Update database with first account
-      await appInit.updateDatabase({
-        ...db,
-        accounts: [...db.accounts, {
-          ...firstAccount,
+      // Check if the selected account already exists in seeded accounts
+      const existingAccount = db.accounts.find(acc => acc.name === data.firstAccount.name && acc.type === data.firstAccount.type);
+      
+      let updatedAccounts;
+      if (existingAccount) {
+        // Update the existing seeded account with the user's balance
+        updatedAccounts = db.accounts.map(acc => 
+          acc.id === existingAccount.id 
+            ? { 
+                ...acc, 
+                openingBalance: parseFloat(data.firstAccount.balance) || 0,
+                updatedAt: new Date().toISOString(),
+              }
+            : acc
+        );
+      } else {
+        // Add new custom account
+        const newAccount = {
+          name: data.firstAccount.name,
+          type: data.firstAccount.type,
+          openingBalance: parseFloat(data.firstAccount.balance) || 0,
+          currencyCode: data.currency,
+          isArchived: false,
           id: `acc_${Date.now()}`,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        }],
+        };
+        updatedAccounts = [...db.accounts, newAccount];
+      }
+
+      // Update database with accounts
+      await appInit.updateDatabase({
+        ...db,
+        accounts: updatedAccounts,
       });
 
       // Save initial app settings

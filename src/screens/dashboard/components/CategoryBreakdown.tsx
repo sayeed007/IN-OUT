@@ -6,12 +6,12 @@ import {
 } from 'react-native';
 import { useTheme } from '../../../app/providers/ThemeProvider';
 import Card from '../../../components/ui/Card';
-import { Category } from '../../../types/global';
+import { Category, TransactionType } from '../../../types/global';
 
 interface CategoryData {
   categoryId: string;
   amount: number;
-  type: 'income' | 'expense';
+  type: TransactionType;
 }
 
 interface CategoryBreakdownProps {

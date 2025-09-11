@@ -34,7 +34,7 @@ interface CalculatorContextType {
   // History
   history: CalculationHistory[];
   clearHistory: () => void;
-  useHistoryResult: (result: string) => void;
+  setFromHistory: (result: string) => void;
 }
 
 const CalculatorContext = createContext<CalculatorContextType | undefined>(undefined);
@@ -222,7 +222,7 @@ export const CalculatorProvider: React.FC<{ children: ReactNode }> = ({ children
     saveHistory([]);
   };
 
-  const useHistoryResult = (result: string) => {
+  const setFromHistory = (result: string) => {
     setDisplay(result);
     setExpression(result);
     setPreviousValue('');
@@ -255,7 +255,7 @@ export const CalculatorProvider: React.FC<{ children: ReactNode }> = ({ children
     // History
     history,
     clearHistory,
-    useHistoryResult,
+    setFromHistory,
   };
 
   return (

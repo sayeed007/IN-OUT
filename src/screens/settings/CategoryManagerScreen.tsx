@@ -18,14 +18,14 @@ import EmptyState from '../../components/ui/EmptyState';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { useGetCategoriesQuery, useUpdateCategoryMutation } from '../../state/api';
 import { Spacing } from '../../theme';
-import type { Category } from '../../types/global';
+import type { Category, TransactionType } from '../../types/global';
 import { CategoryItem } from './components/CategoryItem';
 
 export const CategoryManagerScreen: React.FC = () => {
   const navigation = useNavigation();
   const { theme } = useTheme();
   const [showArchived, setShowArchived] = useState(false);
-  const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
+  const [filterType, setFilterType] = useState<'all' | TransactionType>('all');
 
   const { data: categories = [], isLoading } = useGetCategoriesQuery();
   const [updateCategory] = useUpdateCategoryMutation();

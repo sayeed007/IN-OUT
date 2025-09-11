@@ -14,7 +14,7 @@ import { useCalculator } from '../../app/providers/CalculatorProvider';
 import { useTheme } from '../../app/providers/ThemeProvider';
 import { SafeContainer } from '../layout/SafeContainer';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 interface CalculatorButtonProps {
   title: string;
@@ -130,7 +130,7 @@ export const CalculatorModal: React.FC = () => {
     backspace,
     history,
     clearHistory,
-    useHistoryResult,
+    setFromHistory,
   } = useCalculator();
 
   const [showHistory, setShowHistory] = useState(false);
@@ -259,6 +259,9 @@ export const CalculatorModal: React.FC = () => {
       color: '#fff',
       fontWeight: '600',
     },
+    bottomPadding: {
+      paddingBottom: 20
+    }
   });
 
   const renderCalculator = () => (
@@ -316,7 +319,7 @@ export const CalculatorModal: React.FC = () => {
   const renderHistoryItem = ({ item }: { item: any }) => (
     <TouchableOpacity
       style={styles.historyItem}
-      onPress={() => useHistoryResult(item.result)}
+      onPress={() => setFromHistory(item.result)}
     >
       <Text style={styles.historyExpression}>{item.expression}</Text>
       <Text style={styles.historyResult}>{item.result}</Text>
@@ -335,7 +338,7 @@ export const CalculatorModal: React.FC = () => {
             keyExtractor={(item) => item.id}
             renderItem={renderHistoryItem}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 20 }}
+            contentContainerStyle={styles.bottomPadding}
           />
           <TouchableOpacity
             style={styles.clearHistoryButton}

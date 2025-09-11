@@ -525,7 +525,7 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
         visible={showCategoryModal}
         onClose={() => setShowCategoryModal(false)}
         onCategoryCreated={handleCategoryCreated}
-        transactionType={transactionType}
+        type={transactionType}
       />
     </SafeContainer>
   );

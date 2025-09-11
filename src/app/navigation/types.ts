@@ -2,6 +2,7 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { TransactionType } from '../../types/global';
 
 export type UUID = string;
 
@@ -15,15 +16,15 @@ export type RootStackParamList = {
 // Tab Navigator (Main App Tabs)
 export type TabParamList = {
   Dashboard: undefined;
-  Transactions: { 
+  Transactions: {
     filter?: {
-      type?: 'income' | 'expense' | 'transfer';
+      type?: TransactionType;
       accountId?: UUID;
       categoryId?: UUID;
     };
   };
-  Add: { 
-    type?: 'income' | 'expense' | 'transfer';
+  Add: {
+    type?: TransactionType;
     accountId?: UUID;
     categoryId?: UUID;
   };
@@ -37,16 +38,16 @@ export type DashboardStackParamList = {
 };
 
 export type TransactionStackParamList = {
-  TransactionList: { 
+  TransactionList: {
     filter?: {
-      type?: 'income' | 'expense' | 'transfer';
+      type?: TransactionType;
       accountId?: UUID;
       categoryId?: UUID;
     };
   };
   TransactionDetail: { transactionId: UUID };
-  AddTransaction: { 
-    type?: 'income' | 'expense' | 'transfer';
+  AddTransaction: {
+    type?: TransactionType;
     accountId?: UUID;
     categoryId?: UUID;
   };
@@ -55,7 +56,7 @@ export type TransactionStackParamList = {
 
 export type AddStackParamList = {
   AddTransaction: {
-    type?: 'income' | 'expense' | 'transfer';
+    type?: TransactionType;
     accountId?: UUID;
     categoryId?: UUID;
   };
@@ -84,37 +85,37 @@ export type SettingsStackParamList = {
 };
 
 // Screen Props Types
-export type RootStackScreenProps<T extends keyof RootStackParamList> = 
+export type RootStackScreenProps<T extends keyof RootStackParamList> =
   NativeStackScreenProps<RootStackParamList, T>;
 
-export type TabScreenProps<T extends keyof TabParamList> = 
+export type TabScreenProps<T extends keyof TabParamList> =
   BottomTabScreenProps<TabParamList, T>;
 
-export type DashboardScreenProps<T extends keyof DashboardStackParamList> = 
+export type DashboardScreenProps<T extends keyof DashboardStackParamList> =
   NativeStackScreenProps<DashboardStackParamList, T>;
 
-export type TransactionScreenProps<T extends keyof TransactionStackParamList> = 
+export type TransactionScreenProps<T extends keyof TransactionStackParamList> =
   NativeStackScreenProps<TransactionStackParamList, T>;
 
-export type AddScreenProps<T extends keyof AddStackParamList> = 
+export type AddScreenProps<T extends keyof AddStackParamList> =
   NativeStackScreenProps<AddStackParamList, T>;
 
-export type ReportsScreenProps<T extends keyof ReportsStackParamList> = 
+export type ReportsScreenProps<T extends keyof ReportsStackParamList> =
   NativeStackScreenProps<ReportsStackParamList, T>;
 
-export type SettingsScreenProps<T extends keyof SettingsStackParamList> = 
+export type SettingsScreenProps<T extends keyof SettingsStackParamList> =
   NativeStackScreenProps<SettingsStackParamList, T>;
 
 // Combined navigation param list for cross-stack navigation
 export type AppParamList = TabParamList & TransactionStackParamList & SettingsStackParamList & {
-  AddTransaction: { 
-    type?: 'income' | 'expense' | 'transfer';
+  AddTransaction: {
+    type?: TransactionType;
     accountId?: UUID;
     categoryId?: UUID;
   };
-  TransactionList: { 
+  TransactionList: {
     filter?: {
-      type?: 'income' | 'expense' | 'transfer';
+      type?: TransactionType;
       accountId?: UUID;
       categoryId?: UUID;
     };
@@ -124,6 +125,6 @@ export type AppParamList = TabParamList & TransactionStackParamList & SettingsSt
 // Global navigation props for use with navigation.navigate()
 declare global {
   namespace ReactNavigation {
-    interface RootParamList extends AppParamList {}
+    interface RootParamList extends AppParamList { }
   }
 }

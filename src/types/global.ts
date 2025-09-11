@@ -20,7 +20,7 @@ export interface Account extends BaseEntity {
 // Category types  
 export interface Category extends BaseEntity {
   name: string;
-  type: 'income' | 'expense';
+  type: TransactionType;
   parentId: UUID | null;
   color: string;
   icon: string;
@@ -29,7 +29,7 @@ export interface Category extends BaseEntity {
 
 // Transaction types
 export interface Transaction extends BaseEntity {
-  type: 'income' | 'expense' | 'transfer';
+  type: TransactionType;
   accountId: UUID;
   accountIdTo: UUID | null; // For transfers
   categoryId: UUID | null; // Null for transfers

@@ -1,6 +1,7 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeScreenProps } from '@react-navigation/native';
+import { TransactionType } from './global';
 
 // Root Stack (App level navigation)
 export type RootStackParamList = {
@@ -17,11 +18,11 @@ export type RootStackParamList = {
 export type MainTabParamList = {
   Dashboard: undefined;
   Transactions: {
-    filter?: 'all' | 'income' | 'expense' | 'transfer';
+    filter?: 'all' | TransactionType;
     searchQuery?: string;
   };
   Add: {
-    type?: 'income' | 'expense' | 'transfer';
+    type?: TransactionType;
     accountId?: string;
     categoryId?: string;
     amount?: number;
@@ -48,7 +49,7 @@ export type ModalStackParamList = {
   CategoryManager: {
     categoryId?: string;
     parentId?: string;
-    type?: 'income' | 'expense';
+    type?: TransactionType;
   };
   Budget: {
     categoryId?: string;
@@ -90,7 +91,7 @@ export type BudgetScreenProps = ModalStackScreenProps<'Budget'>;
 // Navigation utilities
 declare global {
   namespace ReactNavigation {
-    interface RootParamList extends RootStackParamList {}
+    interface RootParamList extends RootStackParamList { }
   }
 }
 
@@ -105,7 +106,7 @@ export interface NavigationHelpers {
 }
 
 // Route parameter extraction utility
-export type RouteParams<T extends keyof (RootStackParamList & MainTabParamList & ModalStackParamList)> = 
+export type RouteParams<T extends keyof (RootStackParamList & MainTabParamList & ModalStackParamList)> =
   T extends keyof RootStackParamList ? RootStackParamList[T] :
   T extends keyof MainTabParamList ? MainTabParamList[T] :
   T extends keyof ModalStackParamList ? ModalStackParamList[T] :

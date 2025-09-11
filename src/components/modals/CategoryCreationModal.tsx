@@ -16,7 +16,7 @@ import { SafeContainer } from '../layout/SafeContainer';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../app/providers/ThemeProvider';
 import { useAddCategoryMutation } from '../../state/api';
-import type { Category } from '../../types/global';
+import type { Category, TransactionType } from '../../types/global';
 import { CATEGORY_COLORS, CATEGORY_ICONS, CATEGORY_TYPES } from '../../utils/constants/categories';
 import Card from '../ui/Card';
 import LoadingSpinner from '../ui/LoadingSpinner';
@@ -25,7 +25,7 @@ interface CategoryCreationModalProps {
   visible: boolean;
   onClose: () => void;
   onCategoryCreated: (category: Category) => void;
-  type?: 'income' | 'expense';
+  type?: TransactionType;
 }
 
 export const CategoryCreationModal: React.FC<CategoryCreationModalProps> = ({
@@ -93,8 +93,8 @@ export const CategoryCreationModal: React.FC<CategoryCreationModalProps> = ({
 
   const getCategoryTypeColor = (categoryTypeValue: Category['type']) => {
     switch (categoryTypeValue) {
-      case 'income': return theme.colors.success[500] || '#10B981';
-      case 'expense': return theme.colors.error[500] || '#EF4444';
+      case 'income': return theme.colors.income.main || '#10B981';
+      case 'expense': return theme.colors.expense.main || '#EF4444';
       default: return theme.colors.neutral[500] || '#64748B';
     }
   };
