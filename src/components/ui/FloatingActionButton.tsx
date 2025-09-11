@@ -14,6 +14,7 @@ import Animated, {
     withTiming,
 } from 'react-native-reanimated';
 import { RootState } from '../../state/store';
+import { getTheme } from '../../theme';
 
 interface FloatingActionButtonProps {
     icon: string;
@@ -37,24 +38,20 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
     disabled = false,
 }) => {
     const colorScheme = useColorScheme();
-    const theme = useSelector((state: RootState) =>
+    const themeMode = useSelector((state: RootState) =>
         state.preferences.theme === 'system' ? colorScheme : state.preferences.theme
     );
 
     const scale = useSharedValue(1);
     const opacity = useSharedValue(disabled ? 0.5 : 1);
 
-    const isDark = theme === 'dark';
-
-    // Theme colors
+    const theme = getTheme(themeMode === 'dark' ? 'dark' : 'light');
     const colors = {
-        primary: '#6366F1',
-        primaryDark: '#4F46E5',
-        surface: isDark ? '#1F1F23' : '#FFFFFF',
-        surfaceVariant: isDark ? '#2D2D32' : '#F5F5F7',
-        text: isDark ? '#FFFFFF' : '#000000',
-        textInverse: isDark ? '#000000' : '#FFFFFF',
-        shadow: isDark ? 'rgba(0,0,0,0.8)' : 'rgba(99, 102, 241, 0.3)',
+        ...theme.colors,
+        primary: theme.colors.primary[500],
+        primaryDark: theme.colors.primary[600],
+        textInverse: theme.mode === 'dark' ? theme.colors.neutral[900] : theme.colors.neutral[0],
+        shadow: theme.mode === 'dark' ? 'rgba(0,0,0,0.8)' : 'rgba(99, 102, 241, 0.3)',
     };
 
     // Size configurations

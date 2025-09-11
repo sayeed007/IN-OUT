@@ -14,6 +14,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
+import { getTheme } from '../../theme';
 
 interface ProgressBarProps {
     progress: number; // 0-100
@@ -43,35 +44,25 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
     variant = 'default',
 }) => {
     const colorScheme = useColorScheme();
-    const theme = useSelector((state: RootState) =>
+    const themeMode = useSelector((state: RootState) =>
         state.preferences.theme === 'system' ? colorScheme : state.preferences.theme
     );
 
     const progressAnimation = useSharedValue(0);
-    const isDark = theme === 'dark';
-
-    // Theme colors
-    const colors = {
-        primary: '#6366F1',
-        success: '#10B981',
-        warning: '#F59E0B',
-        error: '#EF4444',
-        background: isDark ? '#3F3F46' : '#E5E5E7',
-        text: isDark ? '#FFFFFF' : '#000000',
-        textSecondary: isDark ? '#A1A1AA' : '#6B7280',
-    };
+    const theme = getTheme(themeMode === 'dark' ? 'dark' : 'light');
+    const colors = theme.colors;
 
     const getVariantColor = () => {
         switch (variant) {
-            case 'success': return colors.success;
-            case 'warning': return colors.warning;
-            case 'error': return colors.error;
-            default: return colors.primary;
+            case 'success': return colors.success[500];
+            case 'warning': return colors.warning[500];
+            case 'error': return colors.error[500];
+            default: return colors.primary[500];
         }
     };
 
     const progressColor = color || getVariantColor();
-    const trackColor = backgroundColor || colors.background;
+    const trackColor = backgroundColor || colors.border;
     const radius = borderRadius !== undefined ? borderRadius : height / 2;
 
     useEffect(() => {
@@ -95,7 +86,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
             ? interpolateColor(
                 progressAnimation.value,
                 [0, 50, 80, 100],
-                ['#EF4444', '#F59E0B', '#10B981', '#059669']
+                [colors.error[500], colors.warning[500], colors.success[500], colors.success[600]]
             )
             : progressColor;
 

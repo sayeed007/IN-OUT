@@ -16,6 +16,7 @@ import Animated, {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
+import { getTheme } from '../../theme';
 
 interface ChipProps {
     label: string;
@@ -49,26 +50,19 @@ const Chip: React.FC<ChipProps> = ({
     deletable = false,
 }) => {
     const colorScheme = useColorScheme();
-    const theme = useSelector((state: RootState) =>
+    const themeMode = useSelector((state: RootState) =>
         state.preferences.theme === 'system' ? colorScheme : state.preferences.theme
     );
 
     const scale = useSharedValue(1);
     const opacity = useSharedValue(disabled ? 0.5 : 1);
 
-    const isDark = theme === 'dark';
-
-    // Theme colors
+    const theme = getTheme(themeMode === 'dark' ? 'dark' : 'light');
     const colors = {
-        primary: color || '#6366F1',
-        primaryLight: '#818CF8',
-        background: isDark ? '#0A0A0B' : '#FFFFFF',
-        surface: isDark ? '#1F1F23' : '#FFFFFF',
-        surfaceVariant: isDark ? '#2D2D32' : '#F5F5F7',
-        text: isDark ? '#FFFFFF' : '#000000',
-        textSecondary: isDark ? '#A1A1AA' : '#6B7280',
-        textInverse: isDark ? '#000000' : '#FFFFFF',
-        border: isDark ? '#3F3F46' : '#E5E5E7',
+        ...theme.colors,
+        primary: color || theme.colors.primary[500],
+        primaryLight: theme.colors.primary[400],
+        textInverse: theme.mode === 'dark' ? theme.colors.neutral[900] : theme.colors.neutral[0],
     };
 
     // Size configurations

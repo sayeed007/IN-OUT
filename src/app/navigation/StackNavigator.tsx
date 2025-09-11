@@ -12,26 +12,18 @@ import BudgetScreen from '../../screens/budgets/BudgetScreen';
 // Types
 import { ModalStackParamList } from '../../types/navigation';
 import { RootState } from '../../state/store';
+import { getTheme } from '../../theme';
 
 const Stack = createNativeStackNavigator<ModalStackParamList>();
 
 const StackNavigator: React.FC = () => {
     const colorScheme = useColorScheme();
-    const theme = useSelector((state: RootState) =>
+    const themeMode = useSelector((state: RootState) =>
         state.preferences.theme === 'system' ? colorScheme : state.preferences.theme
     );
 
-    const isDark = theme === 'dark';
-
-    // Theme colors
-    const colors = {
-        background: isDark ? '#000000' : '#F9FAFB',
-        surface: isDark ? '#1F1F23' : '#FFFFFF',
-        text: isDark ? '#FFFFFF' : '#000000',
-        textSecondary: isDark ? '#A1A1AA' : '#6B7280',
-        border: isDark ? '#2D2D32' : '#E5E5E7',
-        primary: '#6366F1',
-    };
+    const theme = getTheme(themeMode === 'dark' ? 'dark' : 'light');
+    const colors = theme.colors;
 
     const defaultHeaderOptions = {
         headerStyle: {
@@ -44,7 +36,7 @@ const StackNavigator: React.FC = () => {
             fontSize: 18,
             fontWeight: '600' as const,
         },
-        headerTintColor: colors.primary,
+        headerTintColor: colors.primary[500],
         headerBackTitleVisible: false,
         headerShadowVisible: false,
     };

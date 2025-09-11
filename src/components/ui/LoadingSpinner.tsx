@@ -15,6 +15,7 @@ import Animated, {
     Easing,
 } from 'react-native-reanimated';
 import { RootState } from '../../state/store';
+import { getTheme } from '../../theme';
 
 interface LoadingSpinnerProps {
     size?: 'small' | 'medium' | 'large';
@@ -95,21 +96,18 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     style,
 }) => {
     const colorScheme = useColorScheme();
-    const theme = useSelector((state: RootState) =>
+    const themeMode = useSelector((state: RootState) =>
         state.preferences.theme === 'system' ? colorScheme : state.preferences.theme
     );
 
     const rotation = useSharedValue(0);
     const opacity = useSharedValue(0);
 
-    const isDark = theme === 'dark';
-
-    // Theme colors
+    const theme = getTheme(themeMode === 'dark' ? 'dark' : 'light');
     const colors = {
-        primary: color || '#6366F1',
-        text: isDark ? '#FFFFFF' : '#000000',
-        textSecondary: isDark ? '#A1A1AA' : '#6B7280',
-        overlay: isDark ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.9)',
+        ...theme.colors,
+        primary: color || theme.colors.primary[500],
+        overlay: theme.mode === 'dark' ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.9)',
     };
 
     // Size configurations
