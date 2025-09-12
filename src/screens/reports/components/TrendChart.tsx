@@ -1,12 +1,13 @@
 import React from 'react';
-import {
-    StyleSheet,
-    Text,
-    View,
-} from 'react-native';
-import { CartesianChart, Line } from 'victory-native';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { CartesianChart, Line, useChartPressState } from 'victory-native';
+import { Circle, useFont } from '@shopify/react-native-skia';
 import { useTheme } from '../../../app/providers/ThemeProvider';
 import Card from '../../../components/ui/Card';
+
+const { width: screenWidth } = Dimensions.get('window');
+const chartWidth = screenWidth - 64;
+const chartHeight = 240;
 
 interface TrendData {
     date: string;
@@ -22,64 +23,77 @@ interface TrendChartProps {
 
 export const TrendChart: React.FC<TrendChartProps> = ({ data, title }) => {
     const { theme } = useTheme();
+    const { state, isActive } = useChartPressState({ x: 0, y: { income: 0, expense: 0 } });
+    const font = useFont(require('../../../assets/fonts/Roboto-Regular.ttf'), 12);
 
-    if (data.length === 0) return null;
+    if (data.length === 0) {
+        return (
+            <Card style={styles.chartCard}>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                    No data available
+                </Text>
+            </Card>
+        );
+    }
 
-    // Calculate max value for better scaling
-    // const maxValue = Math.max(
-    //     ...data.map(d => Math.max(d.income, d.expense)),
-    //     100 // Minimum scale
-    // );
+    // Prepare chart data with indexed x values for better chart handling
+    const chartData = data.map((d, index) => ({
+        x: index,
+        income: Number(d.income) || 0,
+        expense: Number(d.expense) || 0,
+        date: d.date,
+    }));
 
     // Only show value labels if we have 8 or fewer data points to avoid clutter
     const showValueLabels = data.length <= 8;
 
+    const chartStyle = {
+        height: chartHeight,
+        width: chartWidth,
+        backgroundColor: 'rgba(0,0,0,0.05)',
+        borderRadius: 8,
+    };
+
     return (
         <Card style={styles.chartCard}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-                {title}
-            </Text>
-
-            {/* Chart Legend - moved to top for better visibility */}
-            <View style={styles.topLegend}>
-                <View style={styles.legendRow}>
-                    <View style={styles.legendItem}>
-                        <View style={[styles.legendDot, { backgroundColor: theme.colors.income.main }]} />
-                        <Text style={[styles.legendLabel, { color: theme.colors.text }]}>Income</Text>
-                    </View>
-                    <View style={styles.legendItem}>
-                        <View style={[styles.legendDot, { backgroundColor: theme.colors.expense.main }]} />
-                        <Text style={[styles.legendLabel, { color: theme.colors.text }]}>Expenses</Text>
-                    </View>
-                </View>
-                {showValueLabels && (
-                    <Text style={[styles.valueLabelsNote, { color: theme.colors.textSecondary }]}>
-                        Values shown on chart points
-                    </Text>
-                )}
+            <View style={styles.chartHeader}>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                    {title}
+                </Text>
+                <Text style={[styles.chartSubtitle, { color: theme.colors.textSecondary }]}>
+                    Period Analysis
+                </Text>
             </View>
 
-            {/* Chart with axis labels */}
-            <View style={styles.chartWithLabels}>
-                {/* Y-axis label */}
-                <View style={styles.yAxisLabel}>
-                    <Text style={[styles.yAxisLabelText, { color: theme.colors.textSecondary }]}>
-                        A{'\n'}m{'\n'}o{'\n'}u{'\n'}n{'\n'}t{'\n'}{'\n'}({'\n'}${'\n'})
-                    </Text>
-                </View>
-
-                {/* Chart container */}
-                <View style={styles.chartContainer}>
+            <View style={styles.chartContainer}>
+                <View style={chartStyle}>
                     <CartesianChart
-                        data={data}
-                        xKey="date"
+                        data={chartData}
+                        xKey="x"
                         yKeys={["income", "expense"]}
-                        axisOptions={{
+                        chartPressState={state}
+                        xAxis={{
+                            font,
                             tickCount: Math.min(data.length, 6),
+                            lineColor: theme.colors.textSecondary,
+                            lineWidth: 0.1,
                             labelColor: theme.colors.textSecondary,
-                            formatYLabel: (v: number) => `$${v.toFixed(0)}`,
-                            formatXLabel: (label: string) => label,
+                            formatXLabel: (value) => {
+                                const index = Math.round(value);
+                                return data[index]?.date || '';
+                            },
                         }}
+                        yAxis={[{
+                            font,
+                            tickCount: 5,
+                            lineColor: theme.colors.textSecondary,
+                            lineWidth: 0.1,
+                            labelColor: theme.colors.textSecondary,
+                            formatYLabel: (value) => {
+                                if (value >= 1000) return `$${(value / 1000).toFixed(0)}k`;
+                                return `$${value.toFixed(0)}`;
+                            }
+                        }]}
                     >
                         {({ points }) => (
                             <>
@@ -87,26 +101,75 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, title }) => {
                                 <Line
                                     points={points.income}
                                     color={theme.colors.income.main}
-                                    strokeWidth={3}
+                                    strokeWidth={2}
+                                    animate={{ type: "timing", duration: 300 }}
                                 />
-
                                 {/* Expense Line */}
                                 <Line
                                     points={points.expense}
                                     color={theme.colors.expense.main}
-                                    strokeWidth={3}
+                                    strokeWidth={2}
+                                    animate={{ type: "timing", duration: 300 }}
                                 />
+
+                                {/* Active point indicators */}
+                                {isActive && (
+                                    <>
+                                        <Circle
+                                            cx={state.x.position}
+                                            cy={state.y.income.position}
+                                            r={4}
+                                            color={theme.colors.income.main}
+                                        />
+                                        <Circle
+                                            cx={state.x.position}
+                                            cy={state.y.expense.position}
+                                            r={4}
+                                            color={theme.colors.expense.main}
+                                        />
+                                    </>
+                                )}
                             </>
                         )}
                     </CartesianChart>
                 </View>
-            </View>
 
-            {/* X-axis label */}
-            <View style={styles.xAxisLabel}>
-                <Text style={[styles.axisLabelText, { color: theme.colors.textSecondary }]}>
-                    Time Period
-                </Text>
+                {/* Active data tooltip */}
+                {isActive && state.x.value !== null && state.y.income.value !== null && state.y.expense.value !== null && (
+                    <View style={[styles.tooltip, { backgroundColor: theme.colors.surface }]}>
+                        <Text style={[styles.tooltipMonth, { color: theme.colors.text }]}>
+                            {data[Math.round(state.x.value.value)]?.date}
+                        </Text>
+                        <Text style={[styles.tooltipValue, { color: theme.colors.income.main }]}>
+                            Income: ${Math.round(state.y.income.value.value || 0).toLocaleString()}
+                        </Text>
+                        <Text style={[styles.tooltipValue, { color: theme.colors.expense.main }]}>
+                            Expenses: ${Math.round(state.y.expense.value.value || 0).toLocaleString()}
+                        </Text>
+                    </View>
+                )}
+
+                {/* Legend */}
+                <View style={styles.legend}>
+                    <View style={styles.legendItem}>
+                        <View style={[styles.legendColor, { backgroundColor: theme.colors.income.main }]} />
+                        <Text style={[styles.legendText, { color: theme.colors.textSecondary }]}>
+                            Income
+                        </Text>
+                        <Text style={[styles.summaryValue, { color: theme.colors.income.main }]}>
+                            (Avg: ${(data.reduce((sum, d) => sum + d.income, 0) / data.length).toFixed(0)})
+                        </Text>
+                    </View>
+                    <View style={styles.legendItem}>
+                        <View style={[styles.legendColor, { backgroundColor: theme.colors.expense.main }]} />
+                        <Text style={[styles.legendText, { color: theme.colors.textSecondary }]}>
+                            Expenses
+                        </Text>
+                        <Text style={[styles.summaryValue, { color: theme.colors.expense.main }]}>
+                            (Avg: ${(data.reduce((sum, d) => sum + d.expense, 0) / data.length).toFixed(0)})
+                        </Text>
+                    </View>
+                </View>
             </View>
 
             {/* Data Values Table - only show if data is manageable */}
@@ -191,78 +254,73 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, title }) => {
 
 const styles = StyleSheet.create({
     chartCard: {
-        marginBottom: 12,
+        marginVertical: 12,
+    },
+    chartHeader: {
+        marginBottom: 16,
     },
     sectionTitle: {
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: '600',
-        marginBottom: 12,
-        textAlign: 'center',
+        marginBottom: 2,
     },
-    topLegend: {
-        marginBottom: 16,
-        paddingVertical: 8,
-        paddingHorizontal: 16,
-        backgroundColor: 'rgba(0, 0, 0, 0.02)',
-        borderRadius: 8,
+    chartSubtitle: {
+        fontSize: 12,
+    },
+    chartContainer: {
         alignItems: 'center',
+        height: chartHeight + 35,
+        width: '100%',
     },
-    legendRow: {
+    legend: {
         flexDirection: 'row',
         justifyContent: 'center',
         gap: 24,
-        marginBottom: 4,
-    },
-    chartWithLabels: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginVertical: 8,
-    },
-    yAxisLabel: {
-        width: 60,
-        height: 240,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 8,
-    },
-    chartContainer: {
-        flex: 1,
-        height: 240,
-    },
-    xAxisLabel: {
-        alignItems: 'center',
-        marginTop: 8,
-        marginBottom: 12,
-    },
-    axisLabelText: {
-        fontSize: 12,
-        fontWeight: '500',
-    },
-    yAxisLabelText: {
-        fontSize: 10,
-        fontWeight: '500',
-        textAlign: 'center',
-        lineHeight: 12,
+        marginTop: 12,
     },
     legendItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 8,
     },
-    legendDot: {
-        width: 10,
-        height: 10,
-        borderRadius: 5,
+    legendColor: {
+        width: 12,
+        height: 12,
+        borderRadius: 6,
         marginRight: 6,
     },
-    legendLabel: {
-        fontSize: 13,
+    legendText: {
+        fontSize: 12,
         fontWeight: '500',
     },
-    valueLabelsNote: {
-        fontSize: 10,
-        fontStyle: 'italic',
-        marginTop: 2,
+    summaryValue: {
+        fontSize: 11,
+        fontWeight: '600',
+        textAlign: 'right',
+        marginLeft: 4,
+    },
+    tooltip: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        padding: 12,
+        borderRadius: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+        minWidth: 120,
+    },
+    tooltipMonth: {
+        fontSize: 14,
+        fontWeight: '600',
+        marginBottom: 6,
+        textAlign: 'center',
+    },
+    tooltipValue: {
+        fontSize: 12,
+        fontWeight: '500',
+        marginBottom: 2,
     },
     dataTable: {
         marginVertical: 8,

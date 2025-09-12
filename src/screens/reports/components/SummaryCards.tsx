@@ -1,15 +1,12 @@
 import React from 'react';
 import {
-    Dimensions,
     StyleSheet,
     Text,
-    View,
+    View
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../../app/providers/ThemeProvider';
 import Card from '../../../components/ui/Card';
-
-const { width: screenWidth } = Dimensions.get('window');
 
 interface SummaryData {
     totals: {
@@ -31,90 +28,109 @@ interface SummaryCardsProps {
 export const SummaryCards: React.FC<SummaryCardsProps> = ({ data }) => {
     const { theme } = useTheme();
 
+    const formatAmount = (amount: number) => {
+        if (amount >= 1000) return `$${(amount / 1000).toFixed(1)}k`;
+        return `$${amount.toFixed(0)}`;
+    };
+
     return (
-        <View style={styles.summaryContainer}>
-            <Card style={StyleSheet.flatten([styles.summaryCard, styles.incomeCard])} variant='normal'>
-                <View style={styles.summaryHeader}>
-                    <Icon name="trending-up" size={20} color={theme.colors.income.main} />
-                    <Text style={[styles.summaryLabel, { color: theme.colors.income.main }]}>Income</Text>
-                </View>
-                <Text style={[styles.summaryAmount, { color: theme.colors.income.main }]}>
-                    ${data.totals.income.toFixed(2)}
-                </Text>
-                <Text style={[styles.summarySubtext, { color: theme.colors.textSecondary }]}>
-                    {data.transactionCounts.income} transactions
-                </Text>
-            </Card>
-
-            <Card style={StyleSheet.flatten([styles.summaryCard, styles.expenseCard])} variant='normal'>
-                <View style={styles.summaryHeader}>
-                    <Icon name="trending-down" size={20} color={theme.colors.expense.main} />
-                    <Text style={[styles.summaryLabel, { color: theme.colors.expense.main }]}>Expenses</Text>
-                </View>
-                <Text style={[styles.summaryAmount, { color: theme.colors.expense.main }]}>
-                    ${data.totals.expense.toFixed(2)}
-                </Text>
-                <Text style={[styles.summarySubtext, { color: theme.colors.textSecondary }]}>
-                    {data.transactionCounts.expense} transactions
-                </Text>
-            </Card>
-
-            <Card style={StyleSheet.flatten([styles.summaryCard, styles.netCard])} variant='normal'>
-                <View style={styles.summaryHeader}>
-                    <Icon name="analytics" size={20} color={data.totals.net >= 0 ? theme.colors.income.main : theme.colors.expense.main} />
-                    <Text style={[styles.summaryLabel, { color: data.totals.net >= 0 ? theme.colors.income.main : theme.colors.expense.main }]}>
-                        Net
+        <Card style={styles.summaryContainer} variant='normal'>
+            <View style={styles.summaryRow}>
+                {/* Income */}
+                <View style={styles.summaryItem}>
+                    <View style={styles.itemHeader}>
+                        <Icon name="trending-up" size={14} color={theme.colors.income.main} />
+                        <Text style={[styles.itemLabel, { color: theme.colors.textSecondary }]}>Income</Text>
+                    </View>
+                    <Text style={[styles.itemAmount, { color: theme.colors.income.main }]}>
+                        {formatAmount(data.totals.income)}
+                    </Text>
+                    <Text style={[styles.itemCount, { color: theme.colors.textSecondary }]}>
+                        {data.transactionCounts.income}
                     </Text>
                 </View>
-                <Text style={[
-                    styles.summaryAmount,
-                    { color: data.totals.net >= 0 ? theme.colors.income.main : theme.colors.expense.main }
-                ]}>
-                    ${Math.abs(data.totals.net).toFixed(2)}
-                </Text>
-                <Text style={[styles.summarySubtext, { color: theme.colors.textSecondary }]}>
-                    {data.totals.net >= 0 ? 'Surplus' : 'Deficit'}
-                </Text>
-            </Card>
-        </View>
+
+                {/* Divider */}
+                <View style={[styles.divider, { backgroundColor: theme.colors.textSecondary + '20' }]} />
+
+                {/* Expenses */}
+                <View style={styles.summaryItem}>
+                    <View style={styles.itemHeader}>
+                        <Icon name="trending-down" size={14} color={theme.colors.expense.main} />
+                        <Text style={[styles.itemLabel, { color: theme.colors.textSecondary }]}>Expenses</Text>
+                    </View>
+                    <Text style={[styles.itemAmount, { color: theme.colors.expense.main }]}>
+                        {formatAmount(data.totals.expense)}
+                    </Text>
+                    <Text style={[styles.itemCount, { color: theme.colors.textSecondary }]}>
+                        {data.transactionCounts.expense}
+                    </Text>
+                </View>
+
+                {/* Divider */}
+                <View style={[styles.divider, { backgroundColor: theme.colors.textSecondary + '20' }]} />
+
+                {/* Net */}
+                <View style={styles.summaryItem}>
+                    <View style={styles.itemHeader}>
+                        <Icon
+                            name={data.totals.net >= 0 ? "checkmark-circle" : "close-circle"}
+                            size={14}
+                            color={data.totals.net >= 0 ? theme.colors.income.main : theme.colors.expense.main}
+                        />
+                        <Text style={[styles.itemLabel, { color: theme.colors.textSecondary }]}>Net</Text>
+                    </View>
+                    <Text style={[
+                        styles.itemAmount,
+                        { color: data.totals.net >= 0 ? theme.colors.income.main : theme.colors.expense.main }
+                    ]}>
+                        {data.totals.net >= 0 ? '+' : '-'}{formatAmount(Math.abs(data.totals.net))}
+                    </Text>
+                    <Text style={[styles.itemCount, { color: theme.colors.textSecondary }]}>
+                        {data.totals.net >= 0 ? 'surplus' : 'deficit'}
+                    </Text>
+                </View>
+            </View>
+        </Card>
     );
 };
 
 const styles = StyleSheet.create({
     summaryContainer: {
-        flexDirection: screenWidth > 400 ? 'row' : 'column',
-        gap: 12,
-        marginBottom: 8,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
     },
-    summaryCard: {
-        flex: screenWidth > 400 ? 1 : undefined,
-        padding: 16,
+    summaryRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
     },
-    summaryHeader: {
+    summaryItem: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    itemHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 8,
-    },
-    incomeCard: {
-        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-    },
-    expenseCard: {
-        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    },
-    netCard: {
-        backgroundColor: 'rgba(99, 102, 241, 0.1)',
-    },
-    summaryLabel: {
-        fontSize: 14,
-        fontWeight: '600',
-        marginLeft: 8,
-    },
-    summaryAmount: {
-        fontSize: 24,
-        fontWeight: '700',
         marginBottom: 4,
     },
-    summarySubtext: {
-        fontSize: 12,
+    itemLabel: {
+        fontSize: 11,
+        fontWeight: '500',
+        marginLeft: 4,
+    },
+    itemAmount: {
+        fontSize: 16,
+        fontWeight: '700',
+        marginBottom: 2,
+    },
+    itemCount: {
+        fontSize: 10,
+        fontWeight: '400',
+    },
+    divider: {
+        width: 1,
+        height: 40,
+        marginHorizontal: 8,
     },
 });
