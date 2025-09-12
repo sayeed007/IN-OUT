@@ -5,6 +5,7 @@ import { useTheme } from '../providers/ThemeProvider';
 
 // Navigation Components
 import TabNavigator from './TabNavigator';
+import StackNavigator from './StackNavigator';
 
 // Screens
 import LockScreen from '../../screens/auth/LockScreen';
@@ -95,6 +96,16 @@ const AppNavigator: React.FC = () => {
                     component={TabNavigator}
                     options={{
                         animation: 'fade',
+                    }}
+                />
+
+                {/* Modal Stack Navigator */}
+                <Stack.Screen
+                    name="ModalStack"
+                    component={StackNavigator}
+                    options={{
+                        presentation: 'modal',
+                        headerShown: false,
                     }}
                 />
             </Stack.Navigator>

@@ -65,7 +65,8 @@ export const KPICards: React.FC<KPICardsProps> = ({
                 navigation.navigate('Transactions', { filter: { type: 'expense' } });
                 break;
             case 'budget':
-                navigation.navigate('Settings');
+                // navigation.navigate('Settings');
+                navigation.navigate('ModalStack', { screen: 'Budget' });
                 break;
             default:
                 break;
@@ -237,7 +238,7 @@ export const KPICards: React.FC<KPICardsProps> = ({
                         onPress={() => handleCardPress('budget')}
                         activeOpacity={0.8}
                     >
-                        <Card style={StyleSheet.flatten([styles.budgetCard, { marginHorizontal: 16 }])}>
+                        <Card >
                             <View style={styles.budgetHeader}>
                                 <View>
                                     <Text style={[styles.budgetTitle, { color: theme.colors.text }]}>

@@ -202,7 +202,7 @@ export const DashboardScreen: React.FC = () => {
                 navigation.navigate('Add', { type: 'transfer' });
                 break;
             case 'view-budget':
-                navigation.navigate('Budget');
+                navigation.navigate('ModalStack', { screen: 'Budget' });
                 break;
             default:
                 break;

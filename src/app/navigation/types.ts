@@ -3,6 +3,7 @@ import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { TransactionType } from '../../types/global';
+import { ModalStackParamList } from '../../types/navigation';
 
 export type UUID = string;
 
@@ -11,6 +12,7 @@ export type RootStackParamList = {
   Onboarding: undefined;
   Lock: undefined;
   Main: NavigatorScreenParams<TabParamList>;
+  ModalStack: NavigatorScreenParams<ModalStackParamList>;
 };
 
 // Tab Navigator (Main App Tabs)
