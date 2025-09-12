@@ -67,6 +67,10 @@ const Modal: React.FC<ModalProps> = ({
 
     const theme = getTheme(themeMode === 'dark' ? 'dark' : 'light');
     const colors = theme.colors;
+    
+    const overlayStyle = {
+        backgroundColor: theme.mode === 'dark' ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.5)'
+    };
 
     // Size configurations
     const sizeConfig: Record<string, { width: number; height?: number; maxHeight?: number }> = {
@@ -237,7 +241,7 @@ const Modal: React.FC<ModalProps> = ({
                             blurAmount={10}
                         />
                     ) : (
-                        <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.mode === 'dark' ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.5)' }]} />
+                        <View style={[StyleSheet.absoluteFill, overlayStyle]} />
                     )}
 
                     <TouchableOpacity

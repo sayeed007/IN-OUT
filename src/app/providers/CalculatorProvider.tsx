@@ -14,14 +14,14 @@ interface CalculatorContextType {
   isVisible: boolean;
   showCalculator: () => void;
   hideCalculator: () => void;
-  
+
   // Calculator state
   display: string;
   expression: string;
   previousValue: string;
   operation: string | null;
   waitingForNewValue: boolean;
-  
+
   // Calculator actions
   inputNumber: (num: string) => void;
   inputOperation: (op: string) => void;
@@ -30,7 +30,7 @@ interface CalculatorContextType {
   clear: () => void;
   clearEntry: () => void;
   backspace: () => void;
-  
+
   // History
   history: CalculationHistory[];
   clearHistory: () => void;
@@ -44,14 +44,14 @@ const STORAGE_KEY = 'calculator_history';
 export const CalculatorProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   // Modal state
   const [isVisible, setIsVisible] = useState(false);
-  
+
   // Calculator state
   const [display, setDisplay] = useState('0');
   const [expression, setExpression] = useState('');
   const [previousValue, setPreviousValue] = useState('');
   const [operation, setOperation] = useState<string | null>(null);
   const [waitingForNewValue, setWaitingForNewValue] = useState(false);
-  
+
   // History state
   const [history, setHistory] = useState<CalculationHistory[]>([]);
 
@@ -142,7 +142,7 @@ export const CalculatorProvider: React.FC<{ children: ReactNode }> = ({ children
       const resultStr = String(result);
       setDisplay(resultStr);
       setPreviousValue(resultStr);
-      setExpression(prev => prev + ' = ' + resultStr + '\n' + resultStr + ' ' + op + ' ');
+      setExpression(previous => previous + ' = ' + resultStr + '\n' + resultStr + ' ' + op + ' ');
     }
 
     setWaitingForNewValue(true);
@@ -183,7 +183,7 @@ export const CalculatorProvider: React.FC<{ children: ReactNode }> = ({ children
 
       const resultStr = String(result);
       const finalExpression = expression + ' = ' + resultStr;
-      
+
       setDisplay(resultStr);
       setExpression('');
       setPreviousValue('');
@@ -235,14 +235,14 @@ export const CalculatorProvider: React.FC<{ children: ReactNode }> = ({ children
     isVisible,
     showCalculator,
     hideCalculator,
-    
+
     // Calculator state
     display,
     expression,
     previousValue,
     operation,
     waitingForNewValue,
-    
+
     // Calculator actions
     inputNumber,
     inputOperation,
@@ -251,7 +251,7 @@ export const CalculatorProvider: React.FC<{ children: ReactNode }> = ({ children
     clear,
     clearEntry,
     backspace,
-    
+
     // History
     history,
     clearHistory,

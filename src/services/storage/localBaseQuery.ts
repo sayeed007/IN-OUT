@@ -283,7 +283,7 @@ export const localBaseQuery: BaseQueryFn<
             if (!Array.isArray(resourceData)) {
               return { error: { status: 400, data: `Invalid resource: ${resourceName}` } as FetchBaseQueryError };
             }
-            const item = resourceData.find((item: any) => item.id === id);
+            const item = resourceData.find((dbItem: any) => dbItem.id === id);
             if (!item) {
               return { error: { status: 404, data: 'Not found' } as FetchBaseQueryError };
             }
@@ -353,8 +353,8 @@ export const localBaseQuery: BaseQueryFn<
             // Apply pagination
             const pageParam = params.get('_page');
             const limitParam = params.get('_limit');
-            const page = parseInt(pageParam || '1');
-            const limit = parseInt(limitParam || '1000');
+            const page = parseInt(pageParam || '1', 10);
+            const limit = parseInt(limitParam || '1000', 10);
             const start = (page - 1) * limit;
             const end = start + limit;
 

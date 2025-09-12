@@ -26,10 +26,10 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, title }) => {
     if (data.length === 0) return null;
 
     // Calculate max value for better scaling
-    const maxValue = Math.max(
-        ...data.map(d => Math.max(d.income, d.expense)),
-        100 // Minimum scale
-    );
+    // const maxValue = Math.max(
+    //     ...data.map(d => Math.max(d.income, d.expense)),
+    //     100 // Minimum scale
+    // );
 
     // Only show value labels if we have 8 or fewer data points to avoid clutter
     const showValueLabels = data.length <= 8;
@@ -81,7 +81,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, title }) => {
                             formatXLabel: (label: string) => label,
                         }}
                     >
-                        {({ points, chartBounds }) => (
+                        {({ points }) => (
                             <>
                                 {/* Income Line */}
                                 <Line

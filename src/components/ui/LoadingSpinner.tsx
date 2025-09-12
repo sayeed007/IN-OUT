@@ -148,7 +148,6 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         return () => {
             opacity.value = withTiming(0, { duration: 200 });
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const animatedStyle = useAnimatedStyle(() => ({

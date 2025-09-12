@@ -120,10 +120,10 @@ const CategoryManagerScreen: React.FC<Props> = ({ navigation }) => {
             <View 
               style={[
                 styles.categoryIconContainer,
-                { backgroundColor: item.color + '20' }
+                getCategoryIconBgStyle(item.color)
               ]}
             >
-              <Text style={[styles.categoryIcon, { color: item.color }]}>
+              <Text style={[styles.categoryIcon, getCategoryIconColorStyle(item.color)]}>
                 {item.icon}
               </Text>
             </View>
@@ -134,15 +134,9 @@ const CategoryManagerScreen: React.FC<Props> = ({ navigation }) => {
                   label={item.type.charAt(0).toUpperCase() + item.type.slice(1)}
                   style={[
                     styles.categoryTypeBadge,
-                    { 
-                      backgroundColor: item.type === 'income' ? '#10B981' : '#EF4444' + '20',
-                    }
+                    getCategoryTypeBadgeStyle(item.type)
                   ]}
-                  textStyle={{
-                    color: item.type === 'income' ? '#10B981' : '#EF4444',
-                    fontSize: 12,
-                    fontWeight: '500'
-                  }}
+                  textStyle={getCategoryTypeTextStyle(item.type)}
                 />
               </View>
             </View>
@@ -284,6 +278,25 @@ const CategoryManagerScreen: React.FC<Props> = ({ navigation }) => {
     </SafeContainer>
   );
 };
+
+// Helper functions for dynamic styles
+const getCategoryTypeBadgeStyle = (categoryType: string) => ({
+  backgroundColor: categoryType === 'income' ? '#10B981' + '20' : '#EF4444' + '20',
+});
+
+const getCategoryTypeTextStyle = (categoryType: string) => ({
+  color: categoryType === 'income' ? '#10B981' : '#EF4444',
+  fontSize: 12,
+  fontWeight: '500' as '500',
+});
+
+const getCategoryIconBgStyle = (color: string) => ({
+  backgroundColor: color + '20',
+});
+
+const getCategoryIconColorStyle = (color: string) => ({
+  color: color,
+});
 
 const styles = StyleSheet.create({
   container: {

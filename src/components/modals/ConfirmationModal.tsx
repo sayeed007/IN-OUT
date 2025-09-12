@@ -95,7 +95,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                             ]}
                             onPress={onConfirm}
                         >
-                            <Text style={[styles.buttonText, { color: '#fff' }]}>
+                            <Text style={styles.confirmButtonText}>
                                 {confirmText}
                             </Text>
                         </TouchableOpacity>
@@ -157,6 +157,11 @@ const styles = StyleSheet.create({
     buttonText: {
         fontSize: 14,
         fontWeight: '600',
+    },
+    confirmButtonText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#fff',
     },
 });
 

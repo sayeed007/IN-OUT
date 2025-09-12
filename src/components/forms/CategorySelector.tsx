@@ -56,9 +56,9 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
 
     if (clampedIndex !== selectedIndex) {
       setSelectedIndex(clampedIndex);
-      const selectedCategory = activeCategories[clampedIndex];
-      if (selectedCategory) {
-        onSelectCategory(selectedCategory.id);
+      const selectedCategoryLocal = activeCategories[clampedIndex];
+      if (selectedCategoryLocal) {
+        onSelectCategory(selectedCategoryLocal.id);
       }
     }
   };
@@ -289,21 +289,13 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
                               <View style={styles.wheelItemInfo}>
                                 <Text style={[
                                   styles.wheelItemName,
-                                  {
-                                    color: isSelected ? '#111827' : '#6B7280',
-                                    fontWeight: isSelected ? '600' : '400',
-                                    fontSize: isSelected ? 16 : 14
-                                  }
+                                  getWheelItemNameStyle(isSelected)
                                 ]}>
                                   {category.name}
                                 </Text>
                                 <Text style={[
                                   styles.wheelItemType,
-                                  {
-                                    color: isSelected ? getCategoryTypeColor(category.type) : '#9CA3AF',
-                                    fontSize: isSelected ? 14 : 12,
-                                    fontWeight: isSelected ? '500' : '400'
-                                  }
+                                  getWheelItemTypeStyle(isSelected, category.type)
                                 ]}>
                                   {category.type.charAt(0).toUpperCase() + category.type.slice(1)}
                                 </Text>
@@ -311,7 +303,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
                               {category.icon && (
                                 <Text style={[
                                   styles.wheelItemIcon,
-                                  { fontSize: isSelected ? 20 : 16 }
+                                  getWheelItemIconStyle(isSelected)
                                 ]}>
                                   {getDisplayIcon(category.icon)}
                                 </Text>
@@ -359,6 +351,23 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
     </View>
   );
 };
+
+// Helper functions for dynamic styles
+const getWheelItemNameStyle = (isSelected: boolean) => ({
+  color: isSelected ? '#111827' : '#6B7280',
+  fontWeight: isSelected ? '600' : '400' as '600' | '400',
+  fontSize: isSelected ? 16 : 14,
+});
+
+const getWheelItemTypeStyle = (isSelected: boolean, categoryType: string) => ({
+  color: isSelected ? getCategoryTypeColor(categoryType) : '#9CA3AF',
+  fontSize: isSelected ? 14 : 12,
+  fontWeight: isSelected ? '500' : '400' as '500' | '400',
+});
+
+const getWheelItemIconStyle = (isSelected: boolean) => ({
+  fontSize: isSelected ? 20 : 16,
+});
 
 const styles = StyleSheet.create({
   container: {

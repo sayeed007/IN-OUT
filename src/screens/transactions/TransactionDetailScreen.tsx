@@ -70,7 +70,7 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           onPress: () => navigation.goBack(),
         },
       ]);
-    } catch (error) {
+    } catch (deleteError) {
       Alert.alert('Error', 'Failed to delete transaction');
     } finally {
       setIsDeleting(false);
@@ -114,8 +114,8 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         message,
         title: 'Transaction Details',
       });
-    } catch (error) {
-      console.error('Failed to share transaction:', error);
+    } catch (shareError) {
+      console.error('Failed to share transaction:', shareError);
     }
   };
 

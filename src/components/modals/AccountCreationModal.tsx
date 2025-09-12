@@ -230,6 +230,9 @@ export const AccountCreationModal: React.FC<AccountCreationModalProps> = ({
       color: theme.colors.text,
       backgroundColor: 'transparent',
     },
+    flex: {
+      flex: 1,
+    },
   });
 
   return (
@@ -261,11 +264,11 @@ export const AccountCreationModal: React.FC<AccountCreationModalProps> = ({
         </View>
 
         <KeyboardAvoidingView
-          style={{ flex: 1 }}
+          style={styles.flex}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
           <ScrollView
-            style={{ flex: 1 }}
+            style={styles.flex}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
