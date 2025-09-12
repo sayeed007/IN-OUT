@@ -9,7 +9,12 @@
     "start": "react-native start",
     "test": "jest",
     "api": "json-server --watch server/db.json --port 3001 --delay 350",
-    "dev": "concurrently \"npm run api\" \"npm run start\""
+    "dev": "concurrently \"npm run api\" \"npm run start\"",
+    "setup-icons": "node scripts/install-icon-dependencies.js",
+    "generate-icons": "python scripts/generate-app-icon.py",
+    "configure-icons": "node scripts/configure-app-icon.js",
+    "branding": "node scripts/app-branding.js",
+    "icons": "npm run setup-icons && npm run generate-icons"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",

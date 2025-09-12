@@ -10,6 +10,7 @@ import StackNavigator from './StackNavigator';
 // Screens
 import LockScreen from '../../screens/auth/LockScreen';
 import OnboardingScreen from '../../screens/auth/OnboardingScreen';
+import SplashScreen from '../../components/ui/SplashScreen';
 
 // Services
 import AppInitializationService from '../../services/storage/appInitialization';
@@ -22,6 +23,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const AppNavigator: React.FC = () => {
     const [isOnboarded, setIsOnboarded] = useState<boolean | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [showSplash, setShowSplash] = useState(true);
     const { theme, isDark } = useTheme();
 
     const appInit = AppInitializationService.getInstance();
@@ -47,8 +49,18 @@ const AppNavigator: React.FC = () => {
     const backgroundColor = theme.colors.background;
     const statusBarStyle = isDark ? 'light-content' : 'dark-content';
 
+    // Show splash screen first
+    if (showSplash) {
+        return (
+            <SplashScreen 
+                onFinish={() => setShowSplash(false)}
+                duration={2500}
+            />
+        );
+    }
+
     if (isLoading) {
-        // Could show a splash screen here
+        // Loading after splash screen
         return null;
     }
 

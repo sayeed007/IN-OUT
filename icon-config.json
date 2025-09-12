@@ -1,0 +1,16 @@
+{
+  "app_name": "FinanceApp",
+  "icon": {
+    "background_color": "#1E40AF",
+    "accent_color": "#3B82F6",
+    "text_color": "#FFFFFF",
+    "symbol": "\u20b1",
+    "use_gradient": true,
+    "rounded_corners": true
+  },
+  "source_icon": "assets/icon-source.png",
+  "output_directories": {
+    "ios": "ios/FinanceApp/Images.xcassets/AppIcon.appiconset/",
+    "android": "android/app/src/main/res/"
+  }
+}
