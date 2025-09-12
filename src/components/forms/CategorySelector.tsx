@@ -359,11 +359,17 @@ const getWheelItemNameStyle = (isSelected: boolean) => ({
   fontSize: isSelected ? 16 : 14,
 });
 
-const getWheelItemTypeStyle = (isSelected: boolean, categoryType: string) => ({
-  color: isSelected ? getCategoryTypeColor(categoryType) : '#9CA3AF',
-  fontSize: isSelected ? 14 : 12,
-  fontWeight: isSelected ? '500' : '400' as '500' | '400',
-});
+const getWheelItemTypeStyle = (isSelected: boolean, categoryType: string) => {
+  const getCategoryTypeColor = (type: string) => {
+    return type === 'income' ? '#10B981' : '#EF4444';
+  };
+  
+  return {
+    color: isSelected ? getCategoryTypeColor(categoryType) : '#9CA3AF',
+    fontSize: isSelected ? 14 : 12,
+    fontWeight: isSelected ? '500' : '400' as '500' | '400',
+  };
+};
 
 const getWheelItemIconStyle = (isSelected: boolean) => ({
   fontSize: isSelected ? 20 : 16,

@@ -357,11 +357,19 @@ export const CalculatorModal: React.FC = () => {
     <Modal
       visible={isVisible}
       animationType="slide"
-      transparent
+      transparent={true}
       onRequestClose={hideCalculator}
     >
-      <View style={styles.modalContainer}>
-        <SafeContainer style={styles.calculatorContainer} edges={['bottom']}>
+      <TouchableOpacity 
+        style={styles.modalContainer}
+        activeOpacity={1}
+        onPress={hideCalculator}
+      >
+        <TouchableOpacity 
+          style={styles.calculatorContainer}
+          activeOpacity={1}
+          onPress={(e) => e.stopPropagation()}
+        >
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Calculator</Text>
@@ -392,8 +400,8 @@ export const CalculatorModal: React.FC = () => {
 
           {/* Content */}
           {showHistory ? renderHistory() : renderCalculator()}
-        </SafeContainer>
-      </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
     </Modal>
   );
 };

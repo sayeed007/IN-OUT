@@ -34,26 +34,31 @@ export const FloatingCalculatorButton: React.FC<FloatingCalculatorButtonProps> =
     Animated.parallel([
       Animated.spring(scale, {
         toValue: 1,
-        useNativeDriver: true,
+        useNativeDriver: false,
         tension: 150,
         friction: 8,
       }),
       Animated.timing(opacity, {
         toValue: 0.9,
         duration: 300,
-        useNativeDriver: true,
+        useNativeDriver: false,
       }),
     ]).start();
-  }, []);
+  }, [scale, opacity]);
 
   const panResponder = PanResponder.create({
-    onMoveShouldSetPanResponder: () => true,
-    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: (evt, gestureState) => {
+      // Only set pan responder if the user has moved more than 10 pixels
+      return Math.abs(gestureState.dx) > 10 || Math.abs(gestureState.dy) > 10;
+    },
+    onStartShouldSetPanResponder: () => false, // Don't capture immediately
     onPanResponderGrant: () => {
+      // Use addListener to get current values instead of _value
       pan.setOffset({
         x: (pan.x as any)._value,
         y: (pan.y as any)._value,
       });
+      pan.setValue({ x: 0, y: 0 });
     },
     onPanResponderMove: Animated.event(
       [null, { dx: pan.x, dy: pan.y }],
@@ -83,13 +88,13 @@ export const FloatingCalculatorButton: React.FC<FloatingCalculatorButtonProps> =
     Animated.sequence([
       Animated.spring(scale, {
         toValue: 0.9,
-        useNativeDriver: true,
+        useNativeDriver: false,
         tension: 150,
         friction: 8,
       }),
       Animated.spring(scale, {
         toValue: 1,
-        useNativeDriver: true,
+        useNativeDriver: false,
         tension: 150,
         friction: 8,
       }),
@@ -101,7 +106,7 @@ export const FloatingCalculatorButton: React.FC<FloatingCalculatorButtonProps> =
   const styles = StyleSheet.create({
     container: {
       position: 'absolute',
-      zIndex: 1000,
+      zIndex: 9999,
     },
     button: {
       width: 45,

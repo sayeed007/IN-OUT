@@ -8,7 +8,6 @@ import { StoreProvider } from './src/app/providers/StoreProvider';
 import { ThemeProvider, useTheme } from './src/app/providers/ThemeProvider';
 import { CalculatorProvider } from './src/app/providers/CalculatorProvider';
 import { CalculatorModal } from './src/components/calculator/CalculatorModal';
-import { FloatingCalculatorButton } from './src/components/calculator/FloatingCalculatorButton';
 import { initializeApp } from './src/services/storage/appInitialization';
 
 const AppContent: React.FC = () => {
@@ -31,7 +30,6 @@ const AppContent: React.FC = () => {
             <NavigationContainer theme={navigationTheme}>
                 <AppNavigator />
             </NavigationContainer>
-            <FloatingCalculatorButton />
             <CalculatorModal />
         </View>
     );
