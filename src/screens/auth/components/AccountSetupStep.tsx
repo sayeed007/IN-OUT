@@ -98,11 +98,13 @@ export const AccountSetupStep: React.FC<AccountSetupStepProps> = ({
       </View>
 
       {/* Account Creation Modal */}
-      <AccountCreationModal
-        visible={showAccountModal}
-        onClose={() => setShowAccountModal(false)}
-        onAccountCreated={handleCustomAccountCreated}
-      />
+      {showAccountModal &&
+        <AccountCreationModal
+          visible={showAccountModal}
+          onClose={() => setShowAccountModal(false)}
+          onAccountCreated={handleCustomAccountCreated}
+        />
+      }
     </>
   );
 };

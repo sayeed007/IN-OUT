@@ -12,17 +12,17 @@ import {
 } from 'react-native';
 import { useTheme } from '../../app/providers/ThemeProvider';
 import { SafeContainer } from '../../components/layout/SafeContainer';
+import BottomSpacing from '../../components/ui/BottomSpacing';
 import Card from '../../components/ui/Card';
 import EmptyState from '../../components/ui/EmptyState';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { useGetAccountsQuery, useGetBudgetsQuery, useGetCategoriesQuery, useGetTransactionsQuery } from '../../state/api';
-import { KPICards } from './components/KPICards';
-import { MonthSelector } from './components/MonthSelector';
-import QuickActions from './components/QuickActions';
-import BottomSpacing from '../../components/ui/BottomSpacing';
-import TrendChart from './components/TrendChart';
 import AccountOverview from './components/AccountOverview';
+import { BalanceOverview } from './components/BalanceOverview';
 import CategoryBreakdown from './components/CategoryBreakdown';
+import { CompactQuickActions } from './components/CompactQuickActions';
+import { MonthSelector } from './components/MonthSelector';
+import TrendChart from './components/TrendChart';
 
 
 export const DashboardScreen: React.FC = () => {
@@ -59,6 +59,13 @@ export const DashboardScreen: React.FC = () => {
     } = useGetCategoriesQuery();
 
     const isLoading = loadingTransactions || loadingAccounts || loadingBudgets;
+
+    // Calculate total balance from all active accounts
+    const totalBalance = useMemo(() => {
+        return accounts
+            .filter(account => !account.isArchived)
+            .reduce((sum, account) => sum + account.openingBalance, 0);
+    }, [accounts]);
 
     // Calculate KPIs for selected month
     const kpis = useMemo(() => {
@@ -236,34 +243,24 @@ export const DashboardScreen: React.FC = () => {
                     />
                 }
             >
-                {/* Header */}
-                {/* <View style={styles.header}>
-                    <Text style={[styles.title, { color: theme.colors.text }]}>
-                        Dashboard
-                    </Text>
-                    <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-                        Financial Overview
-                    </Text>
-                </View> */}
-
                 {/* Month Selector */}
                 <MonthSelector
                     selectedMonth={selectedMonth}
                     onMonthChange={setSelectedMonth}
                 />
 
-                {/* KPI Cards */}
-                <KPICards
+                {/* Balance Overview - 2x2 Grid: Total, Net, Income, Expense */}
+                <BalanceOverview
+                    totalBalance={totalBalance}
+                    net={kpis.net}
                     income={kpis.income}
                     expense={kpis.expense}
-                    net={kpis.net}
-                    budgetUsed={kpis.budgetUsed}
-                    totalBudget={kpis.totalBudget}
-                    budgetPercentage={kpis.budgetPercentage}
+                    onIncomePress={() => navigation.navigate('Transactions', { filter: { type: 'income' } })}
+                    onExpensePress={() => navigation.navigate('Transactions', { filter: { type: 'expense' } })}
                 />
 
-                {/* Quick Actions */}
-                <QuickActions onAction={handleQuickAction} />
+                {/* Compact Quick Actions - 4 Actions in One Row */}
+                <CompactQuickActions onAction={handleQuickAction} />
 
                 {/* Mini Charts */}
                 {transactions.length > 0 ? (
@@ -344,6 +341,7 @@ export const DashboardScreen: React.FC = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        marginHorizontal: 4,
     },
     loadingContainer: {
         flex: 1,
@@ -354,20 +352,7 @@ const styles = StyleSheet.create({
         marginTop: 16,
         fontSize: 14,
     },
-    header: {
-        paddingHorizontal: 10,
-        paddingBottom: 10,
-    },
-    title: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 4,
-    },
-    subtitle: {
-        fontSize: 16,
-    },
     emptyCard: {
-        marginVertical: 8,
     },
     sectionHeader: {
         flexDirection: 'row',
@@ -380,7 +365,6 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     recentTransactionsCard: {
-        marginVertical: 8,
     },
     seeAllText: {
         fontSize: 14,

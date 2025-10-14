@@ -1,6 +1,6 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React, { useCallback } from 'react';
-import { Platform, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 
 // Screens
 import { DashboardScreen } from '../../screens/dashboard/DashboardScreen';
@@ -44,7 +44,7 @@ const TabNavigator: React.FC = () => {
     );
 
     return (
-        <View style={{ flex: 1 }}>
+        <View style={styles?.container}>
             <Tab.Navigator
                 screenOptions={({ route }) => ({
                     headerShown: false,
@@ -161,5 +161,9 @@ const TabNavigator: React.FC = () => {
         </View>
     );
 };
+
+const styles = StyleSheet.create({
+    container: { flex: 1 }
+})
 
 export default TabNavigator;

@@ -98,12 +98,29 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
   const watchedAccountIdTo = watch('accountIdTo');
   const watchedCategoryId = watch('categoryId');
 
-  // Reset form when screen comes into focus (user navigates back)
-  // But skip reset if user came with route params (intentional pre-fill)
+  // Update form when route params change (e.g., coming from dashboard quick actions)
   useFocusEffect(
     useCallback(() => {
-      // Only reset if no route params were provided (meaning user navigated naturally)
-      if (!initialType && !accountId && !categoryId && accounts.length > 0) {
+      if (initialType && initialType !== transactionType) {
+        // Route params have a type, update the form
+        setTransactionType(initialType);
+        setValue('type', initialType);
+
+        const defaultAccount = accounts[0];
+        const defaultCategory = categories.find(cat => cat.type === initialType);
+
+        reset({
+          type: initialType,
+          amount: '',
+          accountId: accountId || defaultAccount?.id || '',
+          categoryId: categoryId || defaultCategory?.id || '',
+          accountIdTo: '',
+          date: new Date().toISOString(),
+          note: '',
+          tags: [],
+        });
+      } else if (!initialType && !accountId && !categoryId && accounts.length > 0) {
+        // Only reset if no route params were provided (meaning user navigated naturally)
         const defaultAccount = accounts[0];
         const defaultCategory = categories.find(cat => cat.type === transactionType);
 
@@ -118,7 +135,7 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
           tags: [],
         });
       }
-    }, [reset, transactionType, initialType, accountId, categoryId, accounts, categories])
+    }, [reset, transactionType, initialType, accountId, categoryId, accounts, categories, setValue])
   );
 
 

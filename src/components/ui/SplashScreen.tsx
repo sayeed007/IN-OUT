@@ -169,7 +169,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({
             {/* Version Info */}
             <Animated.View style={[styles.versionContainer, { opacity: textOpacity }]}>
               <Text style={styles.version}>Version 1.0.0</Text>
-              <Text style={styles.copyright}>© 2024 FinanceApp</Text>
+              <Text style={styles.copyright}>© 2025 FinanceApp</Text>
             </Animated.View>
           </LinearGradient>
         </Animated.View>

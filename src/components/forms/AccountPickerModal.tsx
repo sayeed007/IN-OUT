@@ -8,6 +8,7 @@ import {
   Modal,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useTheme } from '../../app/providers/ThemeProvider';
 import { formatCurrency } from '../../utils/helpers/currencyUtils';
 import type { Account } from '../../types/global';
 
@@ -32,6 +33,7 @@ export const AccountPickerModal: React.FC<AccountPickerModalProps> = ({
   onClose,
   title = 'Select Account'
 }) => {
+  const { theme } = useTheme();
   const scrollRef = useRef<ScrollView>(null);
 
   const activeAccounts = accounts.filter(account => !account.isArchived);
@@ -89,47 +91,36 @@ export const AccountPickerModal: React.FC<AccountPickerModalProps> = ({
   if (!visible) return null;
 
   return (
-    <Modal transparent visible={visible} animationType="fade">
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>{title}</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Icon name="close" size={20} color="#6B7280" />
+    <Modal transparent visible={visible} animationType="slide">
+      <View style={styles.modalOverlay}>
+        <TouchableOpacity
+          style={styles.backdrop}
+          activeOpacity={1}
+          onPress={onClose}
+        />
+
+        <View style={[styles.modalContent, { backgroundColor: theme.colors.background }]}>
+          {/* Modal Header */}
+          <View style={[styles.modalHeader, { borderBottomColor: theme.colors.border }]}>
+            <Text style={[styles.modalTitle, { color: theme.colors.text }]}>
+              {title}
+            </Text>
+            <TouchableOpacity onPress={onClose}>
+              <Icon name="close" size={24} color={theme.colors.textSecondary} />
             </TouchableOpacity>
           </View>
 
           {activeAccounts.length > 0 ? (
             <>
-              {/* Selected Display */}
-              {/* <View style={styles.selectedDisplay}>
-                <Text style={styles.selectedLabel}>Selected:</Text>
-                <View style={styles.selectedAccountDisplay}>
-                  {activeAccounts[selectedIndex] && (
-                    <>
-                      <Icon
-                        name={getAccountTypeIcon(activeAccounts[selectedIndex].type)}
-                        size={18}
-                        color="#6366F1"
-                        style={styles.selectedAccountIcon}
-                      />
-                      <View style={styles.selectedAccountInfo}>
-                        <Text style={styles.selectedAccountName}>
-                          {activeAccounts[selectedIndex].name}
-                        </Text>
-                        <Text style={styles.selectedAccountBalance}>
-                          {formatCurrency(activeAccounts[selectedIndex].openingBalance, activeAccounts[selectedIndex].currencyCode)}
-                        </Text>
-                      </View>
-                    </>
-                  )}
-                </View>
-              </View> */}
-
               {/* Wheel Picker */}
               <View style={styles.wheelContainer}>
-                <View style={styles.wheelWrapper}>
+                <View style={[
+                  styles.wheelWrapper,
+                  {
+                    backgroundColor: theme.colors.surface,
+                    borderColor: theme.colors.border,
+                  }
+                ]}>
                   <ScrollView
                     ref={scrollRef}
                     style={styles.wheel}
@@ -146,21 +137,28 @@ export const AccountPickerModal: React.FC<AccountPickerModalProps> = ({
                           <View style={styles.wheelItemContent}>
                             <Icon
                               name={getAccountTypeIcon(account.type)}
-                              size={isSelected ? 18 : 14}
-                              color={isSelected ? "#6366F1" : "#9CA3AF"}
+                              size={isSelected ? 20 : 16}
+                              color={isSelected ? theme.colors.primary[500] : theme.colors.textSecondary}
                               style={styles.wheelItemIcon}
                             />
                             <View style={styles.wheelItemInfo}>
-                              <Text style={[
+                              <Text style={StyleSheet.flatten([
                                 styles.wheelItemName,
-                                isSelected ? styles.wheelItemNameSelected : styles.wheelItemNameUnselected
-                              ]}>
+                                {
+                                  color: isSelected ? theme.colors.text : theme.colors.textSecondary,
+                                  fontWeight: isSelected ? '600' : '400',
+                                  fontSize: isSelected ? 16 : 14,
+                                }
+                              ])}>
                                 {account.name}
                               </Text>
-                              <Text style={[
+                              <Text style={StyleSheet.flatten([
                                 styles.wheelItemBalance,
-                                isSelected ? styles.wheelItemBalanceSelected : styles.wheelItemBalanceUnselected
-                              ]}>
+                                {
+                                  color: isSelected ? theme.colors.textSecondary : theme.colors.textTertiary,
+                                  fontSize: isSelected ? 13 : 11,
+                                }
+                              ])}>
                                 {formatCurrency(account.openingBalance, account.currencyCode)}
                               </Text>
                             </View>
@@ -170,31 +168,52 @@ export const AccountPickerModal: React.FC<AccountPickerModalProps> = ({
                     })}
                   </ScrollView>
                   {/* Selection overlay */}
-                  <View style={styles.selectionOverlay} />
+                  <View style={[
+                    styles.selectionOverlay,
+                    {
+                      borderColor: theme.colors.primary[500],
+                      backgroundColor: `${theme.colors.primary[500]}10`,
+                    }
+                  ]} />
                 </View>
               </View>
 
               {/* Action Buttons */}
-              <View style={styles.actions}>
+              <View style={[styles.actions, { borderTopColor: theme.colors.border }]}>
                 <TouchableOpacity
-                  style={styles.cancelButton}
+                  style={[
+                    styles.cancelButton,
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: theme.colors.surface,
+                    }
+                  ]}
                   onPress={onClose}
                 >
-                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                  <Text style={[styles.cancelButtonText, { color: theme.colors.textSecondary }]}>
+                    Cancel
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.confirmButton}
+                  style={[
+                    styles.confirmButton,
+                    { backgroundColor: theme.colors.primary[500] }
+                  ]}
                   onPress={handleConfirm}
                 >
-                  <Text style={styles.confirmButtonText}>Confirm</Text>
+                  <Text style={[styles.confirmButtonText, { color: theme.colors.onPrimary }]}>
+                    Confirm
+                  </Text>
                 </TouchableOpacity>
               </View>
             </>
           ) : (
             <View style={styles.emptyState}>
-              <Icon name="wallet-outline" size={32} color="#9CA3AF" />
-              <Text style={styles.emptyStateTitle}>No accounts found</Text>
-              <Text style={styles.emptyStateSubtitle}>
+              <Icon name="wallet-outline" size={48} color={theme.colors.textTertiary} />
+              <Text style={[styles.emptyStateTitle, { color: theme.colors.text }]}>
+                No accounts found
+              </Text>
+              <Text style={[styles.emptyStateSubtitle, { color: theme.colors.textSecondary }]}>
                 Add an account in settings to get started
               </Text>
             </View>
@@ -206,84 +225,44 @@ export const AccountPickerModal: React.FC<AccountPickerModalProps> = ({
 };
 
 const styles = StyleSheet.create({
-  overlay: {
+  modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
+    justifyContent: 'flex-end',
   },
-  container: {
-    width: '100%',
-    maxWidth: 320,
-    borderRadius: 16,
-    backgroundColor: '#FFFFFF',
-    maxHeight: '80%',
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
   },
-  header: {
+  modalContent: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '70%',
+  },
+  modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
   },
-  title: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
-  },
-  closeButton: {
-    padding: 4,
-  },
-  selectedDisplay: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-    backgroundColor: '#F9FAFB',
-  },
-  selectedLabel: {
-    fontSize: 10,
-    color: '#6B7280',
-    marginBottom: 6,
-  },
-  selectedAccountDisplay: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  selectedAccountIcon: {
-    marginRight: 8,
-  },
-  selectedAccountInfo: {
-    alignItems: 'center',
-  },
-  selectedAccountName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#111827',
-  },
-  selectedAccountBalance: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginTop: 2,
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
   },
   wheelContainer: {
-    paddingHorizontal: 30,
-    paddingVertical: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 24,
     alignItems: 'center',
   },
   wheelWrapper: {
     height: WHEEL_HEIGHT,
-    width: 240,
-    borderRadius: 8,
+    width: '100%',
+    maxWidth: 320,
+    borderRadius: 12,
     overflow: 'hidden',
     position: 'relative',
-    backgroundColor: '#F9FAFB',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
   },
   wheel: {
     flex: 1,
@@ -295,7 +274,7 @@ const styles = StyleSheet.create({
     height: ITEM_HEIGHT,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
   },
   wheelItemContent: {
     flexDirection: 'row',
@@ -303,7 +282,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   wheelItemIcon: {
-    marginRight: 8,
+    marginRight: 12,
   },
   wheelItemInfo: {
     flex: 1,
@@ -311,27 +290,9 @@ const styles = StyleSheet.create({
   wheelItemName: {
     textAlign: 'center',
   },
-  wheelItemNameSelected: {
-    color: '#111827',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  wheelItemNameUnselected: {
-    color: '#6B7280',
-    fontWeight: '400',
-    fontSize: 12,
-  },
   wheelItemBalance: {
     textAlign: 'center',
     marginTop: 2,
-  },
-  wheelItemBalanceSelected: {
-    color: '#6B7280',
-    fontSize: 12,
-  },
-  wheelItemBalanceUnselected: {
-    color: '#9CA3AF',
-    fontSize: 10,
   },
   selectionOverlay: {
     position: 'absolute',
@@ -339,63 +300,55 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: ITEM_HEIGHT,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: '#6366F1',
-    backgroundColor: 'rgba(99, 102, 241, 0.05)',
+    borderTopWidth: 2,
+    borderBottomWidth: 2,
     pointerEvents: 'none',
   },
   actions: {
     flexDirection: 'row',
     gap: 12,
-    padding: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    paddingBottom: 24,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
   },
   cancelButton: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: 14,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#D1D5DB',
-    backgroundColor: 'transparent',
   },
   cancelButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
-    color: '#6B7280',
   },
   confirmButton: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: 14,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#6366F1',
   },
   confirmButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
   },
   emptyState: {
     alignItems: 'center',
-    paddingVertical: 40,
+    paddingVertical: 60,
     paddingHorizontal: 20,
   },
   emptyStateTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
-    color: '#111827',
-    marginTop: 12,
+    marginTop: 16,
   },
   emptyStateSubtitle: {
-    fontSize: 12,
-    color: '#6B7280',
+    fontSize: 14,
     textAlign: 'center',
-    marginTop: 4,
+    marginTop: 8,
   },
 });
 

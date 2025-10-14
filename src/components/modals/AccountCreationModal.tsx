@@ -11,7 +11,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeContainer } from '../layout/SafeContainer';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../app/providers/ThemeProvider';
@@ -19,7 +18,6 @@ import { ACCOUNT_TYPES } from '../../constants/accountTypes';
 import { useAddAccountMutation } from '../../state/api';
 import { RootState } from '../../state/store';
 import type { Account } from '../../types/global';
-import Card from '../ui/Card';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import { showToast } from '../../utils/helpers/toast';
 
@@ -96,258 +94,289 @@ export const AccountCreationModal: React.FC<AccountCreationModalProps> = ({
     }
   };
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: theme.colors.background,
-    },
-    header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingHorizontal: 20,
-      paddingVertical: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border,
-      backgroundColor: theme.colors.surface,
-    },
-    title: {
-      fontSize: 18,
-      fontWeight: '600',
-      color: theme.colors.text,
-    },
-    headerButton: {
-      padding: 4,
-      minWidth: 60,
-    },
-    cancelText: {
-      fontSize: 16,
-      color: theme.colors.textSecondary,
-    },
-    saveText: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: theme.colors.primary[500],
-      textAlign: 'right',
-    },
-    saveTextDisabled: {
-      color: theme.colors.textTertiary,
-    },
-    scrollContent: {
-      flexGrow: 1,
-      padding: 20,
-    },
-    section: {
-      marginBottom: 24,
-    },
-    sectionTitle: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: theme.colors.text,
-      marginBottom: 12,
-    },
-    inputCard: {
-      padding: 16,
-    },
-    textInput: {
-      borderWidth: 1,
-      borderColor: theme.colors.border,
-      borderRadius: 12,
-      paddingHorizontal: 16,
-      paddingVertical: 14,
-      fontSize: 16,
-      color: theme.colors.text,
-      backgroundColor: theme.colors.surface,
-    },
-    inputFocused: {
-      borderColor: theme.colors.primary[500],
-      borderWidth: 2,
-    },
-    placeholder: {
-      color: theme.colors.textSecondary,
-    },
-    typeSelector: {
-      gap: 12,
-    },
-    typeButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingVertical: 14,
-      borderRadius: 12,
-      borderWidth: 2,
-      borderColor: theme.colors.border,
-      backgroundColor: theme.colors.surface,
-    },
-    typeButtonActive: {
-      borderColor: getAccountTypeColor(accountType),
-      backgroundColor: `${getAccountTypeColor(accountType)}10`,
-    },
-    typeIconContainer: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginRight: 12,
-      backgroundColor: theme.colors.surfaceVariant,
-    },
-    typeIconContainerActive: {
-      backgroundColor: getAccountTypeColor(accountType),
-    },
-    typeContent: {
-      flex: 1,
-    },
-    typeName: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: theme.colors.text,
-      marginBottom: 2,
-    },
-    typeDescription: {
-      fontSize: 13,
-      color: theme.colors.textSecondary,
-    },
-    amountInputContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      borderWidth: 1,
-      borderColor: theme.colors.border,
-      borderRadius: 12,
-      backgroundColor: theme.colors.surface,
-      paddingHorizontal: 16,
-    },
-    currencyCode: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: theme.colors.primary[500],
-      marginRight: 8,
-    },
-    amountInput: {
-      flex: 1,
-      paddingVertical: 14,
-      fontSize: 16,
-      color: theme.colors.text,
-      backgroundColor: 'transparent',
-    },
-    flex: {
-      flex: 1,
-    },
-  });
-
   return (
     <Modal
       visible={visible}
+      transparent
       animationType="slide"
-      presentationStyle="pageSheet"
       onRequestClose={handleClose}
     >
-      <SafeContainer style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleClose} style={styles.headerButton}>
-            <Text style={styles.cancelText}>Cancel</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>Add Account</Text>
-          <TouchableOpacity
-            onPress={handleCreateAccount}
-            style={styles.headerButton}
-            disabled={isCreating}
-          >
-            {isCreating ? (
-              <LoadingSpinner size="small" color={theme.colors.primary[500]} />
-            ) : (
-              <Text style={[styles.saveText, isCreating && styles.saveTextDisabled]}>
-                Save
-              </Text>
-            )}
-          </TouchableOpacity>
-        </View>
+      <View style={styles.modalOverlay}>
+        <TouchableOpacity
+          style={styles.backdrop}
+          activeOpacity={1}
+          onPress={handleClose}
+        />
 
         <KeyboardAvoidingView
-          style={styles.flex}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardAvoid}
         >
-          <ScrollView
-            style={styles.flex}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Account Name */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Account Name</Text>
-              <Card style={styles.inputCard}>
-                <TextInput
-                  style={styles.textInput}
-                  value={accountName}
-                  onChangeText={setAccountName}
-                  placeholder="e.g. Main Checking Account"
-                  placeholderTextColor={theme.colors.textSecondary}
-                  autoCapitalize="words"
-                  autoFocus
-                />
-              </Card>
+          <View style={[styles.modalContent, { backgroundColor: theme.colors.background }]}>
+
+            {/* Modal Header */}
+            <View style={[styles.modalHeader, { borderBottomColor: theme.colors.border }]}>
+              <Text style={[styles.modalTitle, { color: theme.colors.text }]}>
+                Add Account
+              </Text>
+              <TouchableOpacity onPress={handleClose} disabled={isCreating}>
+                <Icon name="close" size={24} color={theme.colors.textSecondary} />
+              </TouchableOpacity>
             </View>
 
-            {/* Account Type */}
+            {/* Account Name */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Account Type</Text>
-              <View style={styles.typeSelector}>
-                {ACCOUNT_TYPES.map((type) => (
-                  <TouchableOpacity
-                    key={type.value}
-                    style={[
-                      styles.typeButton,
-                      accountType === type.value && styles.typeButtonActive
-                    ]}
-                    onPress={() => setAccountType(type.value)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={[
-                      styles.typeIconContainer,
-                      accountType === type.value && styles.typeIconContainerActive
-                    ]}>
-                      <Icon
-                        name={type.icon}
-                        size={20}
-                        color={accountType === type.value ? theme.colors.surface : getAccountTypeColor(type.value)}
-                      />
-                    </View>
-                    <View style={styles.typeContent}>
-                      <Text style={styles.typeName}>{type.label}</Text>
-                      <Text style={styles.typeDescription}>
-                        {type.description}
-                      </Text>
-                    </View>
-                    {accountType === type.value && (
-                      <Icon name="checkmark-circle" size={24} color={getAccountTypeColor(type.value)} />
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                Account Name
+              </Text>
+              <TextInput
+                style={[
+                  styles.textInput,
+                  {
+                    backgroundColor: theme.colors.surface,
+                    borderColor: theme.colors.border,
+                    color: theme.colors.text,
+                  }
+                ]}
+                value={accountName}
+                onChangeText={setAccountName}
+                placeholder="e.g. Main Checking Account"
+                placeholderTextColor={theme.colors.textSecondary}
+                autoCapitalize="words"
+                autoFocus
+              />
             </View>
+
+            <ScrollView
+              style={styles.scrollContainer}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {/* Account Type */}
+              <View>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                  Account Type
+                </Text>
+                <View style={styles.typeSelector}>
+                  {ACCOUNT_TYPES.map((type) => {
+                    const isSelected = accountType === type.value;
+                    const typeColor = getAccountTypeColor(type.value);
+
+                    return (
+                      <TouchableOpacity
+                        key={type.value}
+                        style={[
+                          styles.typeButton,
+                          {
+                            backgroundColor: isSelected
+                              ? `${typeColor}15`
+                              : theme.colors.surface,
+                            borderColor: isSelected ? typeColor : theme.colors.border,
+                          }
+                        ]}
+                        onPress={() => setAccountType(type.value)}
+                        activeOpacity={0.7}
+                      >
+                        <View style={styles.typeButtonLeft}>
+                          <View style={[styles.radioButton, { borderColor: isSelected ? typeColor : theme.colors.border }]}>
+                            {isSelected && (
+                              <View style={[styles.radioButtonInner, { backgroundColor: typeColor }]} />
+                            )}
+                          </View>
+                          <View style={styles.typeInfo}>
+                            <Text style={[styles.typeName, { color: theme.colors.text }]}>
+                              {type.label}
+                            </Text>
+                            <Text style={[styles.typeDescription, { color: theme.colors.textSecondary }]}>
+                              {type.description}
+                            </Text>
+                          </View>
+                        </View>
+                        <Icon name={type.icon} size={20} color={typeColor} />
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            </ScrollView>
 
             {/* Opening Balance */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Opening Balance</Text>
-              <Card style={styles.inputCard}>
-                <View style={styles.amountInputContainer}>
-                  <Text style={styles.currencyCode}>{defaultCurrency}</Text>
-                  <TextInput
-                    style={styles.amountInput}
-                    value={openingBalance}
-                    onChangeText={setOpeningBalance}
-                    placeholder="0.00"
-                    placeholderTextColor={theme.colors.textSecondary}
-                    keyboardType="numeric"
-                    returnKeyType="done"
-                  />
-                </View>
-              </Card>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                Opening Balance
+              </Text>
+              <View style={[
+                styles.amountInputContainer,
+                {
+                  backgroundColor: theme.colors.surface,
+                  borderColor: theme.colors.border,
+                }
+              ]}>
+                <Text style={[styles.currencyCode, { color: theme.colors.primary[500] }]}>
+                  {defaultCurrency}
+                </Text>
+                <TextInput
+                  style={[styles.amountInput, { color: theme.colors.text }]}
+                  value={openingBalance}
+                  onChangeText={setOpeningBalance}
+                  placeholder="0.00"
+                  placeholderTextColor={theme.colors.textSecondary}
+                  keyboardType="numeric"
+                  returnKeyType="done"
+                />
+              </View>
             </View>
-          </ScrollView>
 
+            {/* Create Button */}
+            <TouchableOpacity
+              style={[
+                styles.createButton,
+                { backgroundColor: theme.colors.primary[500] },
+                isCreating && styles.createButtonDisabled
+              ]}
+              onPress={handleCreateAccount}
+              disabled={isCreating}
+              activeOpacity={0.8}
+            >
+              {isCreating ? (
+                <LoadingSpinner size="small" color={theme.colors.onPrimary} />
+              ) : (
+                <Text style={[styles.createButtonText, { color: theme.colors.onPrimary }]}>
+                  Create Account
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
         </KeyboardAvoidingView>
-      </SafeContainer>
+      </View>
     </Modal>
   );
 };
+
+const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  keyboardAvoid: {
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    // maxHeight: '85%',
+    height: '95%'
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+  },
+  section: {
+    marginVertical: 8,
+    marginHorizontal: 20,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  textInput: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+  },
+  typeSelector: {
+    gap: 12,
+  },
+  typeButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+  },
+  typeButtonLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  radioButton: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  radioButtonInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  typeInfo: {
+    flex: 1,
+  },
+  typeName: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  typeDescription: {
+    fontSize: 13,
+  },
+  amountInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+  },
+  currencyCode: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginRight: 8,
+  },
+  amountInput: {
+    flex: 1,
+    paddingVertical: 14,
+    fontSize: 16,
+  },
+  createButton: {
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 20,
+    marginVertical: 12,
+  },
+  createButtonDisabled: {
+    opacity: 0.6,
+  },
+  createButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});

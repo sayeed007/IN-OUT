@@ -18,8 +18,8 @@ const DEFAULT_DB = {
       openingBalance: 500,
       currencyCode: 'BDT',
       isArchived: false,
-      createdAt: '2024-01-01T00:00:00.000Z',
-      updatedAt: '2024-01-01T00:00:00.000Z',
+      createdAt: '2025-01-01T00:00:00.000Z',
+      updatedAt: '2025-01-01T00:00:00.000Z',
     },
     {
       id: 'acc2',
@@ -28,8 +28,8 @@ const DEFAULT_DB = {
       openingBalance: 2500,
       currencyCode: 'BDT',
       isArchived: false,
-      createdAt: '2024-01-01T00:00:00.000Z',
-      updatedAt: '2024-01-01T00:00:00.000Z',
+      createdAt: '2025-01-01T00:00:00.000Z',
+      updatedAt: '2025-01-01T00:00:00.000Z',
     },
   ],
   categories: [
@@ -41,8 +41,8 @@ const DEFAULT_DB = {
       color: '#EF4444',
       icon: '🍽️',
       isArchived: false,
-      createdAt: '2024-01-01T00:00:00.000Z',
-      updatedAt: '2024-01-01T00:00:00.000Z',
+      createdAt: '2025-01-01T00:00:00.000Z',
+      updatedAt: '2025-01-01T00:00:00.000Z',
     },
     {
       id: 'cat2',
@@ -52,8 +52,8 @@ const DEFAULT_DB = {
       color: '#3B82F6',
       icon: '🚗',
       isArchived: false,
-      createdAt: '2024-01-01T00:00:00.000Z',
-      updatedAt: '2024-01-01T00:00:00.000Z',
+      createdAt: '2025-01-01T00:00:00.000Z',
+      updatedAt: '2025-01-01T00:00:00.000Z',
     },
     {
       id: 'cat3',
@@ -63,8 +63,8 @@ const DEFAULT_DB = {
       color: '#10B981',
       icon: '💰',
       isArchived: false,
-      createdAt: '2024-01-01T00:00:00.000Z',
-      updatedAt: '2024-01-01T00:00:00.000Z',
+      createdAt: '2025-01-01T00:00:00.000Z',
+      updatedAt: '2025-01-01T00:00:00.000Z',
     },
     {
       id: 'cat4',
@@ -74,8 +74,8 @@ const DEFAULT_DB = {
       color: '#22C55E',
       icon: '🛒',
       isArchived: false,
-      createdAt: '2024-01-01T00:00:00.000Z',
-      updatedAt: '2024-01-01T00:00:00.000Z',
+      createdAt: '2025-01-01T00:00:00.000Z',
+      updatedAt: '2025-01-01T00:00:00.000Z',
     },
     {
       id: 'cat5',
@@ -85,8 +85,8 @@ const DEFAULT_DB = {
       color: '#F59E0B',
       icon: '⚡',
       isArchived: false,
-      createdAt: '2024-01-01T00:00:00.000Z',
-      updatedAt: '2024-01-01T00:00:00.000Z',
+      createdAt: '2025-01-01T00:00:00.000Z',
+      updatedAt: '2025-01-01T00:00:00.000Z',
     },
     {
       id: 'cat6',
@@ -96,8 +96,8 @@ const DEFAULT_DB = {
       color: '#8B5CF6',
       icon: '🎬',
       isArchived: false,
-      createdAt: '2024-01-01T00:00:00.000Z',
-      updatedAt: '2024-01-01T00:00:00.000Z',
+      createdAt: '2025-01-01T00:00:00.000Z',
+      updatedAt: '2025-01-01T00:00:00.000Z',
     },
     {
       id: 'cat7',
@@ -107,8 +107,8 @@ const DEFAULT_DB = {
       color: '#EC4899',
       icon: '🏥',
       isArchived: false,
-      createdAt: '2024-01-01T00:00:00.000Z',
-      updatedAt: '2024-01-01T00:00:00.000Z',
+      createdAt: '2025-01-01T00:00:00.000Z',
+      updatedAt: '2025-01-01T00:00:00.000Z',
     },
     {
       id: 'cat8',
@@ -118,8 +118,8 @@ const DEFAULT_DB = {
       color: '#6B7280',
       icon: '🏠',
       isArchived: false,
-      createdAt: '2024-01-01T00:00:00.000Z',
-      updatedAt: '2024-01-01T00:00:00.000Z',
+      createdAt: '2025-01-01T00:00:00.000Z',
+      updatedAt: '2025-01-01T00:00:00.000Z',
     },
     {
       id: 'cat9',
@@ -129,8 +129,8 @@ const DEFAULT_DB = {
       color: '#06B6D4',
       icon: '💼',
       isArchived: false,
-      createdAt: '2024-01-01T00:00:00.000Z',
-      updatedAt: '2024-01-01T00:00:00.000Z',
+      createdAt: '2025-01-01T00:00:00.000Z',
+      updatedAt: '2025-01-01T00:00:00.000Z',
     },
     {
       id: 'cat10',
@@ -140,8 +140,8 @@ const DEFAULT_DB = {
       color: '#84CC16',
       icon: '📈',
       isArchived: false,
-      createdAt: '2024-01-01T00:00:00.000Z',
-      updatedAt: '2024-01-01T00:00:00.000Z',
+      createdAt: '2025-01-01T00:00:00.000Z',
+      updatedAt: '2025-01-01T00:00:00.000Z',
     },
   ],
   transactions: [],
@@ -336,7 +336,7 @@ export const localBaseQuery: BaseQueryFn<
               if (sortBy === 'openingBalance' || sortBy === 'amount') {
                 const numA = typeof aVal === 'number' ? aVal : parseFloat(aVal) || 0;
                 const numB = typeof bVal === 'number' ? bVal : parseFloat(bVal) || 0;
-                
+
                 if (sortOrder === 'desc') {
                   return numB - numA;
                 }
@@ -386,12 +386,12 @@ export const localBaseQuery: BaseQueryFn<
 
             if (type && amount && accountId) {
               const accountsArray = db.accounts as any[];
-              
+
               // Update source account balance
               const sourceAccountIndex = accountsArray.findIndex((acc: any) => acc.id === accountId);
               if (sourceAccountIndex !== -1) {
                 const currentBalance = accountsArray[sourceAccountIndex].openingBalance || 0;
-                
+
                 if (type === 'income') {
                   // Income increases account balance
                   accountsArray[sourceAccountIndex].openingBalance = currentBalance + amount;
@@ -401,7 +401,7 @@ export const localBaseQuery: BaseQueryFn<
                 } else if (type === 'transfer' && accountIdTo) {
                   // Transfer decreases source account balance
                   accountsArray[sourceAccountIndex].openingBalance = currentBalance - amount;
-                  
+
                   // Transfer increases destination account balance
                   const destAccountIndex = accountsArray.findIndex((acc: any) => acc.id === accountIdTo);
                   if (destAccountIndex !== -1) {
@@ -410,7 +410,7 @@ export const localBaseQuery: BaseQueryFn<
                     accountsArray[destAccountIndex].updatedAt = now;
                   }
                 }
-                
+
                 accountsArray[sourceAccountIndex].updatedAt = now;
               }
             }
@@ -448,7 +448,7 @@ export const localBaseQuery: BaseQueryFn<
               const sourceAccountIndex = accountsArray.findIndex((acc: any) => acc.id === oldTransaction.accountId);
               if (sourceAccountIndex !== -1) {
                 const currentBalance = accountsArray[sourceAccountIndex].openingBalance || 0;
-                
+
                 if (oldTransaction.type === 'income') {
                   // Reverse income: decrease account balance
                   accountsArray[sourceAccountIndex].openingBalance = currentBalance - oldTransaction.amount;
@@ -458,7 +458,7 @@ export const localBaseQuery: BaseQueryFn<
                 } else if (oldTransaction.type === 'transfer' && oldTransaction.accountIdTo) {
                   // Reverse transfer: increase source, decrease destination
                   accountsArray[sourceAccountIndex].openingBalance = currentBalance + oldTransaction.amount;
-                  
+
                   const destAccountIndex = accountsArray.findIndex((acc: any) => acc.id === oldTransaction.accountIdTo);
                   if (destAccountIndex !== -1) {
                     const destCurrentBalance = accountsArray[destAccountIndex].openingBalance || 0;
@@ -466,7 +466,7 @@ export const localBaseQuery: BaseQueryFn<
                     accountsArray[destAccountIndex].updatedAt = now;
                   }
                 }
-                
+
                 accountsArray[sourceAccountIndex].updatedAt = now;
               }
             }
@@ -477,7 +477,7 @@ export const localBaseQuery: BaseQueryFn<
               const sourceAccountIndex = accountsArray.findIndex((acc: any) => acc.id === newTransaction.accountId);
               if (sourceAccountIndex !== -1) {
                 const currentBalance = accountsArray[sourceAccountIndex].openingBalance || 0;
-                
+
                 if (newTransaction.type === 'income') {
                   // Income increases account balance
                   accountsArray[sourceAccountIndex].openingBalance = currentBalance + newTransaction.amount;
@@ -487,7 +487,7 @@ export const localBaseQuery: BaseQueryFn<
                 } else if (newTransaction.type === 'transfer' && newTransaction.accountIdTo) {
                   // Transfer decreases source account balance
                   accountsArray[sourceAccountIndex].openingBalance = currentBalance - newTransaction.amount;
-                  
+
                   // Transfer increases destination account balance
                   const destAccountIndex = accountsArray.findIndex((acc: any) => acc.id === newTransaction.accountIdTo);
                   if (destAccountIndex !== -1) {
@@ -496,7 +496,7 @@ export const localBaseQuery: BaseQueryFn<
                     accountsArray[destAccountIndex].updatedAt = now;
                   }
                 }
-                
+
                 accountsArray[sourceAccountIndex].updatedAt = now;
               }
             }
@@ -538,7 +538,7 @@ export const localBaseQuery: BaseQueryFn<
               const sourceAccountIndex = accountsArray.findIndex((acc: any) => acc.id === transaction.accountId);
               if (sourceAccountIndex !== -1) {
                 const currentBalance = accountsArray[sourceAccountIndex].openingBalance || 0;
-                
+
                 if (transaction.type === 'income') {
                   // Reverse income: decrease account balance
                   accountsArray[sourceAccountIndex].openingBalance = currentBalance - transaction.amount;
@@ -548,7 +548,7 @@ export const localBaseQuery: BaseQueryFn<
                 } else if (transaction.type === 'transfer' && transaction.accountIdTo) {
                   // Reverse transfer: increase source, decrease destination
                   accountsArray[sourceAccountIndex].openingBalance = currentBalance + transaction.amount;
-                  
+
                   const destAccountIndex = accountsArray.findIndex((acc: any) => acc.id === transaction.accountIdTo);
                   if (destAccountIndex !== -1) {
                     const destCurrentBalance = accountsArray[destAccountIndex].openingBalance || 0;
@@ -556,7 +556,7 @@ export const localBaseQuery: BaseQueryFn<
                     accountsArray[destAccountIndex].updatedAt = now;
                   }
                 }
-                
+
                 accountsArray[sourceAccountIndex].updatedAt = now;
               }
             }

@@ -74,17 +74,17 @@ const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
 
       // Check if the selected account already exists in seeded accounts
       const existingAccount = db.accounts.find(acc => acc.name === data.firstAccount.name && acc.type === data.firstAccount.type);
-      
+
       let updatedAccounts;
       if (existingAccount) {
         // Update the existing seeded account with the user's balance
-        updatedAccounts = db.accounts.map(acc => 
-          acc.id === existingAccount.id 
-            ? { 
-                ...acc, 
-                openingBalance: parseFloat(data.firstAccount.balance) || 0,
-                updatedAt: new Date().toISOString(),
-              }
+        updatedAccounts = db.accounts.map(acc =>
+          acc.id === existingAccount.id
+            ? {
+              ...acc,
+              openingBalance: parseFloat(data.firstAccount.balance) || 0,
+              updatedAt: new Date().toISOString(),
+            }
             : acc
         );
       } else {
@@ -131,38 +131,54 @@ const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
-  const renderStep1 = () => (
-    <CurrencyStep
-      selectedCurrency={data.currency}
-      onCurrencySelect={(currency) => setData({ ...data, currency })}
-    />
-  );
+  // const renderStep1 = () => (
+  //   <CurrencyStep
+  //     selectedCurrency={data.currency}
+  //     onCurrencySelect={(currency) => setData({ ...data, currency })}
+  //   />
+  // );
 
-  const renderStep2 = () => (
-    <AccountSetupStep
-      selectedAccount={data.firstAccount}
-      onAccountChange={(account) => setData({ ...data, firstAccount: account })}
-      currency={data.currency}
-    />
-  );
+  // const renderStep2 = () => (
+  //   <AccountSetupStep
+  //     selectedAccount={data.firstAccount}
+  //     onAccountChange={(account) => setData({ ...data, firstAccount: account })}
+  //     currency={data.currency}
+  //   />
+  // );
 
-  const renderStep3 = () => (
-    <SummaryStep
-      currency={data.currency}
-      account={data.firstAccount}
-    />
-  );
+  // const renderStep3 = () => (
+  //   <SummaryStep
+  //     currency={data.currency}
+  //     account={data.firstAccount}
+  //   />
+  // );
 
   const renderStepContent = () => {
     switch (step) {
-      case 1:
-        return renderStep1();
+      // case 1:
+      //   return renderStep1();
       case 2:
-        return renderStep2();
+        return (
+          <AccountSetupStep
+            selectedAccount={data.firstAccount}
+            onAccountChange={(account) => setData({ ...data, firstAccount: account })}
+            currency={data.currency}
+          />
+        )
       case 3:
-        return renderStep3();
+        return (
+          <SummaryStep
+            currency={data.currency}
+            account={data.firstAccount}
+          />
+        )
       default:
-        return renderStep1();
+        return (
+          <CurrencyStep
+            selectedCurrency={data.currency}
+            onCurrencySelect={(currency) => setData({ ...data, currency })}
+          />
+        )
     }
   };
 
@@ -218,8 +234,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fafc',
   },
   header: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 12,
     backgroundColor: '#ffffff',
     borderBottomWidth: 1,
     borderBottomColor: '#e2e8f0',
@@ -270,10 +285,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     flexDirection: 'row',
-    padding: 20,
-    backgroundColor: '#ffffff',
-    borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
     gap: 12,
   },
   footerButton: {

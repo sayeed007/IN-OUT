@@ -137,14 +137,17 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
         </View>
       </TouchableOpacity>
 
-      <AccountPickerModal
-        visible={isModalVisible}
-        accounts={accounts}
-        selectedAccountId={selectedAccountId}
-        onSelectAccount={onSelectAccount}
-        onClose={() => setIsModalVisible(false)}
-        title="Select Account"
-      />
+      {isModalVisible &&
+        <AccountPickerModal
+          visible={isModalVisible}
+          accounts={accounts}
+          selectedAccountId={selectedAccountId}
+          onSelectAccount={onSelectAccount}
+          onClose={() => setIsModalVisible(false)}
+          title="Select Account"
+        />
+      }
+
 
     </View >
   );
