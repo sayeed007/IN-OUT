@@ -11,13 +11,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeContainer } from '../layout/SafeContainer';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../app/providers/ThemeProvider';
 import { useAddCategoryMutation } from '../../state/api';
 import type { Category, TransactionType } from '../../types/global';
 import { CATEGORY_COLORS, CATEGORY_ICONS, CATEGORY_TYPES } from '../../utils/constants/categories';
-import Card from '../ui/Card';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import { showToast } from '../../utils/helpers/toast';
 
@@ -104,11 +102,24 @@ export const CategoryCreationModal: React.FC<CategoryCreationModalProps> = ({
   };
 
   const styles = StyleSheet.create({
-    container: {
+    modalOverlay: {
       flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'flex-end',
+    },
+    backdrop: {
+      ...StyleSheet.absoluteFillObject,
+    },
+    keyboardAvoid: {
+      justifyContent: 'flex-end',
+    },
+    modalContent: {
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      height: '95%',
       backgroundColor: theme.colors.background,
     },
-    header: {
+    modalHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
@@ -116,45 +127,30 @@ export const CategoryCreationModal: React.FC<CategoryCreationModalProps> = ({
       paddingVertical: 16,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
-      backgroundColor: theme.colors.surface,
     },
-    title: {
+    modalTitle: {
       fontSize: 18,
-      fontWeight: '600',
+      fontWeight: '700',
       color: theme.colors.text,
     },
-    headerButton: {
-      padding: 4,
-      minWidth: 60,
-    },
-    cancelText: {
-      fontSize: 16,
-      color: theme.colors.textSecondary,
-    },
-    saveText: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: theme.colors.primary[500],
-      textAlign: 'right',
-    },
-    saveTextDisabled: {
-      color: theme.colors.textTertiary,
+    scrollContainer: {
+      flex: 1,
     },
     scrollContent: {
-      flexGrow: 1,
-      padding: 20,
+      paddingHorizontal: 20,
+      paddingBottom: 40,
     },
     section: {
-      marginBottom: 24,
+      marginVertical: 12,
+    },
+    sectionMargin: {
+      marginHorizontal: 20,
     },
     sectionTitle: {
-      fontSize: 16,
+      fontSize: 14,
       fontWeight: '600',
       color: theme.colors.text,
       marginBottom: 12,
-    },
-    inputCard: {
-      padding: 16,
     },
     textInput: {
       borderWidth: 1,
@@ -172,8 +168,7 @@ export const CategoryCreationModal: React.FC<CategoryCreationModalProps> = ({
     typeButton: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingVertical: 14,
+      padding: 16,
       borderRadius: 12,
       borderWidth: 2,
       borderColor: theme.colors.border,
@@ -181,28 +176,35 @@ export const CategoryCreationModal: React.FC<CategoryCreationModalProps> = ({
     },
     typeButtonActive: {
       borderColor: getCategoryTypeColor(categoryType),
-      backgroundColor: `${getCategoryTypeColor(categoryType)}10`,
+      backgroundColor: `${getCategoryTypeColor(categoryType)}15`,
     },
-    typeIconContainer: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+    typeButtonLeft: {
+      flexDirection: 'row',
       alignItems: 'center',
+      gap: 12,
+      flex: 1,
+    },
+    radioButton: {
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      borderWidth: 2,
       justifyContent: 'center',
-      marginRight: 12,
-      backgroundColor: theme.colors.surfaceVariant,
+      alignItems: 'center',
     },
-    typeIconContainerActive: {
-      backgroundColor: getCategoryTypeColor(categoryType),
+    radioButtonInner: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
     },
-    typeContent: {
+    typeInfo: {
       flex: 1,
     },
     typeName: {
       fontSize: 16,
       fontWeight: '600',
       color: theme.colors.text,
-      marginBottom: 2,
+      marginBottom: 4,
     },
     typeDescription: {
       fontSize: 13,
@@ -242,109 +244,118 @@ export const CategoryCreationModal: React.FC<CategoryCreationModalProps> = ({
     colorButtonActive: {
       borderColor: theme.colors.text,
     },
-    keyboardAvoidingView: {
-      flex: 1,
+    createButton: {
+      paddingVertical: 12,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginHorizontal: 20,
+      marginVertical: 12,
+      backgroundColor: theme.colors.primary[500],
     },
-    scrollView: {
-      flex: 1,
+    createButtonDisabled: {
+      opacity: 0.6,
+    },
+    createButtonText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: theme.colors.onPrimary,
     },
   });
 
   return (
     <Modal
       visible={visible}
+      transparent
       animationType="slide"
-      presentationStyle="pageSheet"
       onRequestClose={handleClose}
     >
-      <SafeContainer style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleClose} style={styles.headerButton}>
-            <Text style={styles.cancelText}>Cancel</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>Add Category</Text>
-          <TouchableOpacity
-            onPress={handleCreateCategory}
-            style={styles.headerButton}
-            disabled={isCreating}
-          >
-            {isCreating ? (
-              <LoadingSpinner size="small" color={theme.colors.primary[500]} />
-            ) : (
-              <Text style={[styles.saveText, isCreating && styles.saveTextDisabled]}>
-                Save
-              </Text>
-            )}
-          </TouchableOpacity>
-        </View>
+      <View style={styles.modalOverlay}>
+        <TouchableOpacity
+          style={styles.backdrop}
+          activeOpacity={1}
+          onPress={handleClose}
+        />
 
         <KeyboardAvoidingView
-          style={styles.keyboardAvoidingView}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardAvoid}
         >
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-          >
+          <View style={styles.modalContent}>
+            {/* Modal Header */}
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Add Category</Text>
+              <TouchableOpacity onPress={handleClose} disabled={isCreating}>
+                <Icon name="close" size={24} color={theme.colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
             {/* Category Name */}
-            <View style={styles.section}>
+            <View style={[styles.section, styles.sectionMargin]}>
               <Text style={styles.sectionTitle}>Category Name</Text>
-              <Card style={styles.inputCard}>
-                <TextInput
-                  style={styles.textInput}
-                  value={categoryName}
-                  onChangeText={setCategoryName}
-                  placeholder="e.g. Groceries, Salary, Entertainment"
-                  placeholderTextColor={theme.colors.textSecondary}
-                  autoCapitalize="words"
-                  autoFocus
-                />
-              </Card>
+              <TextInput
+                style={styles.textInput}
+                value={categoryName}
+                onChangeText={setCategoryName}
+                placeholder="e.g. Groceries, Salary, Entertainment"
+                placeholderTextColor={theme.colors.textSecondary}
+                autoCapitalize="words"
+                autoFocus
+              />
             </View>
 
-            {/* Category Type */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Category Type</Text>
-              <View style={styles.typeSelector}>
-                {CATEGORY_TYPES.map((typeOption) => (
-                  <TouchableOpacity
-                    key={typeOption.value}
-                    style={[
-                      styles.typeButton,
-                      categoryType === typeOption.value && styles.typeButtonActive
-                    ]}
-                    onPress={() => setCategoryType(typeOption.value)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={[
-                      styles.typeIconContainer,
-                      categoryType === typeOption.value && styles.typeIconContainerActive
-                    ]}>
-                      <Icon
-                        name={typeOption.icon}
-                        size={20}
-                        color={categoryType === typeOption.value ? theme.colors.surface : getCategoryTypeColor(typeOption.value)}
-                      />
-                    </View>
-                    <View style={styles.typeContent}>
-                      <Text style={styles.typeName}>{typeOption.label}</Text>
-                      <Text style={styles.typeDescription}>
-                        {typeOption.description}
-                      </Text>
-                    </View>
-                    {categoryType === typeOption.value && (
-                      <Icon name="checkmark-circle" size={24} color={getCategoryTypeColor(typeOption.value)} />
-                    )}
-                  </TouchableOpacity>
-                ))}
+            <ScrollView
+              style={styles.scrollContainer}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+
+              {/* Category Type */}
+              <View>
+                <Text style={styles.sectionTitle}>Category Type</Text>
+                <View style={styles.typeSelector}>
+                  {CATEGORY_TYPES.map((typeOption) => {
+                    const isSelected = categoryType === typeOption.value;
+                    const typeColor = getCategoryTypeColor(typeOption.value);
+
+                    return (
+                      <TouchableOpacity
+                        key={typeOption.value}
+                        style={[
+                          styles.typeButton,
+                          {
+                            backgroundColor: isSelected
+                              ? `${typeColor}15`
+                              : theme.colors.surface,
+                            borderColor: isSelected ? typeColor : theme.colors.border,
+                          }
+                        ]}
+                        onPress={() => setCategoryType(typeOption.value)}
+                        activeOpacity={0.7}
+                      >
+                        <View style={styles.typeButtonLeft}>
+                          <View style={[styles.radioButton, { borderColor: isSelected ? typeColor : theme.colors.border }]}>
+                            {isSelected && (
+                              <View style={[styles.radioButtonInner, { backgroundColor: typeColor }]} />
+                            )}
+                          </View>
+                          <View style={styles.typeInfo}>
+                            <Text style={styles.typeName}>{typeOption.label}</Text>
+                            <Text style={styles.typeDescription}>
+                              {typeOption.description}
+                            </Text>
+                          </View>
+                        </View>
+                        <Icon name={typeOption.icon} size={20} color={typeColor} />
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
               </View>
-            </View>
 
-            {/* Category Icon */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Category Icon</Text>
-              <Card style={styles.inputCard}>
+              {/* Category Icon */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Category Icon</Text>
                 <View style={styles.iconSelector}>
                   {getIconOptions().map((iconName) => (
                     <TouchableOpacity
@@ -359,13 +370,11 @@ export const CategoryCreationModal: React.FC<CategoryCreationModalProps> = ({
                     </TouchableOpacity>
                   ))}
                 </View>
-              </Card>
-            </View>
+              </View>
 
-            {/* Category Color */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Category Color</Text>
-              <Card style={styles.inputCard}>
+              {/* Category Color */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Category Color</Text>
                 <View style={styles.colorSelector}>
                   {CATEGORY_COLORS.map((color) => (
                     <TouchableOpacity
@@ -379,12 +388,33 @@ export const CategoryCreationModal: React.FC<CategoryCreationModalProps> = ({
                     />
                   ))}
                 </View>
-              </Card>
-            </View>
-          </ScrollView>
+              </View>
+            </ScrollView>
 
+            {/* Create Button */}
+            <TouchableOpacity
+              style={[
+                styles.createButton,
+                isCreating && styles.createButtonDisabled
+              ]}
+              onPress={handleCreateCategory}
+              disabled={isCreating}
+              activeOpacity={0.8}
+            >
+              {isCreating ? (
+                <LoadingSpinner size="small" color={theme.colors.onPrimary} />
+              ) : (
+                <Text style={styles.createButtonText}>
+                  Create Category
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
         </KeyboardAvoidingView>
-      </SafeContainer>
+      </View>
     </Modal>
   );
+
+
 };
+
