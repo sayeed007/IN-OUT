@@ -6,7 +6,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   TextInput,
   KeyboardAvoidingView,
   Platform,
@@ -27,6 +26,7 @@ import type { Category } from '../../types/global';
 import type { SettingsStackParamList } from '../../app/navigation/types';
 import BottomSpacing from '../../components/ui/BottomSpacing';
 import { CATEGORY_TYPES, CATEGORY_COLORS, CATEGORY_ICONS } from '../../utils/constants/categories';
+import { showToast } from '../../utils/helpers/toast';
 
 type CategoryFormRouteProp = RouteProp<SettingsStackParamList, 'CategoryForm'>;
 
@@ -279,7 +279,7 @@ export const CategoryFormScreen: React.FC = () => {
   const handleSubmit = async () => {
     // Validation
     if (!name.trim()) {
-      Alert.alert('Validation Error', 'Please enter a category name');
+      showToast.error('Please enter a category name', 'Validation Error');
       return;
     }
 
@@ -295,17 +295,15 @@ export const CategoryFormScreen: React.FC = () => {
 
       if (isEditing && categoryId) {
         await updateCategory({ id: categoryId, ...categoryData }).unwrap();
-        Alert.alert('Success', 'Category updated successfully', [
-          { text: 'OK', onPress: () => navigation.goBack() }
-        ]);
+        showToast.success('Category updated successfully');
+        navigation.goBack();
       } else {
         await addCategory(categoryData).unwrap();
-        Alert.alert('Success', 'Category created successfully', [
-          { text: 'OK', onPress: () => navigation.goBack() }
-        ]);
+        showToast.success('Category created successfully');
+        navigation.goBack();
       }
     } catch (error) {
-      Alert.alert('Error', `Failed to ${isEditing ? 'update' : 'create'} category. Please try again.`);
+      showToast.error(`Failed to ${isEditing ? 'update' : 'create'} category. Please try again.`);
     }
   };
 

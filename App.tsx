@@ -1,12 +1,13 @@
 // src/app/App.tsx
-import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import React, { useEffect } from 'react';
-import { StatusBar, View, StyleSheet } from 'react-native';
+import { StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 import AppNavigator from './src/app/navigation/AppNavigator';
+import { CalculatorProvider } from './src/app/providers/CalculatorProvider';
 import { StoreProvider } from './src/app/providers/StoreProvider';
 import { ThemeProvider, useTheme } from './src/app/providers/ThemeProvider';
-import { CalculatorProvider } from './src/app/providers/CalculatorProvider';
 import { CalculatorModal } from './src/components/calculator/CalculatorModal';
 import { initializeApp } from './src/services/storage/appInitialization';
 
@@ -49,6 +50,8 @@ const App: React.FC = () => {
                         <AppContent />
                     </SafeAreaProvider>
                 </CalculatorProvider>
+
+                <Toast topOffset={60} />
             </ThemeProvider>
         </StoreProvider>
     );

@@ -6,7 +6,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -19,6 +18,7 @@ import { useGetAccountsQuery, useDeleteAccountMutation } from '../../state/api';
 import { AccountItem } from './components/AccountItem';
 import type { Account } from '../../types/global';
 import BottomSpacing from '../../components/ui/BottomSpacing';
+import { showToast } from '../../utils/helpers/toast';
 
 
 export const AccountManagerScreen: React.FC = () => {
@@ -37,26 +37,13 @@ export const AccountManagerScreen: React.FC = () => {
     navigation.navigate('AccountForm', { accountId });
   };
 
-  const handleDeleteAccount = (account: Account) => {
-    Alert.alert(
-      'Delete Account',
-      `Are you sure you want to delete "${account.name}"? This action cannot be undone and will also delete all associated transactions.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteAccount(account.id).unwrap();
-              Alert.alert('Success', 'Account deleted successfully');
-            } catch (error) {
-              Alert.alert('Error', 'Failed to delete account. Please try again.');
-            }
-          }
-        }
-      ]
-    );
+  const handleDeleteAccount = async (account: Account) => {
+    try {
+      await deleteAccount(account.id).unwrap();
+      showToast.success(`Account "${account.name}" deleted successfully`);
+    } catch (error) {
+      showToast.error('Failed to delete account. Please try again.');
+    }
   };
 
   const filteredAccounts = accounts.filter(account =>

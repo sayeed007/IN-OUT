@@ -3,7 +3,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -33,6 +32,7 @@ import {
 import type { Transaction, TransactionType } from '../../types/global';
 import { validateTransaction } from '../../utils/helpers/validationUtils';
 import Animated from 'react-native-reanimated';
+import { showToast } from '../../utils/helpers/toast';
 
 type Props = TabScreenProps<'Add'>;
 
@@ -203,7 +203,7 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
       // Convert amount to number
       const amount = parseFloat(data.amount);
       if (isNaN(amount) || amount <= 0) {
-        Alert.alert('Error', 'Please enter a valid amount');
+        showToast.error('Please enter a valid amount');
         return;
       }
 
@@ -238,43 +238,30 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
         const errorMessages = Object.values(validationResults)
           .flatMap(result => result.errors)
           .join('\n');
-        Alert.alert('Validation Error', errorMessages);
+        showToast.error(errorMessages, 'Validation Error');
         return;
       }
 
       // Submit transaction
       await addTransaction(transactionData).unwrap();
 
-      Alert.alert(
-        'Success',
-        'Transaction added successfully!',
-        [
-          {
-            text: 'Add Another',
-            onPress: () => {
-              reset({
-                type: transactionType,
-                amount: '',
-                accountId: data.accountId, // Keep same account
-                accountIdTo: '',
-                categoryId: data.type !== 'transfer' ? data.categoryId : '', // Keep same category if not transfer
-                date: new Date().toISOString(),
-                note: '',
-                tags: [],
-              });
-            },
-          },
-          {
-            text: 'Done',
-            style: 'default',
-            onPress: () => navigation.goBack(),
-          },
-        ]
-      );
+      showToast.success('Transaction added successfully!');
+
+      // Reset form to allow adding another transaction
+      reset({
+        type: transactionType,
+        amount: '',
+        accountId: data.accountId, // Keep same account
+        accountIdTo: '',
+        categoryId: data.type !== 'transfer' ? data.categoryId : '', // Keep same category if not transfer
+        date: new Date().toISOString(),
+        note: '',
+        tags: [],
+      });
 
     } catch (error) {
       console.error('Failed to add transaction:', error);
-      Alert.alert('Error', 'Failed to add transaction. Please try again.');
+      showToast.error('Failed to add transaction. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

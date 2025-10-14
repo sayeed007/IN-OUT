@@ -2,7 +2,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
-  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -20,6 +19,7 @@ import { useGetCategoriesQuery, useUpdateCategoryMutation } from '../../state/ap
 import { Spacing } from '../../theme';
 import type { Category, TransactionType } from '../../types/global';
 import { CategoryItem } from './components/CategoryItem';
+import { showToast } from '../../utils/helpers/toast';
 
 export const CategoryManagerScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -41,27 +41,16 @@ export const CategoryManagerScreen: React.FC = () => {
   const handleToggleArchive = async (category: Category) => {
     const action = category.isArchived ? 'unarchive' : 'archive';
 
-    Alert.alert(
-      `${action.charAt(0).toUpperCase() + action.slice(1)} Category`,
-      `Are you sure you want to ${action} "${category.name}"?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: action.charAt(0).toUpperCase() + action.slice(1),
-          onPress: async () => {
-            try {
-              await updateCategory({
-                id: category.id,
-                isArchived: !category.isArchived,
-                updatedAt: new Date().toISOString(),
-              }).unwrap();
-            } catch (error) {
-              Alert.alert('Error', `Failed to ${action} category. Please try again.`);
-            }
-          }
-        }
-      ]
-    );
+    try {
+      await updateCategory({
+        id: category.id,
+        isArchived: !category.isArchived,
+        updatedAt: new Date().toISOString(),
+      }).unwrap();
+      showToast.success(`Category "${category.name}" ${action}d successfully`);
+    } catch (error) {
+      showToast.error(`Failed to ${action} category. Please try again.`);
+    }
   };
 
   // Filter categories

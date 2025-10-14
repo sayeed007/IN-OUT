@@ -52,7 +52,7 @@ const AppNavigator: React.FC = () => {
     // Show splash screen first
     if (showSplash) {
         return (
-            <SplashScreen 
+            <SplashScreen
                 onFinish={() => setShowSplash(false)}
                 duration={2500}
             />

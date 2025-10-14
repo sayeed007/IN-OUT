@@ -94,7 +94,6 @@ export const AccountSetupStep: React.FC<AccountSetupStepProps> = ({
           onChangeText={handleBalanceChange}
           placeholder="0.00"
           keyboardType="numeric"
-          inputStyle={styles.input}
         />
       </View>
 
@@ -124,8 +123,5 @@ const styles = StyleSheet.create({
   },
   stepContent: {
     gap: 16,
-  },
-  input: {
-    marginBottom: 16,
   },
 });

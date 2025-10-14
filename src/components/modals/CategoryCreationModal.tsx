@@ -1,7 +1,6 @@
 // src/components/modals/CategoryCreationModal.tsx
 import React, { useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -20,6 +19,7 @@ import type { Category, TransactionType } from '../../types/global';
 import { CATEGORY_COLORS, CATEGORY_ICONS, CATEGORY_TYPES } from '../../utils/constants/categories';
 import Card from '../ui/Card';
 import LoadingSpinner from '../ui/LoadingSpinner';
+import { showToast } from '../../utils/helpers/toast';
 
 interface CategoryCreationModalProps {
   visible: boolean;
@@ -64,7 +64,7 @@ export const CategoryCreationModal: React.FC<CategoryCreationModalProps> = ({
 
   const handleCreateCategory = async () => {
     if (!categoryName.trim()) {
-      Alert.alert('Error', 'Please enter a category name');
+      showToast.error('Please enter a category name');
       return;
     }
 
@@ -82,10 +82,10 @@ export const CategoryCreationModal: React.FC<CategoryCreationModalProps> = ({
       onCategoryCreated(newCategory);
       resetForm();
       onClose();
-      Alert.alert('Success', 'Category created successfully!');
+      showToast.success('Category created successfully!');
     } catch (error) {
       console.error('Failed to create category:', error);
-      Alert.alert('Error', 'Failed to create category. Please try again.');
+      showToast.error('Failed to create category. Please try again.');
     } finally {
       setIsCreating(false);
     }

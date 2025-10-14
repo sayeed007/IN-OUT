@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -20,6 +19,7 @@ import type { Budget, Category } from '../../../types/global';
 import Card from '../../../components/ui/Card';
 import LoadingSpinner from '../../../components/ui/LoadingSpinner';
 import dayjs from 'dayjs';
+import { showToast } from '../../../utils/helpers/toast';
 
 interface BudgetFormProps {
   visible: boolean;
@@ -75,12 +75,12 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
 
   const handleCreateBudget = async () => {
     if (!categoryId) {
-      Alert.alert('Error', 'Please select a category');
+      showToast.error('Please select a category');
       return;
     }
 
     if (!amount.trim() || parseFloat(amount) <= 0) {
-      Alert.alert('Error', 'Please enter a valid budget amount');
+      showToast.error('Please enter a valid budget amount');
       return;
     }
 
@@ -99,10 +99,10 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
       onBudgetCreated(newBudget);
       resetForm();
       onClose();
-      Alert.alert('Success', 'Budget created successfully!');
+      showToast.success('Budget created successfully!');
     } catch (error) {
       console.error('Failed to create budget:', error);
-      Alert.alert('Error', 'Failed to create budget. Please try again.');
+      showToast.error('Failed to create budget. Please try again.');
     } finally {
       setIsCreating(false);
     }

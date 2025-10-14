@@ -3,7 +3,6 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import dayjs from 'dayjs';
 import React, { useMemo, useState } from 'react';
 import {
-    Alert,
     FlatList,
     RefreshControl,
     StyleSheet,
@@ -26,6 +25,7 @@ import TransactionDetailsModal from '../../components/modals/TransactionDetailsM
 import { useDeleteTransactionMutation, useGetAccountsQuery, useGetCategoriesQuery, useGetTransactionsQuery } from '../../state/api';
 import { Transaction, TransactionType } from '../../types/global';
 import TransactionFilters from './components/TransactionFilters';
+import { showToast } from '../../utils/helpers/toast';
 
 interface GroupedTransaction {
     title: string;
@@ -182,25 +182,13 @@ export const TransactionListScreen: React.FC = () => {
         });
     };
 
-    const handleTransactionDelete = (transaction: Transaction) => {
-        Alert.alert(
-            'Delete Transaction',
-            'Are you sure you want to delete this transaction? This action cannot be undone.',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Delete',
-                    style: 'destructive',
-                    onPress: async () => {
-                        try {
-                            await deleteTransaction(transaction.id).unwrap();
-                        } catch (handleTransactionError) {
-                            Alert.alert('Error', `Failed to delete transaction because ${handleTransactionError}`);
-                        }
-                    },
-                },
-            ]
-        );
+    const handleTransactionDelete = async (transaction: Transaction) => {
+        try {
+            await deleteTransaction(transaction.id).unwrap();
+            showToast.success('Transaction deleted successfully');
+        } catch (handleTransactionError) {
+            showToast.error(`Failed to delete transaction: ${handleTransactionError}`);
+        }
     };
 
     const handleAddTransaction = () => {

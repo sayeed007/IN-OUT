@@ -1,7 +1,6 @@
 // src/components/modals/AccountCreationModal.tsx
 import React, { useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -22,6 +21,7 @@ import { RootState } from '../../state/store';
 import type { Account } from '../../types/global';
 import Card from '../ui/Card';
 import LoadingSpinner from '../ui/LoadingSpinner';
+import { showToast } from '../../utils/helpers/toast';
 
 interface AccountCreationModalProps {
   visible: boolean;
@@ -57,7 +57,7 @@ export const AccountCreationModal: React.FC<AccountCreationModalProps> = ({
 
   const handleCreateAccount = async () => {
     if (!accountName.trim()) {
-      Alert.alert('Error', 'Please enter an account name');
+      showToast.error('Please enter an account name');
       return;
     }
 
@@ -77,10 +77,10 @@ export const AccountCreationModal: React.FC<AccountCreationModalProps> = ({
       onAccountCreated(newAccount);
       resetForm();
       onClose();
-      Alert.alert('Success', 'Account created successfully!');
+      showToast.success('Account created successfully!');
     } catch (error) {
       console.error('Failed to create account:', error);
-      Alert.alert('Error', 'Failed to create account. Please try again.');
+      showToast.error('Failed to create account. Please try again.');
     } finally {
       setIsCreating(false);
     }

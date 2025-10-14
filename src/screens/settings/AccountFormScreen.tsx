@@ -6,7 +6,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   TextInput,
   KeyboardAvoidingView,
   Platform,
@@ -28,6 +27,7 @@ import { RootState } from '../../state/store';
 import type { Account } from '../../types/global';
 import type { SettingsStackParamList } from '../../app/navigation/types';
 import BottomSpacing from '../../components/ui/BottomSpacing';
+import { showToast } from '../../utils/helpers/toast';
 
 type AccountFormRouteProp = RouteProp<SettingsStackParamList, 'AccountForm'>;
 
@@ -278,7 +278,7 @@ export const AccountFormScreen: React.FC = () => {
   const handleSubmit = async () => {
     // Validation
     if (!name.trim()) {
-      Alert.alert('Validation Error', 'Please enter an account name');
+      showToast.error('Please enter an account name', 'Validation Error');
       return;
     }
 
@@ -295,21 +295,19 @@ export const AccountFormScreen: React.FC = () => {
 
       if (isEditing && accountId) {
         await updateAccount({ id: accountId, ...accountData }).unwrap();
-        Alert.alert('Success', 'Account updated successfully', [
-          { text: 'OK', onPress: () => navigation.goBack() }
-        ]);
+        showToast.success('Account updated successfully');
+        navigation.goBack();
       } else {
         await addAccount({
           ...accountData,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         }).unwrap();
-        Alert.alert('Success', 'Account created successfully', [
-          { text: 'OK', onPress: () => navigation.goBack() }
-        ]);
+        showToast.success('Account created successfully');
+        navigation.goBack();
       }
     } catch (error) {
-      Alert.alert('Error', `Failed to ${isEditing ? 'update' : 'create'} account. Please try again.`);
+      showToast.error(`Failed to ${isEditing ? 'update' : 'create'} account. Please try again.`);
     }
   };
 

@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../app/providers/ThemeProvider';
@@ -86,15 +85,8 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
   };
 
   const handleLongPress = () => {
-    Alert.alert(
-      'Transaction Options',
-      'What would you like to do with this transaction?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Edit', onPress: onEdit },
-        { text: 'Delete', onPress: onDelete, style: 'destructive' },
-      ]
-    );
+    // For now, just trigger onPress - can implement custom modal later if needed
+    onPress();
   };
 
   return (

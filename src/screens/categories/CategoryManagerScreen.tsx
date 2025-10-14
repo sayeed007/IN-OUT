@@ -6,7 +6,6 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  Alert,
   RefreshControl,
 } from 'react-native';
 import { SafeContainer } from '../../components/layout/SafeContainer';
@@ -23,6 +22,7 @@ import {
   useGetTransactionsQuery,
 } from '../../state/api';
 import type { Category, TransactionType } from '../../types/global';
+import { showToast } from '../../utils/helpers/toast';
 
 interface Props {
   navigation: any;
@@ -53,40 +53,22 @@ const CategoryManagerScreen: React.FC<Props> = ({ navigation }) => {
     navigation.navigate('CategoryForm', { categoryId: category.id });
   };
 
-  const handleDeleteCategory = (category: Category) => {
+  const handleDeleteCategory = async (category: Category) => {
     // Check if category has transactions
     const categoryTransactions = allTransactions.filter(
       tx => tx.categoryId === category.id
     );
 
     if (categoryTransactions.length > 0) {
-      Alert.alert(
-        'Cannot Delete Category',
-        `This category is used in ${categoryTransactions.length} transaction(s). Please reassign or delete these transactions first.`,
-        [{ text: 'OK' }]
-      );
+      showToast.error(`This category is used in ${categoryTransactions.length} transaction(s). Please reassign or delete these transactions first.`, 'Cannot Delete Category');
       return;
     }
 
-    Alert.alert(
-      'Delete Category',
-      `Are you sure you want to delete "${category.name}"? This action cannot be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => confirmDelete(category),
-        },
-      ]
-    );
-  };
-
-  const confirmDelete = async (category: Category) => {
     try {
       await deleteCategory(category.id).unwrap();
+      showToast.success(`Category "${category.name}" deleted successfully`);
     } catch (error) {
-      Alert.alert('Error', 'Failed to delete category');
+      showToast.error('Failed to delete category');
     }
   };
 

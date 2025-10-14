@@ -5,7 +5,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Alert,
   TouchableOpacity,
   Share,
 } from 'react-native';
@@ -24,6 +23,7 @@ import {
 import { formatCurrency } from '../../utils/helpers/currencyUtils';
 import { formatDisplayDate, formatTime } from '../../utils/helpers/dateUtils';
 import type { TransactionScreenProps } from '../../app/navigation/types';
+import { showToast } from '../../utils/helpers/toast';
 
 type Props = TransactionScreenProps<'TransactionDetail'>;
 
@@ -45,33 +45,14 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   };
 
-  const handleDelete = () => {
-    Alert.alert(
-      'Delete Transaction',
-      'Are you sure you want to delete this transaction? This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: confirmDelete,
-        },
-      ]
-    );
-  };
-
-  const confirmDelete = async () => {
+  const handleDelete = async () => {
     try {
       setIsDeleting(true);
       await deleteTransaction(transactionId).unwrap();
-      Alert.alert('Success', 'Transaction deleted successfully', [
-        {
-          text: 'OK',
-          onPress: () => navigation.goBack(),
-        },
-      ]);
+      showToast.success('Transaction deleted successfully');
+      navigation.goBack();
     } catch (deleteError) {
-      Alert.alert('Error', 'Failed to delete transaction');
+      showToast.error('Failed to delete transaction');
     } finally {
       setIsDeleting(false);
     }

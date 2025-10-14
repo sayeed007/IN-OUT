@@ -1,7 +1,6 @@
 // src/screens/auth/OnboardingScreen.tsx
 import React, { useState } from 'react';
 import {
-  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,6 +14,7 @@ import { validateRequired } from '../../utils/helpers/validationUtils';
 import { CurrencyStep } from './components/CurrencyStep';
 import { AccountSetupStep } from './components/AccountSetupStep';
 import { SummaryStep } from './components/SummaryStep';
+import { showToast } from '../../utils/helpers/toast';
 
 type Props = RootStackScreenProps<'Onboarding'>;
 
@@ -65,7 +65,7 @@ const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
       const balanceValid = !isNaN(parseFloat(data.firstAccount.balance)) && parseFloat(data.firstAccount.balance) >= 0;
 
       if (!currencyValid.isValid || !accountNameValid.isValid || !balanceValid) {
-        Alert.alert('Error', 'Please check your inputs and try again.');
+        showToast.error('Please check your inputs and try again.');
         return;
       }
 
@@ -125,7 +125,7 @@ const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
 
     } catch (error) {
       console.error('Onboarding completion failed:', error);
-      Alert.alert('Error', 'Failed to complete setup. Please try again.');
+      showToast.error('Failed to complete setup. Please try again.');
     } finally {
       setIsLoading(false);
     }

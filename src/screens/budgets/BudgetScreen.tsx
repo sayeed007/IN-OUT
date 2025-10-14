@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react';
 import {
-    Alert,
     RefreshControl,
     ScrollView,
     StyleSheet,
@@ -25,6 +24,7 @@ import {
 import { BudgetScreenProps } from '../../types/navigation';
 import BudgetProgress from './components/BudgetProgress';
 import BudgetForm from './components/BudgetForm';
+import { showToast } from '../../utils/helpers/toast';
 
 const BudgetScreen: React.FC<BudgetScreenProps> = ({ route }) => {
     const { theme } = useTheme();
@@ -105,19 +105,13 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ route }) => {
         ]);
     };
 
-    const handleDeleteBudget = (budgetId: string) => {
-        Alert.alert(
-            'Delete Budget',
-            'Are you sure you want to delete this budget?',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Delete',
-                    style: 'destructive',
-                    onPress: () => deleteBudget(budgetId),
-                },
-            ]
-        );
+    const handleDeleteBudget = async (budgetId: string) => {
+        try {
+            await deleteBudget(budgetId).unwrap();
+            showToast.success('Budget deleted successfully');
+        } catch (error) {
+            showToast.error('Failed to delete budget');
+        }
     };
 
     const handleCreateBudget = () => {
