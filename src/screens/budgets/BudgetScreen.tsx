@@ -10,11 +10,11 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import dayjs from 'dayjs';
 import { useTheme } from '../../app/providers/ThemeProvider';
-import { SafeContainer } from '../../components/layout/SafeContainer';
 import Card from '../../components/ui/Card';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import EmptyState from '../../components/ui/EmptyState';
 import BottomSpacing from '../../components/ui/BottomSpacing';
+import { GradientHeader } from '../../components/ui/GradientHeader';
 import {
     useGetBudgetsQuery,
     useGetCategoriesQuery,
@@ -23,11 +23,13 @@ import {
 } from '../../state/api';
 import { BudgetScreenProps } from '../../types/navigation';
 import BudgetProgress from './components/BudgetProgress';
-import BudgetForm from './components/BudgetForm';
+import BudgetCreationModal from './components/BudgetCreationModal';
 import { showToast } from '../../utils/helpers/toast';
+import { useNavigation } from '@react-navigation/native';
 
 const BudgetScreen: React.FC<BudgetScreenProps> = ({ route }) => {
     const { theme } = useTheme();
+    const navigation = useNavigation();
     const [selectedMonth, setSelectedMonth] = useState(route.params?.month || dayjs().format('YYYY-MM'));
     const [showBudgetForm, setShowBudgetForm] = useState(false);
 
@@ -133,21 +135,36 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ route }) => {
 
     if (isLoading && budgets.length === 0) {
         return (
-            <SafeContainer>
+            <View style={styles.container}>
+                <GradientHeader
+                    title="Budgets"
+                    subtitle={dayjs(selectedMonth).format('MMMM YYYY')}
+                    showBackButton={false}
+                    rightIcon="add-circle-outline"
+                    onRightPress={handleCreateBudget}
+                />
                 <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
                     <LoadingSpinner size="large" />
                     <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>
                         Loading budgets...
                     </Text>
                 </View>
-            </SafeContainer>
+            </View>
         );
     }
 
     return (
-        <SafeContainer>
+        <View style={styles.container}>
+            <GradientHeader
+                title="Budgets"
+                subtitle={dayjs(selectedMonth).format('MMMM YYYY')}
+                showBackButton={true}
+                onBackPress={() => navigation.goBack()}
+                rightIcon="add-circle-outline"
+                onRightPress={handleCreateBudget}
+            />
             <ScrollView
-                style={[styles.container, { backgroundColor: theme.colors.background }]}
+                style={styles.content}
                 showsVerticalScrollIndicator={false}
                 refreshControl={
                     <RefreshControl
@@ -159,7 +176,7 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ route }) => {
                 }
             >
                 {/* Month Selector */}
-                <Card>
+                <Card style={styles.card}>
                     <View style={styles.monthHeader}>
                         <TouchableOpacity
                             onPress={() => navigateToMonth('prev')}
@@ -278,19 +295,25 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ route }) => {
             </ScrollView>
 
             {/* Budget Creation Modal */}
-            <BudgetForm
+            <BudgetCreationModal
                 visible={showBudgetForm}
                 onClose={() => setShowBudgetForm(false)}
                 onBudgetCreated={handleBudgetCreated}
                 selectedMonth={selectedMonth}
             />
-        </SafeContainer>
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: '#f8fafc',
+    },
+    content: {
+        flex: 1,
+        backgroundColor: '#f8fafc',
+        paddingHorizontal: 12,
     },
     loadingContainer: {
         flex: 1,
@@ -300,6 +323,9 @@ const styles = StyleSheet.create({
     loadingText: {
         marginTop: 16,
         fontSize: 14,
+    },
+    card: {
+        marginVertical: 8,
     },
     monthHeader: {
         flexDirection: 'row',

@@ -11,19 +11,18 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { SafeContainer } from '../../components/layout/SafeContainer';
 import Icon from 'react-native-vector-icons/Ionicons';
 import type { TabScreenProps } from '../../app/navigation/types';
 import { AccountSelector } from '../../components/forms/AccountSelector';
 import { CategorySelector } from '../../components/forms/CategorySelector';
 import { DatePicker } from '../../components/forms/DatePicker';
 import { TagInput } from '../../components/forms/TagInput';
-import { Header } from '../../components/layout/Header';
 import { AccountCreationModal } from '../../components/modals/AccountCreationModal';
 import { CategoryCreationModal } from '../../components/modals/CategoryCreationModal';
 import { Button } from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Input from '../../components/ui/Input';
+import { GradientHeader } from '../../components/ui/GradientHeader';
 import {
   useAddTransactionMutation,
   useGetAccountsQuery,
@@ -295,11 +294,11 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
 
 
   return (
-    <SafeContainer style={styles.container}>
-      {/* Header with Progress */}
-      <Header
+    <View style={styles.container}>
+      <GradientHeader
         title="Add Transaction"
-        showBackButton
+        subtitle={`Track your ${transactionType}`}
+        showBackButton={true}
         onBackPress={() => navigation.goBack()}
       />
 
@@ -307,27 +306,30 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
         style={styles.content}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
+
+        {/* Quick Type Selector - Always visible */}
+        <Card style={styles.card}>
+          <View style={styles.typeSelector}>
+            {(['income', 'expense', 'transfer'] as TransactionType[]).map((type) => (
+              <Button
+                key={type}
+                title={type.charAt(0).toUpperCase() + type.slice(1)}
+                variant={transactionType === type ? 'primary' : 'secondary'}
+                onPress={() => handleTypeChange(type)}
+                style={styles.typeButton}
+                textStyle={styles.typeButtonText}
+                size='small'
+              />
+            ))}
+          </View>
+        </Card>
+
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Quick Type Selector - Always visible */}
-          <Card style={styles.card}>
-            <View style={styles.typeSelector}>
-              {(['income', 'expense', 'transfer'] as TransactionType[]).map((type) => (
-                <Button
-                  key={type}
-                  title={type.charAt(0).toUpperCase() + type.slice(1)}
-                  variant={transactionType === type ? 'primary' : 'secondary'}
-                  onPress={() => handleTypeChange(type)}
-                  style={styles.typeButton}
-                  textStyle={styles.typeButtonText}
-                  size='small'
-                />
-              ))}
-            </View>
-          </Card>
+
 
           {/* Essential Information - Always expanded */}
           <Card style={styles.card}>
@@ -494,20 +496,26 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
       </KeyboardAvoidingView>
 
       {/* Account Creation Modal */}
-      <AccountCreationModal
-        visible={showAccountModal}
-        onClose={() => setShowAccountModal(false)}
-        onAccountCreated={handleAccountCreated}
-      />
+      {showAccountModal &&
+        <AccountCreationModal
+          visible={showAccountModal}
+          onClose={() => setShowAccountModal(false)}
+          onAccountCreated={handleAccountCreated}
+        />
+      }
+
 
       {/* Category Creation Modal */}
-      <CategoryCreationModal
-        visible={showCategoryModal}
-        onClose={() => setShowCategoryModal(false)}
-        onCategoryCreated={handleCategoryCreated}
-        type={transactionType}
-      />
-    </SafeContainer>
+      {showCategoryModal &&
+        <CategoryCreationModal
+          visible={showCategoryModal}
+          onClose={() => setShowCategoryModal(false)}
+          onCategoryCreated={handleCategoryCreated}
+          type={transactionType}
+        />
+      }
+
+    </View>
   );
 };
 
@@ -542,15 +550,17 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    marginHorizontal: 12,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 120,
+    paddingBottom: 60,
+    // maxHeight: '60%'
   },
   card: {
-    marginBottom: 16,
+    marginVertical: 8,
   },
   sectionTitle: {
     fontSize: 14,
@@ -582,7 +592,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   noteInput: {
-    marginBottom: 12,
   },
   quickActions: {
     flexDirection: 'row',

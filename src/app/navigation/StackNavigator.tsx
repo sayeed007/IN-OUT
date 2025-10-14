@@ -82,7 +82,7 @@ const StackNavigator: React.FC = () => {
                 name="Budget"
                 component={BudgetScreen}
                 options={{
-                    title: 'Budget Management',
+                    headerShown: false,
                     presentation: 'modal',
                 }}
             />
