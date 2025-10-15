@@ -54,6 +54,7 @@
       "Read(/C:\\in_out\\src\\services\\storage/**)",
       "Read(/C:\\in_out\\src\\screens\\transactions/**)",
       "Read(/C:\\in_out\\src\\app\\navigation/**)",
+      "Read(/C:\\in_out\\src\\app/**)",
       "Bash(node:*)",
       "Bash(tree:*)",
       "Bash(npx unimported:*)",

@@ -397,5 +397,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         gap: 8,
+        marginBottom: 12,
     },
 });

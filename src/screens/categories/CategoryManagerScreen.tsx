@@ -4,18 +4,17 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
+  ScrollView,
   TouchableOpacity,
   RefreshControl,
 } from 'react-native';
-import { SafeContainer } from '../../components/layout/SafeContainer';
 import { Button } from '../../components/ui/Button';
-import { Card } from '../../components/ui/Card';
-import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
-import { EmptyState } from '../../components/ui/EmptyState';
-import { FloatingActionButton } from '../../components/ui/FloatingActionButton';
-import { Header } from '../../components/layout/Header';
-import { Chip } from '../../components/ui/Chip';
+import Card from '../../components/ui/Card';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import EmptyState from '../../components/ui/EmptyState';
+import Chip from '../../components/ui/Chip';
+import { GradientHeader } from '../../components/ui/GradientHeader';
+import BottomSpacing from '../../components/ui/BottomSpacing';
 import {
   useGetCategoriesQuery,
   useDeleteCategoryMutation,
@@ -23,15 +22,17 @@ import {
 } from '../../state/api';
 import type { Category, TransactionType } from '../../types/global';
 import { showToast } from '../../utils/helpers/toast';
+import { useTheme } from '../../app/providers/ThemeProvider';
 
 interface Props {
   navigation: any;
 }
 
 const CategoryManagerScreen: React.FC<Props> = ({ navigation }) => {
+  const { theme } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedType, setSelectedType] = useState<TransactionType | 'all'>('all');
-  
+
   const { data: categories = [], isLoading, refetch } = useGetCategoriesQuery();
   const { data: allTransactions = [] } = useGetTransactionsQuery({});
   const [deleteCategory] = useDeleteCategoryMutation();
@@ -73,8 +74,8 @@ const CategoryManagerScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   // Filter categories by type
-  const filteredCategories = selectedType === 'all' 
-    ? categories 
+  const filteredCategories = selectedType === 'all'
+    ? categories
     : categories.filter(cat => cat.type === selectedType);
 
   const getCategoryUsageCount = (categoryId: string) => {
@@ -99,7 +100,7 @@ const CategoryManagerScreen: React.FC<Props> = ({ navigation }) => {
           activeOpacity={0.7}
         >
           <View style={styles.categoryHeader}>
-            <View 
+            <View
               style={[
                 styles.categoryIconContainer,
                 getCategoryIconBgStyle(item.color)
@@ -114,10 +115,10 @@ const CategoryManagerScreen: React.FC<Props> = ({ navigation }) => {
               <View style={styles.categoryTypeContainer}>
                 <Chip
                   label={item.type.charAt(0).toUpperCase() + item.type.slice(1)}
-                  style={[
+                  style={StyleSheet.flatten([
                     styles.categoryTypeBadge,
                     getCategoryTypeBadgeStyle(item.type)
-                  ]}
+                  ])}
                   textStyle={getCategoryTypeTextStyle(item.type)}
                 />
               </View>
@@ -161,103 +162,112 @@ const CategoryManagerScreen: React.FC<Props> = ({ navigation }) => {
 
   if (isLoading) {
     return (
-      <SafeContainer style={styles.container}>
-        <Header 
+      <View style={styles.container}>
+        <GradientHeader
           title="Categories"
-          showBackButton
+          subtitle={`${categories.length} total categor${categories.length !== 1 ? 'ies' : 'y'}`}
+          showBackButton={true}
           onBackPress={() => navigation.goBack()}
+          rightIcon="add-circle-outline"
+          onRightPress={handleAddCategory}
         />
-        <View style={styles.loadingContainer}>
+        <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
           <LoadingSpinner size="large" />
-          <Text style={styles.loadingText}>Loading categories...</Text>
+          <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>
+            Loading categories...
+          </Text>
         </View>
-      </SafeContainer>
+      </View>
     );
   }
 
+  const incomeCount = categories.filter(cat => cat.type === 'income').length;
+  const expenseCount = categories.filter(cat => cat.type === 'expense').length;
+
   return (
-    <SafeContainer style={styles.container}>
-      <Header 
+    <View style={styles.container}>
+      <GradientHeader
         title="Categories"
-        showBackButton
+        subtitle={`${incomeCount} income, ${expenseCount} expense`}
+        showBackButton={true}
         onBackPress={() => navigation.goBack()}
+        rightIcon="add-circle-outline"
+        onRightPress={handleAddCategory}
       />
 
-      {/* Type Filter */}
-      <View style={styles.filterContainer}>
-        <Text style={styles.filterLabel}>Filter by type:</Text>
-        <View style={styles.filterChips}>
-          {([
-            { key: 'all', label: 'All' },
-            { key: 'income', label: 'Income' },
-            { key: 'expense', label: 'Expense' },
-          ] as const).map((filter) => (
-            <Chip
-              key={filter.key}
-              label={filter.label}
-              selected={selectedType === filter.key}
-              onPress={() => setSelectedType(filter.key)}
-              style={styles.filterChip}
-            />
-          ))}
-        </View>
-      </View>
-
-      {filteredCategories.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <EmptyState
-            title={selectedType === 'all' ? 'No categories yet' : `No ${selectedType} categories`}
-            message="Create your first category to organize your transactions"
-            actionLabel="Add Category"
-            onAction={handleAddCategory}
+      <ScrollView
+        style={[styles.content, { backgroundColor: theme.colors.background }]}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={[theme.colors.primary[500]]}
+            tintColor={theme.colors.primary[500]}
           />
-        </View>
-      ) : (
-        <>
-          {/* Summary Card */}
-          <Card style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>Category Summary</Text>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Total Categories:</Text>
-              <Text style={styles.summaryValue}>{filteredCategories.length}</Text>
-            </View>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Income Categories:</Text>
-              <Text style={styles.summaryValue}>
-                {categories.filter(cat => cat.type === 'income').length}
-              </Text>
-            </View>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Expense Categories:</Text>
-              <Text style={styles.summaryValue}>
-                {categories.filter(cat => cat.type === 'expense').length}
-              </Text>
-            </View>
-          </Card>
-
-          {/* Categories List */}
-          <FlatList
-            data={filteredCategories}
-            renderItem={renderCategory}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.listContainer}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
+        }
+      >
+        {/* Type Filter */}
+        <View style={[styles.filterContainer, { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.border }]}>
+          <Text style={[styles.filterLabel, { color: theme.colors.text }]}>Filter by type:</Text>
+          <View style={styles.filterChips}>
+            {([
+              { key: 'all', label: 'All' },
+              { key: 'income', label: 'Income' },
+              { key: 'expense', label: 'Expense' },
+            ] as const).map((filter) => (
+              <Chip
+                key={filter.key}
+                label={filter.label}
+                selected={selectedType === filter.key}
+                onPress={() => setSelectedType(filter.key)}
+                style={styles.filterChip}
               />
-            }
-            showsVerticalScrollIndicator={false}
-          />
-        </>
-      )}
+            ))}
+          </View>
+        </View>
 
-      {/* Floating Action Button */}
-      <FloatingActionButton
-        onPress={handleAddCategory}
-        icon="+"
-      />
-    </SafeContainer>
+        {filteredCategories.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <EmptyState
+              icon="pricetags-outline"
+              title={selectedType === 'all' ? 'No categories yet' : `No ${selectedType} categories`}
+              description="Create your first category to organize your transactions"
+              actionLabel="Add Category"
+              onActionPress={handleAddCategory}
+            />
+          </View>
+        ) : (
+          <>
+            {/* Summary Card */}
+            <Card style={styles.summaryCard}>
+              <Text style={[styles.summaryTitle, { color: theme.colors.text }]}>Category Summary</Text>
+              <View style={styles.summaryRow}>
+                <Text style={[styles.summaryLabel, { color: theme.colors.textSecondary }]}>Total Categories:</Text>
+                <Text style={[styles.summaryValue, { color: theme.colors.text }]}>{filteredCategories.length}</Text>
+              </View>
+              <View style={styles.summaryRow}>
+                <Text style={[styles.summaryLabel, { color: theme.colors.textSecondary }]}>Income Categories:</Text>
+                <Text style={[styles.summaryValue, { color: theme.colors.text }]}>
+                  {incomeCount}
+                </Text>
+              </View>
+              <View style={styles.summaryRow}>
+                <Text style={[styles.summaryLabel, { color: theme.colors.textSecondary }]}>Expense Categories:</Text>
+                <Text style={[styles.summaryValue, { color: theme.colors.text }]}>
+                  {expenseCount}
+                </Text>
+              </View>
+            </Card>
+
+            {/* Categories List */}
+            {filteredCategories.map((item) => renderCategory({ item }))}
+          </>
+        )}
+
+        <BottomSpacing />
+      </ScrollView>
+    </View>
   );
 };
 
@@ -285,6 +295,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8fafc',
   },
+  content: {
+    flex: 1,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -292,19 +305,15 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 16,
-    fontSize: 16,
-    color: '#64748b',
+    fontSize: 14,
   },
   filterContainer: {
     padding: 16,
-    backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
   },
   filterLabel: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#1f2937',
     marginBottom: 12,
   },
   filterChips: {
@@ -319,15 +328,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+    minHeight: 400,
   },
   summaryCard: {
-    margin: 16,
-    marginBottom: 8,
+    marginHorizontal: 12,
+    marginVertical: 8,
   },
   summaryTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1f2937',
     marginBottom: 12,
   },
   summaryRow: {
@@ -338,20 +347,14 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 16,
-    color: '#64748b',
   },
   summaryValue: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#1f2937',
-  },
-  listContainer: {
-    padding: 16,
-    paddingTop: 8,
-    paddingBottom: 100,
   },
   categoryCard: {
-    marginBottom: 12,
+    marginHorizontal: 12,
+    marginVertical: 6,
   },
   categoryContent: {
     padding: 0,

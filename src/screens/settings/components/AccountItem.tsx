@@ -4,6 +4,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import Card from '../../../components/ui/Card';
 import { useTheme } from '../../../app/providers/ThemeProvider';
 import { formatCurrency } from '../../../utils/helpers/currencyUtils';
+import { getAccountTypeIcon } from '../../../utils/helpers/iconUtils';
 import type { Account } from '../../../types/global';
 
 interface AccountItemProps {
@@ -14,16 +15,6 @@ interface AccountItemProps {
 
 export const AccountItem: React.FC<AccountItemProps> = ({ account, onEdit, onDelete }) => {
   const { theme } = useTheme();
-
-  const getAccountTypeIcon = (type: Account['type']) => {
-    switch (type) {
-      case 'bank': return 'card-outline';
-      case 'cash': return 'wallet-outline';
-      case 'card': return 'card-outline';
-      case 'wallet': return 'wallet-outline';
-      default: return 'ellipse-outline';
-    }
-  };
 
   const getAccountTypeLabel = (type: Account['type']) => {
     switch (type) {

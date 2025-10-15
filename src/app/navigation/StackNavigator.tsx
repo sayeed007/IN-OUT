@@ -74,6 +74,7 @@ const StackNavigator: React.FC = () => {
                 component={CategoryManagerScreen}
                 options={({ route }) => ({
                     title: route.params?.categoryId ? 'Edit Category' : 'Manage Categories',
+                    headerShown: false,
                     presentation: 'modal',
                 })}
             />

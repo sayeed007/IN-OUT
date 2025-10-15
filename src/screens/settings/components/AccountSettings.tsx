@@ -24,7 +24,7 @@ const AccountSettings: React.FC = () => {
   };
 
   const handleManageCategories = () => {
-    navigation.navigate('CategoryManager' as any);
+    navigation.navigate('CategorySettings' as any);
   };
 
   const handleChangeCurrency = () => {
@@ -37,11 +37,10 @@ const AccountSettings: React.FC = () => {
 
   const styles = StyleSheet.create({
     section: {
-      marginHorizontal: Spacing.md,
       marginBottom: Spacing.base,
     },
     sectionTitle: {
-      fontSize: 18,
+      fontSize: 16,
       fontWeight: '600',
       color: theme.colors.text,
       marginBottom: Spacing.base,
@@ -72,12 +71,14 @@ const AccountSettings: React.FC = () => {
         />
       </Card>
 
-      <CurrencySelectionModal
-        visible={showCurrencyModal}
-        onClose={() => setShowCurrencyModal(false)}
-        selectedCurrency={currentCurrency}
-        onCurrencySelect={handleCurrencySelect}
-      />
+      {showCurrencyModal &&
+        <CurrencySelectionModal
+          visible={showCurrencyModal}
+          onClose={() => setShowCurrencyModal(false)}
+          selectedCurrency={currentCurrency}
+          onCurrencySelect={handleCurrencySelect}
+        />
+      }
     </>
   );
 };

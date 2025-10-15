@@ -1,16 +1,28 @@
+import dayjs from 'dayjs';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  TextInput,
+  FlatList,
   Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import dayjs from 'dayjs';
 import { useTheme } from '../../../app/providers/ThemeProvider';
 import Chip from '../../../components/ui/Chip';
+import { getAccountTypeEmoji } from '../../../utils/helpers/iconUtils';
+
+
+const datePresets = [
+  { label: 'Today', days: 0 },
+  { label: 'Last 7 days', days: 7 },
+  { label: 'Last 30 days', days: 30 },
+  { label: 'Last 90 days', days: 90 },
+  { label: 'This month', days: -1 }, // Special case
+  { label: 'Last month', days: -2 }, // Special case
+];
 
 interface TransactionFiltersProps {
   visible: boolean;
@@ -43,35 +55,6 @@ const TransactionFilters: React.FC<TransactionFiltersProps> = ({
   const [tempStartDate, setTempStartDate] = useState(dateRange.start);
   const [tempEndDate, setTempEndDate] = useState(dateRange.end);
   const [showDatePicker, setShowDatePicker] = useState<'start' | 'end' | null>(null);
-
-  // Mock data for categories and accounts - in real app this would come from API
-  const mockCategories = [
-    { id: 'cat1', name: 'Food & Dining', type: 'expense' },
-    { id: 'cat2', name: 'Transportation', type: 'expense' },
-    { id: 'cat3', name: 'Shopping', type: 'expense' },
-    { id: 'cat4', name: 'Entertainment', type: 'expense' },
-    { id: 'cat5', name: 'Bills & Utilities', type: 'expense' },
-    { id: 'cat6', name: 'Salary', type: 'income' },
-    { id: 'cat7', name: 'Freelance', type: 'income' },
-    { id: 'cat8', name: 'Investments', type: 'income' },
-  ];
-
-  const mockAccounts = [
-    { id: 'acc1', name: 'Checking Account', type: 'bank' },
-    { id: 'acc2', name: 'Savings Account', type: 'bank' },
-    { id: 'acc3', name: 'Credit Card', type: 'card' },
-    { id: 'acc4', name: 'Cash Wallet', type: 'cash' },
-    { id: 'acc5', name: 'Investment Account', type: 'other' },
-  ];
-
-  const datePresets = [
-    { label: 'Today', days: 0 },
-    { label: 'Last 7 days', days: 7 },
-    { label: 'Last 30 days', days: 30 },
-    { label: 'Last 90 days', days: 90 },
-    { label: 'This month', days: -1 }, // Special case
-    { label: 'Last month', days: -2 }, // Special case
-  ];
 
   const applyDatePreset = (days: number) => {
     let start: string;
@@ -112,19 +95,6 @@ const TransactionFilters: React.FC<TransactionFiltersProps> = ({
     onAccountsChange(newAccounts);
   };
 
-  const getAccountIcon = (type: string) => {
-    switch (type) {
-      case 'bank': return '🏦';
-      case 'cash': return '💵';
-      case 'card': return '💳';
-      case 'wallet': return '👛';
-      default: return '📱';
-    }
-  };
-
-  const getCategoryIcon = (type: string) => {
-    return type === 'income' ? '💰' : '💸';
-  };
 
   return (
     <>
@@ -156,6 +126,7 @@ const TransactionFilters: React.FC<TransactionFiltersProps> = ({
             </View>
 
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+
               {/* Date Range Section */}
               <View style={styles.section}>
                 <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
@@ -216,17 +187,27 @@ const TransactionFilters: React.FC<TransactionFiltersProps> = ({
                 <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
                   Categories
                 </Text>
-                <View style={styles.chipContainer}>
-                  {(categories.length > 0 ? categories : mockCategories).map((category) => (
+                <FlatList
+                  data={categories}
+                  keyExtractor={(item) => item.id}
+                  numColumns={3}
+                  scrollEnabled={false}
+                  columnWrapperStyle={styles.chipRow}
+                  renderItem={({ item: category }) => (
                     <Chip
-                      key={category.id}
-                      label={`${getCategoryIcon(category.type)} ${category.name}`}
+                      label={category.name}
+                      icon={category.icon}
                       selected={selectedCategories.includes(category.id)}
                       onPress={() => toggleCategory(category.id)}
                       style={styles.chip}
                     />
-                  ))}
-                </View>
+                  )}
+                  ListEmptyComponent={
+                    <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
+                      No categories available
+                    </Text>
+                  }
+                />
               </View>
 
               {/* Accounts Section */}
@@ -234,17 +215,26 @@ const TransactionFilters: React.FC<TransactionFiltersProps> = ({
                 <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
                   Accounts
                 </Text>
-                <View style={styles.chipContainer}>
-                  {(accounts.length > 0 ? accounts : mockAccounts).map((account) => (
+                <FlatList
+                  data={accounts}
+                  keyExtractor={(item) => item.id}
+                  numColumns={3}
+                  scrollEnabled={false}
+                  columnWrapperStyle={styles.chipRow}
+                  renderItem={({ item: account }) => (
                     <Chip
-                      key={account.id}
-                      label={`${getAccountIcon(account.type)} ${account.name}`}
+                      label={`${getAccountTypeEmoji(account.type)} ${account.name}`}
                       selected={selectedAccounts.includes(account.id)}
                       onPress={() => toggleAccount(account.id)}
                       style={styles.chip}
                     />
-                  ))}
-                </View>
+                  )}
+                  ListEmptyComponent={
+                    <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
+                      No accounts available
+                    </Text>
+                  }
+                />
               </View>
             </ScrollView>
           </View>
@@ -268,7 +258,7 @@ const TransactionFilters: React.FC<TransactionFiltersProps> = ({
                 color: theme.colors.text,
                 borderColor: theme.colors.border
               }]}
-              value={showDatePicker === 'start' 
+              value={showDatePicker === 'start'
                 ? dayjs(tempStartDate).format('YYYY-MM-DD')
                 : dayjs(tempEndDate).format('YYYY-MM-DD')}
               onChangeText={(text) => {
@@ -410,13 +400,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
   },
-  chipContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  chipRow: {
     gap: 8,
+    marginBottom: 8,
   },
   chip: {
+    flex: 1,
     marginBottom: 0,
+  },
+  emptyText: {
+    fontSize: 14,
+    textAlign: 'center',
+    paddingVertical: 16,
   },
   modalOverlay: {
     flex: 1,

@@ -88,7 +88,6 @@ const DangerZoneSettings: React.FC = () => {
 
   const styles = StyleSheet.create({
     section: {
-      marginHorizontal: Spacing.md,
       marginBottom: Spacing.base,
     },
     sectionTitle: {

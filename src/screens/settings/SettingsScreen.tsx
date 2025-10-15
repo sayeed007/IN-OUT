@@ -24,11 +24,10 @@ export const SettingsScreen: React.FC = () => {
       flex: 1,
     },
     header: {
-      paddingHorizontal: Spacing.base,
-      paddingVertical: Spacing.base,
+      paddingBottom: Spacing.base,
     },
     title: {
-      fontSize: 32,
+      fontSize: 18,
       fontWeight: '700',
       color: theme.colors.text,
       marginBottom: Spacing.xs,
@@ -42,6 +41,7 @@ export const SettingsScreen: React.FC = () => {
   return (
     <SafeContainer>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Settings</Text>

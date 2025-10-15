@@ -32,7 +32,6 @@ const DataManagementSettings: React.FC = () => {
 
   const styles = StyleSheet.create({
     section: {
-      marginHorizontal: Spacing.md,
       marginBottom: Spacing.base,
     },
     sectionTitle: {
@@ -55,7 +54,7 @@ const DataManagementSettings: React.FC = () => {
       onConfirm: async () => {
         setModal({ type: null, title: '', message: '' });
         setIsLoading(true);
-        
+
         try {
           const hasData = await DataManagementService.checkDataExists();
           if (!hasData) {
@@ -70,7 +69,7 @@ const DataManagementSettings: React.FC = () => {
 
           // Step 1: Export the data (create file)
           const exportResult = await DataManagementService.exportDataToCSV();
-          
+
           // Step 2: Ask if user wants to share the file
           setModal({
             type: 'confirmation',
@@ -101,13 +100,13 @@ const DataManagementSettings: React.FC = () => {
   const handleShareExportedFile = async (exportResult: { filePath: string; fileName: string }) => {
     setModal({ type: null, title: '', message: '' });
     setIsLoading(true);
-    
+
     try {
       const shareResult = await DataManagementService.shareExportedFile(
-        exportResult.filePath, 
+        exportResult.filePath,
         exportResult.fileName
       );
-      
+
       if (shareResult.cancelled) {
         // User cancelled sharing - this is not an error
         setModal({
@@ -194,11 +193,11 @@ const DataManagementSettings: React.FC = () => {
       onConfirm: async () => {
         setModal({ type: null, title: '', message: '' });
         setIsLoading(true);
-        
+
         try {
           // Step 1: Create the backup file
           const backupResult = await DataManagementService.backupAllData();
-          
+
           // Step 2: Ask if user wants to share the backup file
           setModal({
             type: 'confirmation',
@@ -229,13 +228,13 @@ const DataManagementSettings: React.FC = () => {
   const handleShareBackupFile = async (backupResult: { filePath: string; fileName: string }) => {
     setModal({ type: null, title: '', message: '' });
     setIsLoading(true);
-    
+
     try {
       const shareResult = await DataManagementService.shareBackupFile(
-        backupResult.filePath, 
+        backupResult.filePath,
         backupResult.fileName
       );
-      
+
       if (shareResult.cancelled) {
         // User cancelled sharing - this is not an error
         setModal({

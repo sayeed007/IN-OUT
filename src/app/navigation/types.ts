@@ -76,7 +76,7 @@ export type SettingsStackParamList = {
   SettingsMain: undefined;
   AccountManager: undefined;
   AccountForm: { accountId?: UUID };
-  CategoryManager: undefined;
+  CategorySettings: undefined;
   CategoryForm: { categoryId?: UUID };
   BudgetManager: undefined;
   BudgetForm: { budgetId?: UUID; categoryId?: UUID; month?: string };

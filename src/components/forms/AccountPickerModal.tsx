@@ -10,6 +10,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../app/providers/ThemeProvider';
 import { formatCurrency } from '../../utils/helpers/currencyUtils';
+import { getAccountTypeIcon } from '../../utils/helpers/iconUtils';
 import type { Account } from '../../types/global';
 
 const ITEM_HEIGHT = 60;
@@ -41,16 +42,6 @@ export const AccountPickerModal: React.FC<AccountPickerModalProps> = ({
     const currentIndex = activeAccounts.findIndex(account => account.id === selectedAccountId);
     return currentIndex !== -1 ? currentIndex : 0;
   });
-
-  const getAccountTypeIcon = (type: Account['type']) => {
-    switch (type) {
-      case 'bank': return 'card-outline';
-      case 'cash': return 'wallet-outline';
-      case 'card': return 'card-outline';
-      case 'wallet': return 'phone-portrait-outline';
-      default: return 'ellipse-outline';
-    }
-  };
 
   const handleAccountScroll = (event: any) => {
     const y = event.nativeEvent.contentOffset.y;

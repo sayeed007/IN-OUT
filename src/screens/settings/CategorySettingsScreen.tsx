@@ -1,4 +1,4 @@
-// src/screens/settings/CategoryManagerScreen.tsx
+// src/screens/settings/CategorySettingsScreen.tsx
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
@@ -10,18 +10,17 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../app/providers/ThemeProvider';
-import { SafeContainer } from '../../components/layout/SafeContainer';
 import BottomSpacing from '../../components/ui/BottomSpacing';
 import Chip from '../../components/ui/Chip';
 import EmptyState from '../../components/ui/EmptyState';
+import { GradientHeader } from '../../components/ui/GradientHeader';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { useGetCategoriesQuery, useUpdateCategoryMutation } from '../../state/api';
-import { Spacing } from '../../theme';
 import type { Category, TransactionType } from '../../types/global';
-import { CategoryItem } from './components/CategoryItem';
 import { showToast } from '../../utils/helpers/toast';
+import { CategoryItem } from './components/CategoryItem';
 
-export const CategoryManagerScreen: React.FC = () => {
+export const CategorySettingsScreen: React.FC = () => {
   const navigation = useNavigation();
   const { theme } = useTheme();
   const [showArchived, setShowArchived] = useState(false);
@@ -68,6 +67,12 @@ export const CategoryManagerScreen: React.FC = () => {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
+      backgroundColor: '#f8fafc',
+    },
+    content: {
+      flex: 1,
+      paddingHorizontal: 12,
+      paddingTop: 8,
     },
     loadingContainer: {
       flex: 1,
@@ -76,61 +81,14 @@ export const CategoryManagerScreen: React.FC = () => {
     },
     loadingText: {
       marginTop: 16,
-      fontSize: 16,
-      color: theme.colors.textSecondary,
-    },
-    header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingHorizontal: Spacing.base,
-      paddingBottom: Spacing.sm,
-    },
-    subtitle: {
-      fontSize: 16,
-      color: theme.colors.textSecondary,
-    },
-    addButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingVertical: 8,
-      paddingHorizontal: 12,
-      borderRadius: 8,
-      backgroundColor: theme.colors.primary[500],
-      gap: 4,
-    },
-    addButtonText: {
       fontSize: 14,
-      fontWeight: '600',
-      color: theme.colors.neutral[0],
-    },
-    filtersCard: {
-      marginHorizontal: Spacing.base,
-      marginBottom: Spacing.base,
-      padding: Spacing.base,
-    },
-    filtersTitle: {
-      fontSize: 18,
-      fontWeight: '600',
-      color: theme.colors.text,
-      marginBottom: 16,
-    },
-    filterGroup: {
-      marginBottom: 16,
-    },
-    filterLabel: {
-      fontSize: 14,
-      fontWeight: '500',
-      color: theme.colors.textSecondary,
-      marginBottom: 8,
     },
     chipContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       gap: 8,
       paddingHorizontal: 12,
-      paddingVertical: 4,
+      paddingVertical: 8,
     },
     filterChip: {
       paddingHorizontal: 16,
@@ -139,8 +97,8 @@ export const CategoryManagerScreen: React.FC = () => {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginHorizontal: Spacing.base,
-      marginBottom: Spacing.base,
+      marginHorizontal: 4,
+      marginVertical: 8,
       paddingVertical: 12,
       paddingHorizontal: 16,
       borderRadius: 8,
@@ -152,7 +110,7 @@ export const CategoryManagerScreen: React.FC = () => {
       color: theme.colors.primary[500],
     },
     categoryList: {
-      paddingHorizontal: Spacing.base,
+      paddingHorizontal: 4,
       gap: 12,
     },
     categorySection: {
@@ -168,29 +126,39 @@ export const CategoryManagerScreen: React.FC = () => {
 
   if (isLoading) {
     return (
-      <SafeContainer>
-        <View style={styles.loadingContainer}>
+      <View style={styles.container}>
+        <GradientHeader
+          title="Manage Categories"
+          subtitle={`${activeCategories.length} active categor${activeCategories.length !== 1 ? 'ies' : 'y'}`}
+          showBackButton={true}
+          onBackPress={() => navigation.goBack()}
+          rightIcon="add-circle-outline"
+          onRightPress={handleAddCategory}
+        />
+        <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
           <LoadingSpinner size="large" />
-          <Text style={styles.loadingText}>Loading categories...</Text>
+          <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>
+            Loading categories...
+          </Text>
         </View>
-      </SafeContainer>
+      </View>
     );
   }
 
   return (
-    <SafeContainer>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Header with Add Button */}
-        <View style={styles.header}>
-          <Text style={styles.subtitle}>
-            {activeCategories.length} active categor{activeCategories.length !== 1 ? 'ies' : 'y'}
-            {archivedCategories.length > 0 && `, ${archivedCategories.length} archived`}
-          </Text>
-          <TouchableOpacity style={styles.addButton} onPress={handleAddCategory}>
-            <Icon name="add" size={18} color={theme.colors.neutral[0]} />
-            <Text style={styles.addButtonText}>Add</Text>
-          </TouchableOpacity>
-        </View>
+    <View style={styles.container}>
+      <GradientHeader
+        title="Manage Categories"
+        subtitle={`${activeCategories.length} active, ${archivedCategories.length} archived`}
+        showBackButton={true}
+        onBackPress={() => navigation.goBack()}
+        rightIcon="add-circle-outline"
+        onRightPress={handleAddCategory}
+      />
+      <ScrollView
+        style={[styles.content, { backgroundColor: theme.colors.background }]}
+        showsVerticalScrollIndicator={false}
+      >
 
         {/* Show Archived Toggle */}
         {archivedCategories.length > 0 && (
@@ -298,6 +266,6 @@ export const CategoryManagerScreen: React.FC = () => {
         {/* Bottom spacing for tab bar */}
         <BottomSpacing />
       </ScrollView>
-    </SafeContainer>
+    </View>
   );
 };

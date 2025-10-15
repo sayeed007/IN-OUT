@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { formatCurrency } from '../../utils/helpers/currencyUtils';
+import { getAccountTypeIcon } from '../../utils/helpers/iconUtils';
 import type { Account } from '../../types/global';
 import { AccountPickerModal } from './AccountPickerModal';
 
@@ -36,16 +37,6 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
   const labelAnimation = useRef(new Animated.Value(0)).current;
 
   const selectedAccount = accounts.find(account => account.id === selectedAccountId);
-
-  const getAccountTypeIcon = (type: Account['type']) => {
-    switch (type) {
-      case 'bank': return 'card-outline';
-      case 'cash': return 'wallet-outline';
-      case 'card': return 'card-outline';
-      case 'wallet': return 'phone-portrait-outline';
-      default: return 'ellipse-outline';
-    }
-  };
 
   const hasValue = !!selectedAccount;
   const displayLabel = label || placeholder;

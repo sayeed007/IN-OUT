@@ -6,7 +6,7 @@ import { Platform } from 'react-native';
 import { SettingsScreen } from '../../screens/settings/SettingsScreen';
 import { AccountManagerScreen } from '../../screens/settings/AccountManagerScreen';
 import { AccountFormScreen } from '../../screens/settings/AccountFormScreen';
-import { CategoryManagerScreen } from '../../screens/settings/CategoryManagerScreen';
+import { CategorySettingsScreen } from '../../screens/settings/CategorySettingsScreen';
 import { CategoryFormScreen } from '../../screens/settings/CategoryFormScreen';
 
 // Theme
@@ -55,7 +55,8 @@ const SettingsStackNavigator: React.FC = () => {
                 name="AccountManager"
                 component={AccountManagerScreen}
                 options={{
-                    title: 'Manage Accounts',
+                    headerShown: false,
+                    presentation: 'modal',
                 }}
             />
 
@@ -68,10 +69,11 @@ const SettingsStackNavigator: React.FC = () => {
             />
 
             <Stack.Screen
-                name="CategoryManager"
-                component={CategoryManagerScreen}
+                name="CategorySettings"
+                component={CategorySettingsScreen}
                 options={{
-                    title: 'Manage Categories',
+                    headerShown: false,
+                    presentation: 'modal',
                 }}
             />
 

@@ -1,24 +1,23 @@
 // src/screens/settings/AccountManagerScreen.tsx
+import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
   ScrollView,
+  StyleSheet,
+  Text,
   TouchableOpacity,
+  View,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { SafeContainer } from '../../components/layout/SafeContainer';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import EmptyState from '../../components/ui/EmptyState';
-import { Spacing } from '../../theme';
 import { useTheme } from '../../app/providers/ThemeProvider';
-import { useGetAccountsQuery, useDeleteAccountMutation } from '../../state/api';
-import { AccountItem } from './components/AccountItem';
-import type { Account } from '../../types/global';
 import BottomSpacing from '../../components/ui/BottomSpacing';
+import EmptyState from '../../components/ui/EmptyState';
+import { GradientHeader } from '../../components/ui/GradientHeader';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import { useDeleteAccountMutation, useGetAccountsQuery } from '../../state/api';
+import type { Account } from '../../types/global';
 import { showToast } from '../../utils/helpers/toast';
+import { AccountItem } from './components/AccountItem';
 
 
 export const AccountManagerScreen: React.FC = () => {
@@ -55,30 +54,39 @@ export const AccountManagerScreen: React.FC = () => {
 
   if (isLoading) {
     return (
-      <SafeContainer>
-        <View style={styles.loadingContainer}>
+      <View style={styles.container}>
+        <GradientHeader
+          title="Manage Accounts"
+          subtitle={`${activeAccounts.length} active account${activeAccounts.length !== 1 ? 's' : ''}`}
+          showBackButton={true}
+          onBackPress={() => navigation.goBack()}
+          rightIcon="add-circle-outline"
+          onRightPress={handleAddAccount}
+        />
+        <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
           <LoadingSpinner size="large" />
-          <Text style={styles.loadingText}>Loading accounts...</Text>
+          <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>
+            Loading accounts...
+          </Text>
         </View>
-      </SafeContainer>
+      </View>
     );
   }
 
   return (
-    <SafeContainer>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-
-        {/* Header with Add Button */}
-        <View style={styles.header}>
-          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-            {activeAccounts.length} active account{activeAccounts.length !== 1 ? 's' : ''}
-            {archivedAccounts.length > 0 && `, ${archivedAccounts.length} archived`}
-          </Text>
-          <TouchableOpacity style={[styles.addButton, { backgroundColor: theme.colors.primary[500] }]} onPress={handleAddAccount}>
-            <Icon name="add" size={18} color={theme.colors.neutral[0]} />
-            <Text style={[styles.addButtonText, { color: theme.colors.neutral[0] }]}>Add</Text>
-          </TouchableOpacity>
-        </View>
+    <View style={styles.container}>
+      <GradientHeader
+        title="Accounts"
+        subtitle={`${activeAccounts.length} active, ${archivedAccounts.length} archived`}
+        showBackButton={true}
+        onBackPress={() => navigation.goBack()}
+        rightIcon="add-circle-outline"
+        onRightPress={handleAddAccount}
+      />
+      <ScrollView
+        style={[styles.content, { backgroundColor: theme.colors.background }]}
+        showsVerticalScrollIndicator={false}
+      >
 
         {/* Show Archived Toggle */}
         {archivedAccounts.length > 0 && (
@@ -125,13 +133,19 @@ export const AccountManagerScreen: React.FC = () => {
         {/* Bottom spacing for tab bar */}
         <BottomSpacing />
       </ScrollView>
-    </SafeContainer>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#f8fafc',
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 12,
+    paddingTop: 8,
   },
   loadingContainer: {
     flex: 1,
@@ -140,39 +154,14 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 16,
-    fontSize: 16,
-    color: '#6B7280', // This will be used statically since it's in the loading component
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.base,
-    paddingBottom: Spacing.sm,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#6B7280', // Will be overridden by theme in component
-  },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    gap: 4,
-  },
-  addButtonText: {
     fontSize: 14,
-    fontWeight: '600',
   },
   toggleButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginHorizontal: Spacing.base,
-    marginBottom: Spacing.base,
+    marginHorizontal: 4,
+    marginVertical: 8,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
@@ -182,7 +171,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   accountList: {
-    paddingHorizontal: Spacing.base,
+    paddingHorizontal: 4,
     gap: 12,
   },
 });

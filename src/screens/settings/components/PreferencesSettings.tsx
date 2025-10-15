@@ -54,7 +54,6 @@ const PreferencesSettings: React.FC = () => {
 
   const styles = StyleSheet.create({
     section: {
-      marginHorizontal: Spacing.md,
       marginBottom: Spacing.base,
     },
     sectionTitle: {
@@ -130,19 +129,23 @@ const PreferencesSettings: React.FC = () => {
         />
       </Card>
 
-      <DateFormatSelectionModal
-        visible={showDateFormatModal}
-        onClose={() => setShowDateFormatModal(false)}
-        selectedFormat={preferences.dateFormat}
-        onFormatSelect={handleDateFormatSelect}
-      />
+      {showDateFormatModal &&
+        <DateFormatSelectionModal
+          visible={showDateFormatModal}
+          onClose={() => setShowDateFormatModal(false)}
+          selectedFormat={preferences.dateFormat}
+          onFormatSelect={handleDateFormatSelect}
+        />
+      }
 
-      <FirstDayOfWeekSelectionModal
-        visible={showFirstDayModal}
-        onClose={() => setShowFirstDayModal(false)}
-        selectedDay={preferences.firstDayOfWeek}
-        onDaySelect={handleFirstDaySelect}
-      />
+      {showFirstDayModal &&
+        <FirstDayOfWeekSelectionModal
+          visible={showFirstDayModal}
+          onClose={() => setShowFirstDayModal(false)}
+          selectedDay={preferences.firstDayOfWeek}
+          onDaySelect={handleFirstDaySelect}
+        />
+      }
     </>
   );
 };

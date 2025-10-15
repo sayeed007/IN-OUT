@@ -16,16 +16,16 @@ import { useTheme } from '../../app/providers/ThemeProvider';
 import { SafeContainer } from '../../components/layout/SafeContainer';
 import { SectionHeader } from '../../components/lists/SectionHeader';
 import { TransactionItem } from '../../components/lists/TransactionItem';
+import TransactionDetailsModal from '../../components/modals/TransactionDetailsModal';
 import { Card } from '../../components/ui';
 import BottomSpacing from '../../components/ui/BottomSpacing';
 import Chip from '../../components/ui/Chip';
 import EmptyState from '../../components/ui/EmptyState';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import TransactionDetailsModal from '../../components/modals/TransactionDetailsModal';
 import { useDeleteTransactionMutation, useGetAccountsQuery, useGetCategoriesQuery, useGetTransactionsQuery } from '../../state/api';
 import { Transaction, TransactionType } from '../../types/global';
-import TransactionFilters from './components/TransactionFilters';
 import { showToast } from '../../utils/helpers/toast';
+import TransactionFilters from './components/TransactionFilters';
 
 interface GroupedTransaction {
     title: string;

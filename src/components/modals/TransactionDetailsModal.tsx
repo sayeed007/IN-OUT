@@ -1,7 +1,9 @@
 // src/components/modals/TransactionDetailsModal.tsx
 import React from 'react';
 import {
+    KeyboardAvoidingView,
     Modal,
+    Platform,
     ScrollView,
     StyleSheet,
     Text,
@@ -94,178 +96,187 @@ const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = ({
     };
 
     return (
-        <Modal transparent visible={visible} animationType="slide">
+        <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
             <View style={styles.overlay}>
-                <View style={[styles.container, { backgroundColor: theme.colors.surface }]}>
+                <TouchableOpacity
+                    style={styles.backdrop}
+                    activeOpacity={1}
+                    onPress={onClose}
+                />
 
-                    {/* Header */}
-                    <View style={styles.header}>
-                        <Text style={[styles.title, { color: theme.colors.text }]}>
-                            {getTransactionTitle()}
-                        </Text>
-                        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                            <Icon name="close" size={24} color={theme.colors.textSecondary} />
-                        </TouchableOpacity>
-                    </View>
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    style={styles.keyboardAvoid}
+                >
+                    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+                        {/* Header */}
+                        <View style={[styles.header, { borderBottomColor: theme.colors.border }]}>
+                            <Text style={[styles.title, { color: theme.colors.text }]}>
+                                {getTransactionTitle()}
+                            </Text>
+                            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                                <Icon name="close" size={24} color={theme.colors.textSecondary} />
+                            </TouchableOpacity>
+                        </View>
 
-                    {/* Amount Section */}
-                    <View style={[styles.amountSection, { backgroundColor: colors.light }]}>
-                        <Icon
-                            name={colors.icon}
-                            size={32}
-                            color={colors.main}
-                            style={styles.typeIcon}
-                        />
-                        <Text style={[styles.amountText, { color: colors.main }]}>
-                            {transaction.type === 'expense' ? '-' : '+'}{formatAmount(transaction.amount)}
-                        </Text>
-                        <Text style={[styles.typeText, { color: theme.colors.textSecondary }]}>
-                            {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
-                        </Text>
-                    </View>
+                        {/* Amount Section */}
+                        <View style={[styles.amountSection, { backgroundColor: colors.light }]}>
+                            <Icon
+                                name={colors.icon}
+                                size={32}
+                                color={colors.main}
+                                style={styles.typeIcon}
+                            />
+                            <Text style={[styles.amountText, { color: colors.main }]}>
+                                {transaction.type === 'expense' ? '-' : '+'}{formatAmount(transaction.amount)}
+                            </Text>
+                            <Text style={[styles.typeText, { color: theme.colors.textSecondary }]}>
+                                {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
+                            </Text>
+                        </View>
 
-                    {/* Details Section */}
-                    <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-                        <View style={styles.detailsSection}>
-                            {/* Date */}
-                            <View style={styles.detailRow}>
-                                <View style={styles.detailLabel}>
-                                    <Icon name="calendar-outline" size={20} color={theme.colors.textSecondary} />
-                                    <Text style={[styles.detailLabelText, { color: theme.colors.textSecondary }]}>
-                                        Date
+                        {/* Details Section */}
+                        <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+                            <View style={styles.detailsSection}>
+                                {/* Date */}
+                                <View style={styles.detailRow}>
+                                    <View style={styles.detailLabel}>
+                                        <Icon name="calendar-outline" size={20} color={theme.colors.textSecondary} />
+                                        <Text style={[styles.detailLabelText, { color: theme.colors.textSecondary }]}>
+                                            Date
+                                        </Text>
+                                    </View>
+                                    <Text style={[styles.detailValue, { color: theme.colors.text }]}>
+                                        {dayjs(transaction.date).format('MMM DD, YYYY - h:mm A')}
                                     </Text>
                                 </View>
-                                <Text style={[styles.detailValue, { color: theme.colors.text }]}>
-                                    {dayjs(transaction.date).format('MMM DD, YYYY - h:mm A')}
-                                </Text>
-                            </View>
 
-                            {/* Account(s) */}
-                            {transaction.type === 'transfer' ? (
-                                <>
+                                {/* Account(s) */}
+                                {transaction.type === 'transfer' ? (
+                                    <>
+                                        <View style={styles.detailRow}>
+                                            <View style={styles.detailLabel}>
+                                                <Icon name="arrow-up-circle-outline" size={20} color={theme.colors.textSecondary} />
+                                                <Text style={[styles.detailLabelText, { color: theme.colors.textSecondary }]}>
+                                                    From Account
+                                                </Text>
+                                            </View>
+                                            <Text style={[styles.detailValue, { color: theme.colors.text }]}>
+                                                {fromAccount?.name || 'Unknown Account'}
+                                            </Text>
+                                        </View>
+                                        <View style={styles.detailRow}>
+                                            <View style={styles.detailLabel}>
+                                                <Icon name="arrow-down-circle-outline" size={20} color={theme.colors.textSecondary} />
+                                                <Text style={[styles.detailLabelText, { color: theme.colors.textSecondary }]}>
+                                                    To Account
+                                                </Text>
+                                            </View>
+                                            <Text style={[styles.detailValue, { color: theme.colors.text }]}>
+                                                {toAccount?.name || 'Unknown Account'}
+                                            </Text>
+                                        </View>
+                                    </>
+                                ) : (
                                     <View style={styles.detailRow}>
                                         <View style={styles.detailLabel}>
-                                            <Icon name="arrow-up-circle-outline" size={20} color={theme.colors.textSecondary} />
+                                            <Icon name="wallet-outline" size={20} color={theme.colors.textSecondary} />
                                             <Text style={[styles.detailLabelText, { color: theme.colors.textSecondary }]}>
-                                                From Account
+                                                Account
                                             </Text>
                                         </View>
                                         <Text style={[styles.detailValue, { color: theme.colors.text }]}>
                                             {fromAccount?.name || 'Unknown Account'}
                                         </Text>
                                     </View>
+                                )}
+
+                                {/* Category (for income/expense) */}
+                                {transaction.type !== 'transfer' && (
                                     <View style={styles.detailRow}>
                                         <View style={styles.detailLabel}>
-                                            <Icon name="arrow-down-circle-outline" size={20} color={theme.colors.textSecondary} />
+                                            <Icon name="folder-outline" size={20} color={theme.colors.textSecondary} />
                                             <Text style={[styles.detailLabelText, { color: theme.colors.textSecondary }]}>
-                                                To Account
+                                                Category
                                             </Text>
                                         </View>
-                                        <Text style={[styles.detailValue, { color: theme.colors.text }]}>
-                                            {toAccount?.name || 'Unknown Account'}
+                                        <View style={styles.categoryValue}>
+                                            {category && (
+                                                <View
+                                                    style={[
+                                                        styles.categoryColorDot,
+                                                        { backgroundColor: category.color || colors.main }
+                                                    ]}
+                                                />
+                                            )}
+                                            <Text style={[styles.detailValue, { color: theme.colors.text }]}>
+                                                {category?.name || 'No Category'}
+                                            </Text>
+                                        </View>
+                                    </View>
+                                )}
+
+                                {/* Note */}
+                                {transaction.note && (
+                                    <View style={[styles.detailRow, styles.noteRow]}>
+                                        <View style={styles.detailLabel}>
+                                            <Icon name="document-text-outline" size={20} color={theme.colors.textSecondary} />
+                                            <Text style={[styles.detailLabelText, { color: theme.colors.textSecondary }]}>
+                                                Note
+                                            </Text>
+                                        </View>
+                                        <Text style={[styles.detailValue, styles.noteText, { color: theme.colors.text }]}>
+                                            {transaction.note}
                                         </Text>
                                     </View>
-                                </>
-                            ) : (
+                                )}
+
+                                {/* Tags */}
+                                {transaction.tags.length > 0 && (
+                                    <View style={[styles.detailRow, styles.tagsRow]}>
+                                        <View style={styles.detailLabel}>
+                                            <Icon name="pricetags-outline" size={20} color={theme.colors.textSecondary} />
+                                            <Text style={[styles.detailLabelText, { color: theme.colors.textSecondary }]}>
+                                                Tags
+                                            </Text>
+                                        </View>
+                                        <View style={styles.tagsContainer}>
+                                            {transaction.tags.map((tag, index) => (
+                                                <View
+                                                    key={index}
+                                                    style={[
+                                                        styles.tag,
+                                                        {
+                                                            backgroundColor: theme.colors.primary[50],
+                                                            borderColor: theme.colors.primary[200]
+                                                        }
+                                                    ]}
+                                                >
+                                                    <Text style={[styles.tagText, { color: theme.colors.primary[600] }]}>
+                                                        {tag}
+                                                    </Text>
+                                                </View>
+                                            ))}
+                                        </View>
+                                    </View>
+                                )}
+
+                                {/* Transaction ID */}
                                 <View style={styles.detailRow}>
                                     <View style={styles.detailLabel}>
-                                        <Icon name="wallet-outline" size={20} color={theme.colors.textSecondary} />
+                                        <Icon name="finger-print-outline" size={20} color={theme.colors.textSecondary} />
                                         <Text style={[styles.detailLabelText, { color: theme.colors.textSecondary }]}>
-                                            Account
+                                            ID
                                         </Text>
                                     </View>
-                                    <Text style={[styles.detailValue, { color: theme.colors.text }]}>
-                                        {fromAccount?.name || 'Unknown Account'}
+                                    <Text style={[styles.detailValue, styles.idText, { color: theme.colors.textSecondary }]}>
+                                        {transaction.id.substring(0, 8)}...
                                     </Text>
                                 </View>
-                            )}
-
-                            {/* Category (for income/expense) */}
-                            {transaction.type !== 'transfer' && (
-                                <View style={styles.detailRow}>
-                                    <View style={styles.detailLabel}>
-                                        <Icon name="folder-outline" size={20} color={theme.colors.textSecondary} />
-                                        <Text style={[styles.detailLabelText, { color: theme.colors.textSecondary }]}>
-                                            Category
-                                        </Text>
-                                    </View>
-                                    <View style={styles.categoryValue}>
-                                        {category && (
-                                            <View
-                                                style={[
-                                                    styles.categoryColorDot,
-                                                    { backgroundColor: category.color || colors.main }
-                                                ]}
-                                            />
-                                        )}
-                                        <Text style={[styles.detailValue, { color: theme.colors.text }]}>
-                                            {category?.name || 'No Category'}
-                                        </Text>
-                                    </View>
-                                </View>
-                            )}
-
-                            {/* Note */}
-                            {transaction.note && (
-                                <View style={[styles.detailRow, styles.noteRow]}>
-                                    <View style={styles.detailLabel}>
-                                        <Icon name="document-text-outline" size={20} color={theme.colors.textSecondary} />
-                                        <Text style={[styles.detailLabelText, { color: theme.colors.textSecondary }]}>
-                                            Note
-                                        </Text>
-                                    </View>
-                                    <Text style={[styles.detailValue, styles.noteText, { color: theme.colors.text }]}>
-                                        {transaction.note}
-                                    </Text>
-                                </View>
-                            )}
-
-                            {/* Tags */}
-                            {transaction.tags.length > 0 && (
-                                <View style={[styles.detailRow, styles.tagsRow]}>
-                                    <View style={styles.detailLabel}>
-                                        <Icon name="pricetags-outline" size={20} color={theme.colors.textSecondary} />
-                                        <Text style={[styles.detailLabelText, { color: theme.colors.textSecondary }]}>
-                                            Tags
-                                        </Text>
-                                    </View>
-                                    <View style={styles.tagsContainer}>
-                                        {transaction.tags.map((tag, index) => (
-                                            <View
-                                                key={index}
-                                                style={[
-                                                    styles.tag,
-                                                    {
-                                                        backgroundColor: theme.colors.primary[50],
-                                                        borderColor: theme.colors.primary[200]
-                                                    }
-                                                ]}
-                                            >
-                                                <Text style={[styles.tagText, { color: theme.colors.primary[600] }]}>
-                                                    {tag}
-                                                </Text>
-                                            </View>
-                                        ))}
-                                    </View>
-                                </View>
-                            )}
-
-                            {/* Transaction ID */}
-                            <View style={styles.detailRow}>
-                                <View style={styles.detailLabel}>
-                                    <Icon name="finger-print-outline" size={20} color={theme.colors.textSecondary} />
-                                    <Text style={[styles.detailLabelText, { color: theme.colors.textSecondary }]}>
-                                        ID
-                                    </Text>
-                                </View>
-                                <Text style={[styles.detailValue, styles.idText, { color: theme.colors.textSecondary }]}>
-                                    {transaction.id.substring(0, 8)}...
-                                </Text>
                             </View>
-                        </View>
-                    </ScrollView>
-
-                </View>
+                        </ScrollView>
+                    </View>
+                </KeyboardAvoidingView>
             </View>
         </Modal>
     );
@@ -275,46 +286,49 @@ const styles = StyleSheet.create({
     overlay: {
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 20,
+        justifyContent: 'flex-end',
+    },
+    backdrop: {
+        ...StyleSheet.absoluteFillObject,
+    },
+    keyboardAvoid: {
+        justifyContent: 'flex-end',
     },
     container: {
-        width: '100%',
-        maxWidth: 380,
-        height: '80%',
-        borderRadius: 16,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        height: '85%',
         backgroundColor: '#fff',
-        padding: 12,
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 20,
-        paddingVertical: 10,
+        paddingVertical: 16,
         borderBottomWidth: 1,
-        borderBottomColor: 'rgba(0, 0, 0, 0.1)',
     },
     title: {
-        fontSize: 16,
-        fontWeight: '600',
+        fontSize: 18,
+        fontWeight: '700',
     },
     closeButton: {
         padding: 4,
     },
     scrollContainer: {
         flex: 1,
-        minHeight: 200,
     },
     scrollContent: {
-        paddingBottom: 10,
+        paddingHorizontal: 20,
+        paddingBottom: 40,
     },
     amountSection: {
         alignItems: 'center',
         paddingVertical: 24,
         paddingHorizontal: 20,
+        marginHorizontal: 20,
         borderRadius: 16,
+        marginTop: 16,
         marginBottom: 16,
     },
     typeIcon: {
