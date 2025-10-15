@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    maxHeight: '90%',
+    height: '90%',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     elevation: 5,

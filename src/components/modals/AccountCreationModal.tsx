@@ -268,7 +268,6 @@ const styles = StyleSheet.create({
   modalContent: {
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    // maxHeight: '85%',
     height: '95%'
   },
   modalHeader: {

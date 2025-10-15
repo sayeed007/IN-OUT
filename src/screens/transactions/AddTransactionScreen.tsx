@@ -557,7 +557,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 60,
-    // maxHeight: '60%'
+    // height: '60%'
   },
   card: {
     marginVertical: 8,

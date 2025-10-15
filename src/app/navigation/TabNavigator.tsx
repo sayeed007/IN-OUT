@@ -105,7 +105,7 @@ const TabNavigator: React.FC = () => {
                 //         }
                 //     },
                 // })}
-                initialRouteName="Settings"
+                initialRouteName="Dashboard"
             >
                 <Tab.Screen
                     name="Dashboard"

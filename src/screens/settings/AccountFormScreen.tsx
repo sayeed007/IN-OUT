@@ -13,10 +13,10 @@ import {
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { SafeContainer } from '../../components/layout/SafeContainer';
 import Card from '../../components/ui/Card';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { useTheme } from '../../app/providers/ThemeProvider';
+import { GradientHeader } from '../../components/ui/GradientHeader';
 import { ACCOUNT_TYPES } from '../../constants/accountTypes';
 import {
   useGetAccountQuery,
@@ -85,7 +85,11 @@ export const AccountFormScreen: React.FC = () => {
     },
     container: {
       flex: 1,
-      backgroundColor: theme.colors.background,
+      backgroundColor: '#f8fafc',
+    },
+    content: {
+      flex: 1,
+      backgroundColor: '#f8fafc',
     },
     loadingContainer: {
       flex: 1,
@@ -94,26 +98,12 @@ export const AccountFormScreen: React.FC = () => {
     },
     loadingText: {
       marginTop: 16,
-      fontSize: 16,
-      color: theme.colors.textSecondary,
-    },
-    header: {
-      paddingHorizontal: 20,
-      paddingVertical: 20,
-    },
-    title: {
-      fontSize: 28,
-      fontWeight: '700',
-      color: theme.colors.text,
-      marginBottom: 4,
-    },
-    subtitle: {
-      fontSize: 16,
+      fontSize: 14,
       color: theme.colors.textSecondary,
     },
     scrollContent: {
       flexGrow: 1,
-      paddingHorizontal: 10,
+      paddingHorizontal: 12,
     },
     section: {
       marginBottom: 24,
@@ -313,23 +303,35 @@ export const AccountFormScreen: React.FC = () => {
 
   if (isLoadingAccount) {
     return (
-      <SafeContainer>
-        <View style={styles.loadingContainer}>
+      <View style={styles.container}>
+        <GradientHeader
+          title={isEditing ? 'Edit Account' : 'Create Account'}
+          subtitle={isEditing ? 'Update account details' : 'Add a new account'}
+          showBackButton={true}
+          onBackPress={() => navigation.goBack()}
+        />
+        <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
           <LoadingSpinner size="large" />
           <Text style={styles.loadingText}>Loading account...</Text>
         </View>
-      </SafeContainer>
+      </View>
     );
   }
 
   return (
-    <SafeContainer>
+    <View style={styles.container}>
+      <GradientHeader
+        title={isEditing ? 'Edit Account' : 'Create Account'}
+        subtitle={isEditing ? 'Update account details' : 'Add a new account'}
+        showBackButton={true}
+        onBackPress={() => navigation.goBack()}
+      />
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingViewStyle}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView
-          style={styles.container}
+          style={styles.content}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
@@ -459,8 +461,7 @@ export const AccountFormScreen: React.FC = () => {
           {/* Bottom spacing for tab bar */}
           <BottomSpacing />
         </ScrollView>
-
       </KeyboardAvoidingView>
-    </SafeContainer>
+    </View>
   );
 };

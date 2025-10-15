@@ -13,10 +13,10 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { SafeContainer } from '../../components/layout/SafeContainer';
 import Card from '../../components/ui/Card';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { useTheme } from '../../app/providers/ThemeProvider';
+import { GradientHeader } from '../../components/ui/GradientHeader';
 import {
   useGetCategoryQuery,
   useAddCategoryMutation,
@@ -80,7 +80,11 @@ export const CategoryFormScreen: React.FC = () => {
     },
     container: {
       flex: 1,
-      backgroundColor: theme.colors.background,
+      backgroundColor: '#f8fafc',
+    },
+    content: {
+      flex: 1,
+      backgroundColor: '#f8fafc',
     },
     loadingContainer: {
       flex: 1,
@@ -89,12 +93,12 @@ export const CategoryFormScreen: React.FC = () => {
     },
     loadingText: {
       marginTop: 16,
-      fontSize: 16,
+      fontSize: 14,
       color: theme.colors.textSecondary,
     },
     scrollContent: {
       flexGrow: 1,
-      paddingHorizontal: 10,
+      paddingHorizontal: 12,
     },
     section: {
       marginBottom: 24,
@@ -309,23 +313,35 @@ export const CategoryFormScreen: React.FC = () => {
 
   if (isLoadingCategory) {
     return (
-      <SafeContainer>
-        <View style={styles.loadingContainer}>
+      <View style={styles.container}>
+        <GradientHeader
+          title={isEditing ? 'Edit Category' : 'Create Category'}
+          subtitle={isEditing ? 'Update category details' : 'Add a new category'}
+          showBackButton={true}
+          onBackPress={() => navigation.goBack()}
+        />
+        <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
           <LoadingSpinner size="large" />
           <Text style={styles.loadingText}>Loading category...</Text>
         </View>
-      </SafeContainer>
+      </View>
     );
   }
 
   return (
-    <SafeContainer>
+    <View style={styles.container}>
+      <GradientHeader
+        title={isEditing ? 'Edit Category' : 'Create Category'}
+        subtitle={isEditing ? 'Update category details' : 'Add a new category'}
+        showBackButton={true}
+        onBackPress={() => navigation.goBack()}
+      />
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingViewStyle}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView
-          style={styles.container}
+          style={styles.content}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
@@ -472,8 +488,7 @@ export const CategoryFormScreen: React.FC = () => {
           {/* Bottom spacing for tab bar */}
           <BottomSpacing />
         </ScrollView>
-
       </KeyboardAvoidingView>
-    </SafeContainer>
+    </View>
   );
 };

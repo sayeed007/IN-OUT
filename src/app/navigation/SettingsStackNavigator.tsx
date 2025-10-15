@@ -56,16 +56,15 @@ const SettingsStackNavigator: React.FC = () => {
                 component={AccountManagerScreen}
                 options={{
                     headerShown: false,
-                    presentation: 'modal',
                 }}
             />
 
             <Stack.Screen
                 name="AccountForm"
                 component={AccountFormScreen}
-                options={({ route }) => ({
-                    title: route.params?.accountId ? 'Edit Account' : 'Add Account',
-                })}
+                options={{
+                    headerShown: false,
+                }}
             />
 
             <Stack.Screen
@@ -73,16 +72,15 @@ const SettingsStackNavigator: React.FC = () => {
                 component={CategorySettingsScreen}
                 options={{
                     headerShown: false,
-                    presentation: 'modal',
                 }}
             />
 
             <Stack.Screen
                 name="CategoryForm"
                 component={CategoryFormScreen}
-                options={({ route }) => ({
-                    title: route.params?.categoryId ? 'Edit Category' : 'Add Category',
-                })}
+                options={{
+                    headerShown: false,
+                }}
             />
         </Stack.Navigator>
     );
