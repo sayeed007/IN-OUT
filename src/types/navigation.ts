@@ -42,6 +42,9 @@ export type ModalStackParamList = {
     transactionId: string;
     isEditing?: boolean;
   };
+  EditTransaction: {
+    transactionId: string;
+  };
   AccountManager: {
     accountId?: string;
     isEditing?: boolean;

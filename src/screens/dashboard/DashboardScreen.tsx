@@ -7,7 +7,6 @@ import {
     ScrollView,
     StyleSheet,
     Text,
-    TouchableOpacity,
     View
 } from 'react-native';
 import { useTheme } from '../../app/providers/ThemeProvider';
@@ -22,6 +21,7 @@ import { BalanceOverview } from './components/BalanceOverview';
 import CategoryBreakdown from './components/CategoryBreakdown';
 import { CompactQuickActions } from './components/CompactQuickActions';
 import { MonthSelector } from './components/MonthSelector';
+import RecentTransactions from './components/RecentTransactions';
 import TrendChart from './components/TrendChart';
 
 
@@ -160,29 +160,6 @@ export const DashboardScreen: React.FC = () => {
         return { income, expense };
     }, [transactions]);
 
-    // Helper function to get meaningful transaction description
-    const getTransactionDescription = (transaction: any) => {
-        if (transaction.note) {
-            return transaction.note;
-        }
-
-        if (transaction.categoryId) {
-            const category = categories.find(cat => cat.id === transaction.categoryId);
-            if (category) {
-                return category.name;
-            }
-        }
-
-        if (transaction.type === 'transfer') {
-            const fromAccount = accounts.find(acc => acc.id === transaction.accountId);
-            const toAccount = accounts.find(acc => acc.id === transaction.accountIdTo);
-            if (fromAccount && toAccount) {
-                return `Transfer: ${fromAccount.name} → ${toAccount.name}`;
-            }
-        }
-
-        return `${transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}`;
-    };
 
     const handleRefresh = async () => {
         setRefreshing(true);
@@ -287,49 +264,13 @@ export const DashboardScreen: React.FC = () => {
                 )}
 
                 {/* Recent Transactions Preview */}
-                {transactions.length > 0 && (
-                    <Card style={styles.recentTransactionsCard}>
-                        <View style={styles.sectionHeader}>
-                            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-                                Recent Transactions
-                            </Text>
-                            <TouchableOpacity
-                                onPress={() => navigation.navigate('Transactions', {})}
-                                activeOpacity={0.7}
-                            >
-                                <Text style={[styles.seeAllText, { color: theme.colors.primary[500] }]}>
-                                    See All
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-
-                        {transactions.slice(0, 3).map((transaction) => (
-                            <View key={transaction.id} style={styles.transactionItem}>
-                                <View style={styles.transactionInfo}>
-                                    <Text style={[styles.transactionNote, { color: theme.colors.text }]}>
-                                        {getTransactionDescription(transaction)}
-                                    </Text>
-                                    <Text style={[styles.transactionDate, { color: theme.colors.textSecondary }]}>
-                                        {dayjs(transaction.date).format('MMM D')}
-                                    </Text>
-                                </View>
-                                <Text style={[
-                                    styles.transactionAmount,
-                                    {
-                                        color: transaction.type === 'income'
-                                            ? theme.colors.success[500]
-                                            : transaction.type === 'expense'
-                                                ? theme.colors.error[500]
-                                                : theme.colors.text
-                                    }
-                                ]}>
-                                    {transaction.type === 'income' ? '+' : transaction.type === 'expense' ? '-' : ''}
-                                    ${transaction.amount.toFixed(2)}
-                                </Text>
-                            </View>
-                        ))}
-                    </Card>
-                )}
+                <RecentTransactions
+                    transactions={transactions}
+                    categories={categories}
+                    accounts={accounts}
+                    onSeeAll={() => navigation.navigate('Transactions', {})}
+                    maxItems={3}
+                />
 
                 {/* Bottom spacing for tab bar */}
                 <BottomSpacing />
@@ -353,45 +294,6 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     emptyCard: {
-    },
-    sectionHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 16,
-    },
-    sectionTitle: {
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    recentTransactionsCard: {
-    },
-    seeAllText: {
-        fontSize: 14,
-        fontWeight: '500',
-    },
-    transactionItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 12,
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: '#E5E5E5',
-    },
-    transactionInfo: {
-        flex: 1,
-    },
-    transactionNote: {
-        fontSize: 14,
-        fontWeight: '500',
-        marginBottom: 2,
-    },
-    transactionDate: {
-        fontSize: 14,
-    },
-    transactionAmount: {
-        fontSize: 16,
-        fontWeight: '600',
     },
     row: {
         flexDirection: 'row',

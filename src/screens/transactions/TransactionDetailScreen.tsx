@@ -1,35 +1,38 @@
 // src/screens/transactions/TransactionDetailScreen.tsx
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Share,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { SafeContainer } from '../../components/layout/SafeContainer';
+import Icon from 'react-native-vector-icons/Ionicons';
+import type { ModalStackScreenProps } from '../../types/navigation';
 import { Button } from '../../components/ui/Button';
-import { Card } from '../../components/ui/Card';
-import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
-import { Header } from '../../components/layout/Header';
-import { Chip } from '../../components/ui/Chip';
+import Card from '../../components/ui/Card';
+import Chip from '../../components/ui/Chip';
+import { GradientHeader } from '../../components/ui/GradientHeader';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import ConfirmationModal from '../../components/modals/ConfirmationModal';
 import {
-  useGetTransactionQuery,
   useDeleteTransactionMutation,
   useGetAccountsQuery,
   useGetCategoriesQuery,
+  useGetTransactionQuery,
 } from '../../state/api';
 import { formatCurrency } from '../../utils/helpers/currencyUtils';
 import { formatDisplayDate, formatTime } from '../../utils/helpers/dateUtils';
-import type { TransactionScreenProps } from '../../app/navigation/types';
 import { showToast } from '../../utils/helpers/toast';
+import { getTransactionTypeColor } from '../../utils/helpers/transactionUtils';
 
-type Props = TransactionScreenProps<'TransactionDetail'>;
+type Props = ModalStackScreenProps<'TransactionDetail'>;
 
 const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   const { transactionId } = route.params;
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
 
   const { data: transaction, isLoading, error } = useGetTransactionQuery(transactionId);
   const { data: accounts = [] } = useGetAccountsQuery();
@@ -38,16 +41,20 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleEdit = () => {
     if (transaction) {
-      navigation.navigate('AddTransaction', {
-        type: transaction.type,
-        editTransaction: transaction,
+      navigation.navigate('EditTransaction', {
+        transactionId: transaction.id,
       });
     }
   };
 
-  const handleDelete = async () => {
+  const handleDeletePress = () => {
+    setShowDeleteConfirmation(true);
+  };
+
+  const handleDeleteConfirm = async () => {
     try {
       setIsDeleting(true);
+      setShowDeleteConfirmation(false);
       await deleteTransaction(transactionId).unwrap();
       showToast.success('Transaction deleted successfully');
       navigation.goBack();
@@ -56,6 +63,10 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteConfirmation(false);
   };
 
   const handleShare = async () => {
@@ -69,23 +80,23 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
     message += `Type: ${transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}\n`;
     message += `Amount: ${formatCurrency(transaction.amount, transaction.currencyCode)}\n`;
     message += `Date: ${formatDisplayDate(transaction.date)} at ${formatTime(transaction.date)}\n`;
-    
+
     if (account) {
       message += `${transaction.type === 'transfer' ? 'From ' : ''}Account: ${account.name}\n`;
     }
-    
+
     if (accountTo) {
       message += `To Account: ${accountTo.name}\n`;
     }
-    
+
     if (category) {
       message += `Category: ${category.name}\n`;
     }
-    
+
     if (transaction.note) {
       message += `Note: ${transaction.note}\n`;
     }
-    
+
     if (transaction.tags.length > 0) {
       message += `Tags: ${transaction.tags.join(', ')}\n`;
     }
@@ -104,38 +115,23 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
     return accounts.find(acc => acc.id === accountId);
   };
 
-  const getCategory = (categoryId?: string) => {
-    if (!categoryId) return null;
-    return categories.find(cat => cat.id === categoryId);
-  };
-
-  const getTransactionTypeColor = () => {
-    if (!transaction) return '#6B7280';
-    
-    switch (transaction.type) {
-      case 'income':
-        return '#10B981';
-      case 'expense':
-        return '#EF4444';
-      case 'transfer':
-        return '#3B82F6';
-      default:
-        return '#6B7280';
-    }
+  const getCategory = (categoryId: string | null) => {
+    return categoryId ? categories.find(cat => cat.id === categoryId) : null;
   };
 
   const getAmountDisplay = () => {
     if (!transaction) return '';
-    
+
     const prefix = transaction.type === 'income' ? '+' : transaction.type === 'expense' ? '-' : '';
     return `${prefix}${formatCurrency(transaction.amount, transaction.currencyCode)}`;
   };
 
   if (isLoading) {
     return (
-      <SafeContainer style={styles.container}>
-        <Header 
+      <View style={styles.container}>
+        <GradientHeader
           title="Transaction Details"
+          subtitle="Loading..."
           showBackButton
           onBackPress={() => navigation.goBack()}
         />
@@ -143,15 +139,16 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           <LoadingSpinner size="large" />
           <Text style={styles.loadingText}>Loading transaction...</Text>
         </View>
-      </SafeContainer>
+      </View>
     );
   }
 
   if (error || !transaction) {
     return (
-      <SafeContainer style={styles.container}>
-        <Header 
+      <View style={styles.container}>
+        <GradientHeader
           title="Transaction Details"
+          subtitle="Error loading transaction"
           showBackButton
           onBackPress={() => navigation.goBack()}
         />
@@ -165,21 +162,28 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             variant="secondary"
           />
         </View>
-      </SafeContainer>
+      </View>
     );
   }
 
   const account = getAccount(transaction.accountId);
   const accountTo = transaction.accountIdTo ? getAccount(transaction.accountIdTo) : null;
-  const category = getCategory(transaction.categoryId);
+  const category = getCategory(transaction?.categoryId || '');
+  console.log(category);
+
+  const getTransactionSubtitle = () => {
+    const typeText = transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1);
+    return `${typeText} - ${formatDisplayDate(transaction.date)}`;
+  };
 
   return (
-    <SafeContainer style={styles.container}>
-      <Header 
+    <View style={styles.container}>
+      <GradientHeader
         title="Transaction Details"
+        subtitle={getTransactionSubtitle()}
         showBackButton
         onBackPress={() => navigation.goBack()}
-        rightComponent={
+        rightElement={
           <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
             <Text style={styles.shareIcon}>📤</Text>
           </TouchableOpacity>
@@ -190,18 +194,18 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         {/* Main Transaction Info */}
         <Card style={styles.mainCard}>
           <View style={styles.amountSection}>
-            <Text 
+            <Text
               style={[
-                styles.amountText, 
-                { color: getTransactionTypeColor() }
+                styles.amountText,
+                { color: getTransactionTypeColor(transaction.type) }
               ]}
             >
               {getAmountDisplay()}
             </Text>
-            <Chip 
+            <Chip
               label={transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
-              style={[styles.typeChip, { backgroundColor: `${getTransactionTypeColor()}15` }]}
-              textStyle={{ color: getTransactionTypeColor() }}
+              style={StyleSheet.flatten([styles.typeChip, { backgroundColor: `${getTransactionTypeColor(transaction.type) + 15}` }])}
+              textStyle={{ color: getTransactionTypeColor(transaction.type) }}
             />
           </View>
 
@@ -220,7 +224,7 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           <Text style={styles.sectionTitle}>
             {transaction.type === 'transfer' ? 'Accounts' : 'Account'}
           </Text>
-          
+
           <View style={styles.accountSection}>
             <View style={styles.accountInfo}>
               <Text style={styles.accountLabel}>
@@ -257,9 +261,11 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             <Text style={styles.sectionTitle}>Category</Text>
             <View style={styles.categorySection}>
               <View style={[styles.categoryIcon, { backgroundColor: category.color + '20' }]}>
-                <Text style={[styles.categoryIconText, { color: category.color }]}>
+                {/* <Text style={[styles.categoryIconText, { color: category.color }]}>
                   {category.icon}
-                </Text>
+                </Text> */}
+                <Icon name={category.icon} size={24} color={category.color} />
+
               </View>
               <View style={styles.categoryInfo}>
                 <Text style={styles.categoryName}>{category.name}</Text>
@@ -285,7 +291,7 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             <Text style={styles.sectionTitle}>Tags</Text>
             <View style={styles.tagsContainer}>
               {transaction.tags.map((tag, index) => (
-                <Chip 
+                <Chip
                   key={index}
                   label={tag}
                   style={styles.tagChip}
@@ -331,13 +337,26 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         />
         <Button
           title="Delete"
-          onPress={handleDelete}
+          onPress={handleDeletePress}
           variant="danger"
           style={styles.actionButton}
           loading={isDeleting}
         />
       </View>
-    </SafeContainer>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        visible={showDeleteConfirmation}
+        title="Delete Transaction"
+        message="Are you sure you want to delete this transaction? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmStyle="destructive"
+        icon="trash-outline"
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+      />
+    </View>
   );
 };
 

@@ -5,6 +5,7 @@ import { useColorScheme, Platform } from 'react-native';
 
 // Screens
 import TransactionDetailScreen from '../../screens/transactions/TransactionDetailScreen';
+import EditTransactionModal from '../../screens/transactions/EditTransactionModal';
 import { AccountManagerScreen } from '../../screens/settings/AccountManagerScreen';
 import CategoryManagerScreen from '../../screens/categories/CategoryManagerScreen';
 import BudgetScreen from '../../screens/budgets/BudgetScreen';
@@ -57,7 +58,18 @@ const StackNavigator: React.FC = () => {
                 options={({ route }) => ({
                     title: route.params?.isEditing ? 'Edit Transaction' : 'Transaction Details',
                     headerLeft: () => null, // Custom back button can be added in component
+                    headerShown: false,
                 })}
+            />
+
+            <Stack.Screen
+                name="EditTransaction"
+                component={EditTransactionModal}
+                options={{
+                    title: 'Edit Transaction',
+                    headerShown: false,
+                    presentation: 'modal',
+                }}
             />
 
             <Stack.Screen

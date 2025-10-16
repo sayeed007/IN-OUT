@@ -6,6 +6,7 @@
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "lint": "eslint .",
+    "ts": "npx tsc --noEmit",
     "start": "react-native start",
     "test": "jest",
     "api": "json-server --watch server/db.json --port 3001 --delay 350",
