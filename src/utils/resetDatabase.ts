@@ -32,14 +32,6 @@ export const debugDatabase = async (): Promise<void> => {
 };
 
 // Helper function to call from React DevTools or console
-declare global {
-  interface Window {
-    resetDB: () => Promise<void>;
-    debugDB: () => Promise<void>;
-  }
-}
-
-if (typeof window !== 'undefined') {
-  window.resetDB = resetDatabase;
-  window.debugDB = debugDatabase;
-}
+// Note: This is primarily for web debugging. In React Native, use the debugger console.
+// Export these functions so they can be called from the debugger
+export { resetDatabase as resetDB, debugDatabase as debugDB };

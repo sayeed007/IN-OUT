@@ -228,7 +228,7 @@ export const EditTransactionModal: React.FC<Props> = ({ navigation, route }) => 
       }
 
       // Update transaction
-      await updateTransaction(transactionData).unwrap();
+      await updateTransaction({ ...transactionData, id: transaction.id }).unwrap();
 
       showToast.success('Transaction updated successfully!');
 

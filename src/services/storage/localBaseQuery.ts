@@ -203,7 +203,7 @@ class LocalDatabase {
         });
       }
 
-      return this.cache;
+      return this.cache!;
     } catch (error) {
       console.error('Failed to load database:', error);
       // If it's a timeout or parse error, return default DB
@@ -266,7 +266,17 @@ export const localBaseQuery: BaseQueryFn<
       const [pathname, search] = url.split('?');
       const pathParts = pathname.split('/').filter(Boolean); // Remove empty strings
       const resource = pathParts[0]; // First part is the resource name
-      const params = new URLSearchParams(search || '');
+
+      // Parse query params manually for React Native compatibility
+      const parseQueryParams = (queryString: string): Record<string, string> => {
+        if (!queryString) return {};
+        return queryString.split('&').reduce((acc, param) => {
+          const [key, value] = param.split('=');
+          if (key) acc[key] = decodeURIComponent(value || '');
+          return acc;
+        }, {} as Record<string, string>);
+      };
+      const params = parseQueryParams(search || '');
 
       console.log(`LocalBaseQuery: ${method.toUpperCase()} ${pathname}`, body ? { body } : '');
 
@@ -297,36 +307,36 @@ export const localBaseQuery: BaseQueryFn<
             let data = [...resourceData];
 
             // Apply filters
-            const typeParam = params.get('type');
+            const typeParam = params['type'];
             if (typeParam) {
               data = data.filter((item: any) => item.type === typeParam);
             }
 
-            const dateGteParam = params.get('date_gte');
+            const dateGteParam = params['date_gte'];
             if (dateGteParam) {
               const startDate = new Date(dateGteParam);
               data = data.filter((item: any) => new Date(item.date) >= startDate);
             }
 
-            const dateLteParam = params.get('date_lte');
+            const dateLteParam = params['date_lte'];
             if (dateLteParam) {
               const endDate = new Date(dateLteParam);
               data = data.filter((item: any) => new Date(item.date) <= endDate);
             }
 
-            const monthParam = params.get('month');
+            const monthParam = params['month'];
             if (monthParam) {
               data = data.filter((item: any) => item.month === monthParam);
             }
 
-            const categoryIdParam = params.get('categoryId');
+            const categoryIdParam = params['categoryId'];
             if (categoryIdParam) {
               data = data.filter((item: any) => item.categoryId === categoryIdParam);
             }
 
             // Apply sorting
-            const sortBy = params.get('_sort') || 'createdAt';
-            const sortOrder = params.get('_order') || 'desc';
+            const sortBy = params['_sort'] || 'createdAt';
+            const sortOrder = params['_order'] || 'desc';
 
             data.sort((a: any, b: any) => {
               const aVal = a[sortBy];
@@ -351,8 +361,8 @@ export const localBaseQuery: BaseQueryFn<
             });
 
             // Apply pagination
-            const pageParam = params.get('_page');
-            const limitParam = params.get('_limit');
+            const pageParam = params['_page'];
+            const limitParam = params['_limit'];
             const page = parseInt(pageParam || '1', 10);
             const limit = parseInt(limitParam || '1000', 10);
             const start = (page - 1) * limit;
@@ -586,8 +596,8 @@ export const localBaseQuery: BaseQueryFn<
     if (error instanceof Error && error.message.includes('AbortError')) {
       return {
         error: {
-          status: 'TIMEOUT_ERROR',
-          data: error.message
+          status: 'TIMEOUT_ERROR' as const,
+          error: error.message
         } as FetchBaseQueryError
       };
     }

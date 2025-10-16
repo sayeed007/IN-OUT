@@ -422,7 +422,7 @@ export const CategoryFormScreen: React.FC = () => {
             <Text style={styles.sectionTitle}>Category Icon</Text>
             <Card style={styles.inputCard}>
               <View style={styles.iconSelector}>
-                {CATEGORY_ICONS[type].map((iconOption) => (
+                {CATEGORY_ICONS[type as keyof typeof CATEGORY_ICONS]?.map((iconOption: string) => (
                   <TouchableOpacity
                     key={iconOption}
                     style={[

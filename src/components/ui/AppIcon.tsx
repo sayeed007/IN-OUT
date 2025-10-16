@@ -31,7 +31,7 @@ const AppIcon: React.FC<AppIconProps> = ({
   const [imageError, setImageError] = React.useState(false);
 
   // App icon source - uses generated icon or custom if available
-  let iconSource;
+  let iconSource: any;
   try {
     // Try custom icon first
     iconSource = require('../../assets/icon-source.png');
