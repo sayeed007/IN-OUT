@@ -73,3 +73,11 @@ yarn-error.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Google Cloud credentials (never commit these!)
+client_secret*.json
+
+# Temporary files
+*.diff
+*.patch
+nul

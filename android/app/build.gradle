@@ -1,6 +1,7 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
+// Removed Firebase Google Services plugin - not needed for Google Drive backup
 apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
 
 /**
@@ -88,7 +89,7 @@ android {
     }
     signingConfigs {
         debug {
-            storeFile file('debug.keystore')
+            storeFile file('debug-inout.keystore')
             storePassword 'android'
             keyAlias 'androiddebugkey'
             keyPassword 'android'
