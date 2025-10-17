@@ -384,6 +384,16 @@ export const initializeApp = async (): Promise<void> => {
       db = await appInit.initializeDatabase();
     }
 
+    // Initialize scheduled backup service
+    try {
+      const { ScheduledBackupService } = require('./scheduledBackup');
+      await ScheduledBackupService.initialize();
+      console.info('Scheduled backup service initialized');
+    } catch (backupError) {
+      console.error('Failed to initialize scheduled backup:', backupError);
+      // Don't throw - app should still be usable without scheduled backups
+    }
+
     console.info('App initialization complete');
   } catch (error) {
     console.error('App initialization failed:', error);

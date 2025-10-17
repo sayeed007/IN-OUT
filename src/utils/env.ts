@@ -32,4 +32,7 @@ export const STORAGE_KEYS = {
   PIN_HASH: 'pinHash',
   BIOMETRIC_ENABLED: 'biometricEnabled',
   LAST_BACKUP_DATE: 'lastBackupDate',
+  EMAIL_BACKUP_SETTINGS: 'emailBackupSettings',
+  SCHEDULED_BACKUP_SETTINGS: 'scheduledBackupSettings',
+  GOOGLE_DRIVE_BACKUP_SETTINGS: 'googleDriveBackupSettings',
 } as const;
