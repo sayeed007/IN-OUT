@@ -18,10 +18,13 @@ interface ActionItem {
   label: string;
   icon: string;
   color: string;
+  bgColor: string;
 }
 
 export const CompactQuickActions: React.FC<CompactQuickActionsProps> = ({ onAction }) => {
   const { theme } = useTheme();
+
+  const isDark = theme.mode === 'dark';
 
   const actions: ActionItem[] = [
     {
@@ -29,24 +32,28 @@ export const CompactQuickActions: React.FC<CompactQuickActionsProps> = ({ onActi
       label: 'Income',
       icon: 'add-circle',
       color: theme.colors.success[500],
+      bgColor: isDark ? theme.colors.dark.surfaceVariant : theme.colors.success[50],
     },
     {
       id: 'add-expense',
       label: 'Expense',
       icon: 'remove-circle',
       color: theme.colors.error[500],
+      bgColor: isDark ? theme.colors.dark.surfaceVariant : theme.colors.error[50],
     },
     {
       id: 'transfer',
       label: 'Transfer',
       icon: 'swap-horizontal',
       color: theme.colors.info[500],
+      bgColor: isDark ? theme.colors.dark.surfaceVariant : theme.colors.info[50],
     },
     {
       id: 'view-budget',
       label: 'Budget',
       icon: 'pie-chart',
       color: theme.colors.secondary[500],
+      bgColor: isDark ? theme.colors.dark.surfaceVariant : theme.colors.secondary[50],
     },
   ];
 
@@ -63,7 +70,7 @@ export const CompactQuickActions: React.FC<CompactQuickActionsProps> = ({ onActi
             onPress={() => onAction(action.id)}
             activeOpacity={0.7}
           >
-            <View style={[styles.iconContainer, { backgroundColor: action.color + '15' }]}>
+            <View style={[styles.iconContainer, { backgroundColor: action.bgColor }]}>
               <Icon name={action.icon} size={24} color={action.color} />
             </View>
             <Text style={[styles.actionLabel, { color: theme.colors.text }]} numberOfLines={1}>

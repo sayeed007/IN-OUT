@@ -1,7 +1,7 @@
 // src/app/App.tsx
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import React, { useEffect } from 'react';
-import { StatusBar, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import AppNavigator from './src/app/navigation/AppNavigator';
@@ -27,7 +27,6 @@ const AppContent: React.FC = () => {
 
     return (
         <View style={styles.container}>
-            <StatusBar backgroundColor="transparent" translucent />
             <NavigationContainer theme={navigationTheme}>
                 <AppNavigator />
             </NavigationContainer>

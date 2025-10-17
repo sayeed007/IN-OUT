@@ -64,7 +64,21 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(python:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(gradlew.bat app:installDebug:*)",
+      "Bash(./gradlew app:installDebug:*)",
+      "Bash(./gradlew clean:*)",
+      "Bash(dir \"C:\\RN\\in_out\\android\\app\")",
+      "Bash(findstr:*)",
+      "Bash(keytool:*)",
+      "Bash(npx react-native log-android)",
+      "Bash(dir C:RN /B)",
+      "Bash(del \"C:\\RN\\in_out\\GOOGLE_SIGNIN_FIX.md\" \"C:\\RN\\in_out\\SHA1_CONFLICT_FIX.md\" \"C:\\RN\\in_out\\WHATS_FIXED.md\" \"C:\\RN\\in_out\\GOOGLE_SIGNIN_SETUP.md\" \"C:\\RN\\in_out\\SETUP_COMPLETE_GUIDE.md\")",
+      "Bash(rm:*)",
+      "Bash(gradlew.bat signingReport:*)",
+      "Bash(.gradlew.bat signingReport:*)",
+      "Bash(del \"C:\\RN\\in_out\\android\\app\\google-services.json\")",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "ask": []

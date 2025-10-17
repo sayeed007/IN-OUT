@@ -1,6 +1,7 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React, { useCallback } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Screens
 import { DashboardScreen } from '../../screens/dashboard/DashboardScreen';
@@ -22,6 +23,7 @@ const Tab = createBottomTabNavigator<TabParamList>();
 
 const TabNavigator: React.FC = () => {
     const { theme, isDark } = useTheme();
+    const insets = useSafeAreaInsets();
 
     // Move the tabBarIcon function outside of screenOptions to avoid recreating it on every render
     const renderTabBarIcon = useCallback(
@@ -62,8 +64,8 @@ const TabNavigator: React.FC = () => {
                         borderTopWidth: 0,
                         borderTopLeftRadius: 24,
                         borderTopRightRadius: 24,
-                        height: Platform.OS === 'ios' ? 65 : 60,
-                        paddingBottom: Platform.OS === 'ios' ? 20 : 17,
+                        height: Platform.OS === 'ios' ? 65 + insets.bottom : 60 + insets.bottom,
+                        paddingBottom: Platform.OS === 'ios' ? 20 + insets.bottom : 17 + insets.bottom,
                         paddingHorizontal: 8,
                         ...Platform.select({
                             ios: {

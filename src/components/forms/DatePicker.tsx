@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useTheme } from '../../app/providers/ThemeProvider';
 
 interface DatePickerProps {
   date: Date;
@@ -33,6 +34,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [tempDate, setTempDate] = useState(date);
+  const { theme } = useTheme();
 
   const formatDate = (): string => {
     if (compact) {
@@ -79,18 +81,22 @@ export const DatePicker: React.FC<DatePickerProps> = ({
 
   return (
     <View style={[styles.container, compact && styles.compactContainer]}>
-      {showLabel && label && <Text style={styles.label}>{label}</Text>}
+      {showLabel && label && <Text style={[styles.label, { color: theme.colors.text }]}>{label}</Text>}
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity
-          style={[styles.dateButton, compact && styles.compactDateButton]}
+          style={[
+            styles.dateButton,
+            compact && styles.compactDateButton,
+            { borderColor: theme.colors.border, backgroundColor: theme.colors.surface }
+          ]}
           onPress={openDatePicker}
         >
-          <Icon name="calendar-outline" size={compact ? 16 : 20} color="#6366F1" style={styles.icon} />
-          <Text style={[styles.dateText, compact && styles.compactDateText]}>
+          <Icon name="calendar-outline" size={compact ? 16 : 20} color={theme.colors.primary[500]} style={styles.icon} />
+          <Text style={[styles.dateText, compact && styles.compactDateText, { color: theme.colors.text }]}>
             {date ? formatDate() : placeholder}
           </Text>
-          {!compact && <Icon name="chevron-down" size={20} color="#9CA3AF" />}
+          {!compact && <Icon name="chevron-down" size={20} color={theme.colors.textSecondary} />}
         </TouchableOpacity>
       </View>
 
@@ -101,20 +107,20 @@ export const DatePicker: React.FC<DatePickerProps> = ({
           presentationStyle="pageSheet"
           onRequestClose={handleCancel}
         >
-          <View style={styles.modal}>
-            <View style={styles.modalHeader}>
+          <View style={[styles.modal, { backgroundColor: theme.colors.background }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: theme.colors.border }]}>
               <TouchableOpacity
                 style={styles.modalButton}
                 onPress={handleCancel}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={[styles.cancelButtonText, { color: theme.colors.textSecondary }]}>Cancel</Text>
               </TouchableOpacity>
-              <Text style={styles.modalTitle}>Select Date</Text>
+              <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Select Date</Text>
               <TouchableOpacity
                 style={styles.modalButton}
                 onPress={handleConfirm}
               >
-                <Text style={styles.confirmButtonText}>Done</Text>
+                <Text style={[styles.confirmButtonText, { color: theme.colors.primary[500] }]}>Done</Text>
               </TouchableOpacity>
             </View>
 
@@ -158,7 +164,6 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#111827',
     marginBottom: 8,
   },
   buttonContainer: {
@@ -170,9 +175,7 @@ const styles = StyleSheet.create({
     // alignItems: 'center',
     padding: 12,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
   },
   compactDateButton: {
     padding: 8,
@@ -185,7 +188,6 @@ const styles = StyleSheet.create({
   dateText: {
     flex: 1,
     fontSize: 16,
-    color: '#111827',
   },
   compactDateText: {
     fontSize: 14,
@@ -193,7 +195,6 @@ const styles = StyleSheet.create({
   },
   modal: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -202,7 +203,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
   },
   modalButton: {
     paddingVertical: 8,
@@ -211,16 +211,13 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#111827',
   },
   cancelButtonText: {
     fontSize: 16,
-    color: '#6B7280',
   },
   confirmButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#6366F1',
   },
   datePickerContainer: {
     flex: 1,

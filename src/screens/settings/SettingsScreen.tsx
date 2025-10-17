@@ -51,10 +51,10 @@ export const SettingsScreen: React.FC = () => {
         </View>
 
         {/* Account Settings */}
-        {/* <AccountSettings /> */}
+        <AccountSettings />
 
         {/* Preferences */}
-        {/* <PreferencesSettings /> */}
+        <PreferencesSettings />
 
         {/* Data Management */}
         {/* <DataManagementSettings /> */}

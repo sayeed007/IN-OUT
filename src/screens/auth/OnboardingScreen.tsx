@@ -15,6 +15,7 @@ import { CurrencyStep } from './components/CurrencyStep';
 import { AccountSetupStep } from './components/AccountSetupStep';
 import { SummaryStep } from './components/SummaryStep';
 import { showToast } from '../../utils/helpers/toast';
+import { useTheme } from '../../app/providers/ThemeProvider';
 
 type Props = RootStackScreenProps<'Onboarding'>;
 
@@ -40,6 +41,7 @@ const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
   });
 
   const appInit = AppInitializationService.getInstance();
+  const { theme } = useTheme();
 
   const handleNext = () => {
     if (step < 3) {
@@ -183,16 +185,17 @@ const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   return (
-    <SafeContainer style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Setup</Text>
+    <SafeContainer style={StyleSheet.flatten([styles.container, { backgroundColor: theme.colors.background }])}>
+      <View style={[styles.header, { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.border }]}>
+        <Text style={[styles.title, { color: theme.colors.text }]}>Setup</Text>
         <View style={styles.stepIndicator}>
           {[1, 2, 3].map((stepNumber) => (
             <View
               key={stepNumber}
               style={[
                 styles.stepDot,
-                stepNumber <= step && styles.stepDotActive,
+                { backgroundColor: theme.colors.border },
+                stepNumber <= step && { backgroundColor: theme.colors.primary[500] },
               ]}
             />
           ))}
@@ -231,18 +234,14 @@ const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
   },
   header: {
     paddingVertical: 12,
-    backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
   },
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1e293b',
     textAlign: 'center',
     marginBottom: 12,
   },
@@ -255,10 +254,6 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#cbd5e1',
-  },
-  stepDotActive: {
-    backgroundColor: '#3b82f6',
   },
   content: {
     flex: 1,
@@ -273,13 +268,11 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1e293b',
     marginBottom: 8,
     textAlign: 'center',
   },
   stepDescription: {
     fontSize: 16,
-    color: '#64748b',
     textAlign: 'center',
     marginBottom: 24,
   },

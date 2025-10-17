@@ -9,6 +9,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import type { Category } from '../../types/global';
 import { CategoryPickerModal } from './CategoryPickerModal';
+import { useTheme } from '../../app/providers/ThemeProvider';
 
 interface CategorySelectorProps {
   categories: Category[];
@@ -33,6 +34,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const labelAnimation = useRef(new Animated.Value(0)).current;
+  const { theme } = useTheme();
 
   const selectedCategory = categories.find(category => category.id === selectedCategoryId);
 
@@ -61,7 +63,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
     }),
     color: labelAnimation.interpolate({
       inputRange: [0, 1],
-      outputRange: ['#9CA3AF', '#6366F1'],
+      outputRange: [theme.colors.textSecondary, theme.colors.primary[500]],
     }),
   };
 
@@ -82,7 +84,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
               onPress={onQuickAdd}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Icon name="add-circle-outline" size={20} color="#6366F1" />
+              <Icon name="add-circle-outline" size={20} color={theme.colors.primary[500]} />
             </TouchableOpacity>
           )}
         </View>
@@ -91,6 +93,10 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
       <TouchableOpacity
         style={[
           styles.selector,
+          {
+            borderColor: floatingLabel ? theme.colors.primary[500] : theme.colors.border,
+            backgroundColor: theme.colors.surface
+          },
           compact && styles.compactSelector,
           floatingLabel && styles.floatingSelector
         ]}
@@ -105,7 +111,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
               ]}
             />
             <View style={styles.categoryInfo}>
-              <Text style={styles.categoryName}>{selectedCategory.name}</Text>
+              <Text style={[styles.categoryName, { color: theme.colors.text }]}>{selectedCategory.name}</Text>
               <Text style={[
                 styles.categoryType,
                 { color: getCategoryTypeColor(selectedCategory.type) }
@@ -124,6 +130,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
         ) : (
           <Text style={[
             styles.placeholder,
+            { color: theme.colors.textSecondary },
             floatingLabel && styles.floatingPlaceholder
           ]}>
             {floatingLabel ? '' : placeholder}
@@ -136,10 +143,10 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
               onPress={onQuickAdd}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Icon name="add-circle-outline" size={18} color="#6366F1" />
+              <Icon name="add-circle-outline" size={18} color={theme.colors.primary[500]} />
             </TouchableOpacity>
           )}
-          <Icon name="chevron-down" size={20} color="#9CA3AF" />
+          <Icon name="chevron-down" size={20} color={theme.colors.textSecondary} />
         </View>
       </TouchableOpacity>
 
@@ -181,9 +188,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
     minHeight: 48,
   },
   compactSelector: {
@@ -191,7 +196,6 @@ const styles = StyleSheet.create({
     minHeight: 44,
   },
   floatingSelector: {
-    borderColor: '#6366F1',
     borderWidth: 1.5,
   },
   rightContent: {
@@ -219,7 +223,6 @@ const styles = StyleSheet.create({
   categoryName: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#111827',
   },
   categoryType: {
     fontSize: 14,
@@ -232,7 +235,6 @@ const styles = StyleSheet.create({
   },
   placeholder: {
     fontSize: 16,
-    color: '#9CA3AF',
     flex: 1,
   },
   floatingPlaceholder: {

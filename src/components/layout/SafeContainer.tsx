@@ -22,11 +22,11 @@ export const SafeContainer: React.FC<SafeContainerProps> = ({
 }) => {
     const insets = useSafeAreaInsets();
     const { theme } = useTheme();
-    
+
     // Use theme background if no backgroundColor is provided
     const finalBackgroundColor = backgroundColor || theme.colors.background;
 
-    const spacingValue = typeof Spacing[padding] === 'number' ? Spacing[padding] : Spacing.xs;
+    const spacingValue = typeof Spacing[padding] === 'number' ? Spacing[padding] : Spacing.base;
 
     const containerStyle: ViewStyle = {
         flex: 1,

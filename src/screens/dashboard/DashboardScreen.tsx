@@ -11,10 +11,10 @@ import {
 } from 'react-native';
 import { useTheme } from '../../app/providers/ThemeProvider';
 import { SafeContainer } from '../../components/layout/SafeContainer';
-import BottomSpacing from '../../components/ui/BottomSpacing';
 import Card from '../../components/ui/Card';
 import EmptyState from '../../components/ui/EmptyState';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import { SpacerVertical } from '../../components/ui/Spacer';
 import { useGetAccountsQuery, useGetBudgetsQuery, useGetCategoriesQuery, useGetTransactionsQuery } from '../../state/api';
 import AccountOverview from './components/AccountOverview';
 import { BalanceOverview } from './components/BalanceOverview';
@@ -272,8 +272,8 @@ export const DashboardScreen: React.FC = () => {
                     maxItems={3}
                 />
 
-                {/* Bottom spacing for tab bar */}
-                <BottomSpacing />
+                {/* Bottom spacing */}
+                <SpacerVertical.XXL />
             </ScrollView>
         </SafeContainer>
     );

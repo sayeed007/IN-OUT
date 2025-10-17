@@ -4,7 +4,6 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
   KeyboardAvoidingView,
-  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -12,8 +11,9 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/Ionicons';
-import type { ModalStackScreenProps } from '../../types/navigation';
+import { useTheme } from '../../app/providers/ThemeProvider';
 import { AccountSelector } from '../../components/forms/AccountSelector';
 import { CategorySelector } from '../../components/forms/CategorySelector';
 import { DatePicker } from '../../components/forms/DatePicker';
@@ -22,8 +22,8 @@ import { AccountCreationModal } from '../../components/modals/AccountCreationMod
 import { CategoryCreationModal } from '../../components/modals/CategoryCreationModal';
 import { Button } from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
-import Input from '../../components/ui/Input';
 import { GradientHeader } from '../../components/ui/GradientHeader';
+import Input from '../../components/ui/Input';
 import {
   useGetAccountsQuery,
   useGetCategoriesQuery,
@@ -31,9 +31,10 @@ import {
   useUpdateTransactionMutation,
 } from '../../state/api';
 import type { Transaction, TransactionType } from '../../types/global';
-import { validateTransaction } from '../../utils/helpers/validationUtils';
-import Animated from 'react-native-reanimated';
+import type { ModalStackScreenProps } from '../../types/navigation';
 import { showToast } from '../../utils/helpers/toast';
+import { validateTransaction } from '../../utils/helpers/validationUtils';
+import { SpacerVertical } from '../../components/ui/Spacer';
 
 type Props = ModalStackScreenProps<'EditTransaction'>;
 
@@ -50,6 +51,7 @@ interface TransactionForm {
 
 export const EditTransactionModal: React.FC<Props> = ({ navigation, route }) => {
   const { transactionId } = route.params;
+  const { theme } = useTheme();
 
   const { data: transaction, isLoading } = useGetTransactionQuery(transactionId);
   const { data: accounts = [] } = useGetAccountsQuery();
@@ -254,7 +256,7 @@ export const EditTransactionModal: React.FC<Props> = ({ navigation, route }) => 
 
   if (isLoading || !transaction) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <GradientHeader
           title="Edit Transaction"
           subtitle="Loading..."
@@ -266,7 +268,7 @@ export const EditTransactionModal: React.FC<Props> = ({ navigation, route }) => 
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <GradientHeader
         title="Edit Transaction"
         subtitle={`Update your ${transactionType}`}
@@ -307,7 +309,9 @@ export const EditTransactionModal: React.FC<Props> = ({ navigation, route }) => 
 
             {/* Title - Essential Details */}
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Essential Details</Text>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                Essential Details
+              </Text>
               <Controller
                 control={control}
                 name="date"
@@ -405,11 +409,13 @@ export const EditTransactionModal: React.FC<Props> = ({ navigation, route }) => 
               style={styles.collapsibleHeader}
               onPress={() => toggleSection('optional')}
             >
-              <Text style={styles.sectionTitle}>Optional Details</Text>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                Optional Details
+              </Text>
               <Icon
                 name={expandedSections.has('optional') ? 'chevron-up' : 'chevron-down'}
                 size={20}
-                color="#6b7280"
+                color={theme.colors.textSecondary}
               />
             </TouchableOpacity>
 
@@ -463,6 +469,10 @@ export const EditTransactionModal: React.FC<Props> = ({ navigation, route }) => 
               !isFormValid() && styles.submitButtonDisabled
             ])}
           />
+
+          {/* Bottom spacing */}
+          <SpacerVertical.MD />
+
         </View>
       </KeyboardAvoidingView>
 
@@ -492,7 +502,6 @@ export const EditTransactionModal: React.FC<Props> = ({ navigation, route }) => 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
   },
   content: {
     flex: 1,
@@ -510,7 +519,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1f2937',
   },
   typeSelector: {
     flexDirection: 'row',

@@ -8,6 +8,7 @@ import {
   ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useTheme } from '../../app/providers/ThemeProvider';
 
 interface TagInputProps {
   tags: string[];
@@ -25,6 +26,7 @@ export const TagInput: React.FC<TagInputProps> = ({
   maxTags = 10,
 }) => {
   const [inputText, setInputText] = useState('');
+  const { theme } = useTheme();
 
   const handleInputChange = (text: string) => {
     // Remove spaces and commas as user types
@@ -69,9 +71,9 @@ export const TagInput: React.FC<TagInputProps> = ({
 
   return (
     <View style={styles.container}>
-      {label && <Text style={styles.label}>{label}</Text>}
+      {label && <Text style={[styles.label, { color: theme.colors.text }]}>{label}</Text>}
 
-      <View style={styles.inputContainer}>
+      <View style={[styles.inputContainer, { borderColor: theme.colors.border, backgroundColor: theme.colors.surface }]}>
         {/* Tags Display */}
         <ScrollView
           horizontal
@@ -110,12 +112,12 @@ export const TagInput: React.FC<TagInputProps> = ({
         {/* Input Field */}
         {tags.length < maxTags && (
           <TextInput
-            style={styles.textInput}
+            style={[styles.textInput, { color: theme.colors.text }]}
             value={inputText}
             onChangeText={handleInputChange}
             onSubmitEditing={handleInputSubmit}
             placeholder={tags.length === 0 ? placeholder : "Add another tag..."}
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={theme.colors.textSecondary}
             returnKeyType="done"
             autoCorrect={false}
             autoCapitalize="none"
@@ -126,10 +128,10 @@ export const TagInput: React.FC<TagInputProps> = ({
 
       {/* Tag Counter and Helper Text */}
       <View style={styles.footer}>
-        <Text style={styles.helperText}>
+        <Text style={[styles.helperText, { color: theme.colors.textSecondary }]}>
           Press space or comma to add tags
         </Text>
-        <Text style={styles.counterText}>
+        <Text style={[styles.counterText, { color: theme.colors.textSecondary }]}>
           {tags.length}/{maxTags}
         </Text>
       </View>
@@ -141,7 +143,7 @@ export const TagInput: React.FC<TagInputProps> = ({
         
         return availableSuggestions.length > 0 && tags.length < maxTags && (
           <View style={styles.suggestedContainer}>
-            <Text style={styles.suggestedLabel}>
+            <Text style={[styles.suggestedLabel, { color: theme.colors.textSecondary }]}>
               {tags.length === 0 ? 'Suggested:' : 'More suggestions:'}
             </Text>
             <ScrollView
@@ -152,10 +154,10 @@ export const TagInput: React.FC<TagInputProps> = ({
               {availableSuggestions.map((suggestedTag) => (
                 <TouchableOpacity
                   key={suggestedTag}
-                  style={styles.suggestedTag}
+                  style={[styles.suggestedTag, { backgroundColor: theme.colors.surfaceVariant }]}
                   onPress={() => addTag(suggestedTag)}
                 >
-                  <Text style={styles.suggestedTagText}>#{suggestedTag}</Text>
+                  <Text style={[styles.suggestedTagText, { color: theme.colors.textSecondary }]}>#{suggestedTag}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -173,14 +175,11 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#111827',
     marginBottom: 8,
   },
   inputContainer: {
     borderWidth: 1,
-    borderColor: '#D1D5DB',
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
     minHeight: 48,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -213,7 +212,6 @@ const styles = StyleSheet.create({
   },
   textInput: {
     fontSize: 16,
-    color: '#111827',
     flex: 1,
     minHeight: 24,
     paddingVertical: 4,
@@ -226,11 +224,9 @@ const styles = StyleSheet.create({
   },
   helperText: {
     fontSize: 12,
-    color: '#6B7280',
   },
   counterText: {
     fontSize: 12,
-    color: '#9CA3AF',
     fontWeight: '500',
   },
   suggestedContainer: {
@@ -239,7 +235,6 @@ const styles = StyleSheet.create({
   suggestedLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#6B7280',
     marginBottom: 8,
   },
   suggestedScrollView: {
@@ -248,13 +243,11 @@ const styles = StyleSheet.create({
   suggestedTag: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: '#F3F4F6',
     borderRadius: 16,
     marginRight: 8,
   },
   suggestedTagText: {
     fontSize: 14,
-    color: '#6B7280',
   },
 });
 

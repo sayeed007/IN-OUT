@@ -16,7 +16,6 @@ import { useTheme } from '../../app/providers/ThemeProvider';
 import { SafeContainer } from '../../components/layout/SafeContainer';
 import { SectionHeader } from '../../components/lists/SectionHeader';
 import { TransactionItem } from '../../components/lists/TransactionItem';
-import TransactionDetailsModal from '../../components/modals/TransactionDetailsModal';
 import { Card } from '../../components/ui';
 import BottomSpacing from '../../components/ui/BottomSpacing';
 import Chip from '../../components/ui/Chip';
@@ -49,9 +48,7 @@ interface AddScreenParams {
 }
 
 export const TransactionListScreen: React.FC = () => {
-    const navigation = useNavigation<{
-        navigate: (screen: 'Add', params?: AddScreenParams) => void;
-    }>();
+    const navigation = useNavigation<any>();
     const route = useRoute<{ key: string; name: string; params?: RouteParams }>();
     const { theme } = useTheme();
 
@@ -66,8 +63,6 @@ export const TransactionListScreen: React.FC = () => {
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
     const [refreshing, setRefreshing] = useState(false);
-    const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
-    const [showTransactionDetails, setShowTransactionDetails] = useState(false);
 
     // Get initial filter from route params
     React.useEffect(() => {
@@ -166,13 +161,11 @@ export const TransactionListScreen: React.FC = () => {
     };
 
     const handleTransactionPress = (transaction: Transaction) => {
-        setSelectedTransaction(transaction);
-        setShowTransactionDetails(true);
-    };
-
-    const handleCloseTransactionDetails = () => {
-        setShowTransactionDetails(false);
-        setSelectedTransaction(null);
+        // Navigate to the TransactionDetailScreen in ModalStack
+        navigation.navigate('ModalStack', {
+            screen: 'TransactionDetail',
+            params: { transactionId: transaction.id },
+        });
     };
 
     const handleTransactionEdit = (transaction: Transaction) => {
@@ -435,15 +428,6 @@ export const TransactionListScreen: React.FC = () => {
 
             {/* Bottom spacing for tab bar */}
             <BottomSpacing />
-
-            {/* Transaction Details Modal */}
-            <TransactionDetailsModal
-                visible={showTransactionDetails}
-                onClose={handleCloseTransactionDetails}
-                transaction={selectedTransaction}
-                accounts={accounts}
-                categories={categories}
-            />
         </SafeContainer>
     );
 };

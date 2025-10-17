@@ -11,6 +11,7 @@ import { formatCurrency } from '../../utils/helpers/currencyUtils';
 import { getAccountTypeIcon } from '../../utils/helpers/iconUtils';
 import type { Account } from '../../types/global';
 import { AccountPickerModal } from './AccountPickerModal';
+import { useTheme } from '../../app/providers/ThemeProvider';
 
 interface AccountSelectorProps {
   accounts: Account[];
@@ -35,6 +36,7 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const labelAnimation = useRef(new Animated.Value(0)).current;
+  const { theme } = useTheme();
 
   const selectedAccount = accounts.find(account => account.id === selectedAccountId);
 
@@ -58,7 +60,7 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
     }),
     color: labelAnimation.interpolate({
       inputRange: [0, 1],
-      outputRange: ['#9CA3AF', '#6366F1'],
+      outputRange: [theme.colors.textSecondary, theme.colors.primary[500]],
     }),
   };
 
@@ -78,7 +80,7 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
               onPress={onQuickAdd}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Icon name="add-circle-outline" size={20} color="#6366F1" />
+              <Icon name="add-circle-outline" size={20} color={theme.colors.primary[500]} />
             </TouchableOpacity>
           )}
         </View>
@@ -86,6 +88,10 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
       <TouchableOpacity
         style={[
           styles.selector,
+          {
+            borderColor: floatingLabel ? theme.colors.primary[500] : theme.colors.border,
+            backgroundColor: theme.colors.surface
+          },
           compact && styles.compactSelector,
           floatingLabel && styles.floatingSelector
         ]}
@@ -96,12 +102,12 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
             <Icon
               name={getAccountTypeIcon(selectedAccount.type)}
               size={20}
-              color="#6366F1"
+              color={theme.colors.primary[500]}
               style={styles.accountIcon}
             />
             <View style={styles.accountInfo}>
-              <Text style={styles.accountName}>{selectedAccount.name}</Text>
-              <Text style={styles.accountBalance}>
+              <Text style={[styles.accountName, { color: theme.colors.text }]}>{selectedAccount.name}</Text>
+              <Text style={[styles.accountBalance, { color: theme.colors.textSecondary }]}>
                 {formatCurrency(selectedAccount.openingBalance, selectedAccount.currencyCode)}
               </Text>
             </View>
@@ -109,6 +115,7 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
         ) : (
           <Text style={[
             styles.placeholder,
+            { color: theme.colors.textSecondary },
             floatingLabel && styles.floatingPlaceholder
           ]}>
             {floatingLabel ? '' : placeholder}
@@ -121,10 +128,10 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
               onPress={onQuickAdd}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Icon name="add-circle-outline" size={18} color="#6366F1" />
+              <Icon name="add-circle-outline" size={18} color={theme.colors.primary[500]} />
             </TouchableOpacity>
           )}
-          <Icon name="chevron-down" size={20} color="#9CA3AF" />
+          <Icon name="chevron-down" size={20} color={theme.colors.textSecondary} />
         </View>
       </TouchableOpacity>
 
@@ -170,9 +177,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
     minHeight: 48,
   },
   compactSelector: {
@@ -180,7 +185,6 @@ const styles = StyleSheet.create({
     minHeight: 44,
   },
   floatingSelector: {
-    borderColor: '#6366F1',
     borderWidth: 1.5,
   },
   rightContent: {
@@ -205,16 +209,13 @@ const styles = StyleSheet.create({
   accountName: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#111827',
   },
   accountBalance: {
     fontSize: 14,
-    color: '#6B7280',
     marginTop: 2,
   },
   placeholder: {
     fontSize: 16,
-    color: '#9CA3AF',
     flex: 1,
   },
   floatingPlaceholder: {

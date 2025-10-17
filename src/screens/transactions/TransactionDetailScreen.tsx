@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import type { ModalStackScreenProps } from '../../types/navigation';
+import { useTheme } from '../../app/providers/ThemeProvider';
 import { Button } from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Chip from '../../components/ui/Chip';
@@ -31,6 +32,7 @@ type Props = ModalStackScreenProps<'TransactionDetail'>;
 
 const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   const { transactionId } = route.params;
+  const { theme } = useTheme();
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
 
@@ -128,7 +130,7 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <GradientHeader
           title="Transaction Details"
           subtitle="Loading..."
@@ -137,7 +139,9 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         />
         <View style={styles.loadingContainer}>
           <LoadingSpinner size="large" />
-          <Text style={styles.loadingText}>Loading transaction...</Text>
+          <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>
+            Loading transaction...
+          </Text>
         </View>
       </View>
     );
@@ -145,7 +149,7 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
   if (error || !transaction) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <GradientHeader
           title="Transaction Details"
           subtitle="Error loading transaction"
@@ -153,7 +157,7 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           onBackPress={() => navigation.goBack()}
         />
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>
+          <Text style={[styles.errorText, { color: theme.colors.error[500] }]}>
             Failed to load transaction details
           </Text>
           <Button
@@ -177,7 +181,7 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <GradientHeader
         title="Transaction Details"
         subtitle={getTransactionSubtitle()}
@@ -210,10 +214,10 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           </View>
 
           <View style={styles.dateSection}>
-            <Text style={styles.dateText}>
+            <Text style={[styles.dateText, { color: theme.colors.text }]}>
               {formatDisplayDate(transaction.date)}
             </Text>
-            <Text style={styles.timeText}>
+            <Text style={[styles.timeText, { color: theme.colors.textSecondary }]}>
               {formatTime(transaction.date)}
             </Text>
           </View>
@@ -221,19 +225,19 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
         {/* Account Information */}
         <Card style={styles.card}>
-          <Text style={styles.sectionTitle}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
             {transaction.type === 'transfer' ? 'Accounts' : 'Account'}
           </Text>
 
           <View style={styles.accountSection}>
             <View style={styles.accountInfo}>
-              <Text style={styles.accountLabel}>
+              <Text style={[styles.accountLabel, { color: theme.colors.textSecondary }]}>
                 {transaction.type === 'transfer' ? 'From' : 'Account'}
               </Text>
-              <Text style={styles.accountName}>
+              <Text style={[styles.accountName, { color: theme.colors.text }]}>
                 {account?.name || 'Unknown Account'}
               </Text>
-              <Text style={styles.accountType}>
+              <Text style={[styles.accountType, { color: theme.colors.textSecondary }]}>
                 {account?.type.charAt(0).toUpperCase() + (account?.type.slice(1) || '')}
               </Text>
             </View>
@@ -241,12 +245,14 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             {transaction.type === 'transfer' && accountTo && (
               <>
                 <View style={styles.transferArrow}>
-                  <Text style={styles.arrowText}>→</Text>
+                  <Text style={[styles.arrowText, { color: theme.colors.textSecondary }]}>→</Text>
                 </View>
                 <View style={styles.accountInfo}>
-                  <Text style={styles.accountLabel}>To</Text>
-                  <Text style={styles.accountName}>{accountTo.name}</Text>
-                  <Text style={styles.accountType}>
+                  <Text style={[styles.accountLabel, { color: theme.colors.textSecondary }]}>To</Text>
+                  <Text style={[styles.accountName, { color: theme.colors.text }]}>
+                    {accountTo.name}
+                  </Text>
+                  <Text style={[styles.accountType, { color: theme.colors.textSecondary }]}>
                     {accountTo.type.charAt(0).toUpperCase() + accountTo.type.slice(1)}
                   </Text>
                 </View>
@@ -258,18 +264,16 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         {/* Category Information */}
         {transaction.type !== 'transfer' && category && (
           <Card style={styles.card}>
-            <Text style={styles.sectionTitle}>Category</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Category</Text>
             <View style={styles.categorySection}>
               <View style={[styles.categoryIcon, { backgroundColor: category.color + '20' }]}>
-                {/* <Text style={[styles.categoryIconText, { color: category.color }]}>
-                  {category.icon}
-                </Text> */}
                 <Icon name={category.icon} size={24} color={category.color} />
-
               </View>
               <View style={styles.categoryInfo}>
-                <Text style={styles.categoryName}>{category.name}</Text>
-                <Text style={styles.categoryType}>
+                <Text style={[styles.categoryName, { color: theme.colors.text }]}>
+                  {category.name}
+                </Text>
+                <Text style={[styles.categoryType, { color: theme.colors.textSecondary }]}>
                   {category.type.charAt(0).toUpperCase() + category.type.slice(1)}
                 </Text>
               </View>
@@ -280,15 +284,17 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         {/* Note */}
         {transaction.note && (
           <Card style={styles.card}>
-            <Text style={styles.sectionTitle}>Note</Text>
-            <Text style={styles.noteText}>{transaction.note}</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Note</Text>
+            <Text style={[styles.noteText, { color: theme.colors.text }]}>
+              {transaction.note}
+            </Text>
           </Card>
         )}
 
         {/* Tags */}
         {transaction.tags.length > 0 && (
           <Card style={styles.card}>
-            <Text style={styles.sectionTitle}>Tags</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Tags</Text>
             <View style={styles.tagsContainer}>
               {transaction.tags.map((tag, index) => (
                 <Chip
@@ -303,22 +309,30 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
         {/* Transaction Metadata */}
         <Card style={styles.card}>
-          <Text style={styles.sectionTitle}>Details</Text>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Details</Text>
           <View style={styles.metadataContainer}>
             <View style={styles.metadataRow}>
-              <Text style={styles.metadataLabel}>Transaction ID</Text>
-              <Text style={styles.metadataValue}>{transaction.id.slice(-8)}</Text>
+              <Text style={[styles.metadataLabel, { color: theme.colors.textSecondary }]}>
+                Transaction ID
+              </Text>
+              <Text style={[styles.metadataValue, { color: theme.colors.text }]}>
+                {transaction.id.slice(-8)}
+              </Text>
             </View>
             <View style={styles.metadataRow}>
-              <Text style={styles.metadataLabel}>Created</Text>
-              <Text style={styles.metadataValue}>
+              <Text style={[styles.metadataLabel, { color: theme.colors.textSecondary }]}>
+                Created
+              </Text>
+              <Text style={[styles.metadataValue, { color: theme.colors.text }]}>
                 {formatDisplayDate(transaction.createdAt)}
               </Text>
             </View>
             {transaction.createdAt !== transaction.updatedAt && (
               <View style={styles.metadataRow}>
-                <Text style={styles.metadataLabel}>Last Modified</Text>
-                <Text style={styles.metadataValue}>
+                <Text style={[styles.metadataLabel, { color: theme.colors.textSecondary }]}>
+                  Last Modified
+                </Text>
+                <Text style={[styles.metadataValue, { color: theme.colors.text }]}>
                   {formatDisplayDate(transaction.updatedAt)}
                 </Text>
               </View>
@@ -328,7 +342,13 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
       </ScrollView>
 
       {/* Action Buttons */}
-      <View style={styles.actionButtons}>
+      <View style={[
+        styles.actionButtons,
+        {
+          backgroundColor: theme.colors.surface,
+          borderTopColor: theme.colors.border
+        }
+      ]}>
         <Button
           title="Edit"
           onPress={handleEdit}
@@ -363,7 +383,6 @@ const TransactionDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
   },
   content: {
     flex: 1,
@@ -380,7 +399,6 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#64748b',
   },
   errorContainer: {
     flex: 1,
@@ -390,7 +408,6 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: '#ef4444',
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -422,12 +439,10 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: 18,
     fontWeight: '500',
-    color: '#1f2937',
     marginBottom: 4,
   },
   timeText: {
     fontSize: 14,
-    color: '#64748b',
   },
   card: {
     marginBottom: 16,
@@ -435,7 +450,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1f2937',
     marginBottom: 12,
   },
   accountSection: {
@@ -447,26 +461,22 @@ const styles = StyleSheet.create({
   },
   accountLabel: {
     fontSize: 12,
-    color: '#64748b',
     textTransform: 'uppercase',
     marginBottom: 2,
   },
   accountName: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#1f2937',
     marginBottom: 2,
   },
   accountType: {
     fontSize: 14,
-    color: '#64748b',
   },
   transferArrow: {
     marginHorizontal: 16,
   },
   arrowText: {
     fontSize: 20,
-    color: '#64748b',
   },
   categorySection: {
     flexDirection: 'row',
@@ -489,16 +499,13 @@ const styles = StyleSheet.create({
   categoryName: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#1f2937',
     marginBottom: 2,
   },
   categoryType: {
     fontSize: 14,
-    color: '#64748b',
   },
   noteText: {
     fontSize: 16,
-    color: '#374151',
     lineHeight: 24,
   },
   tagsContainer: {
@@ -519,19 +526,15 @@ const styles = StyleSheet.create({
   },
   metadataLabel: {
     fontSize: 14,
-    color: '#64748b',
   },
   metadataValue: {
     fontSize: 14,
-    color: '#1f2937',
     fontWeight: '500',
   },
   actionButtons: {
     flexDirection: 'row',
     padding: 16,
-    backgroundColor: '#ffffff',
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
     gap: 12,
   },
   actionButton: {

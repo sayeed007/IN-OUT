@@ -11,8 +11,10 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/Ionicons';
 import type { TabScreenProps } from '../../app/navigation/types';
+import { useTheme } from '../../app/providers/ThemeProvider';
 import { AccountSelector } from '../../components/forms/AccountSelector';
 import { CategorySelector } from '../../components/forms/CategorySelector';
 import { DatePicker } from '../../components/forms/DatePicker';
@@ -21,17 +23,17 @@ import { AccountCreationModal } from '../../components/modals/AccountCreationMod
 import { CategoryCreationModal } from '../../components/modals/CategoryCreationModal';
 import { Button } from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
-import Input from '../../components/ui/Input';
 import { GradientHeader } from '../../components/ui/GradientHeader';
+import Input from '../../components/ui/Input';
+import { SpacerVertical } from '../../components/ui/Spacer';
 import {
   useAddTransactionMutation,
   useGetAccountsQuery,
   useGetCategoriesQuery,
 } from '../../state/api';
 import type { Transaction, TransactionType } from '../../types/global';
-import { validateTransaction } from '../../utils/helpers/validationUtils';
-import Animated from 'react-native-reanimated';
 import { showToast } from '../../utils/helpers/toast';
+import { validateTransaction } from '../../utils/helpers/validationUtils';
 
 type Props = TabScreenProps<'Add'>;
 
@@ -48,10 +50,12 @@ interface TransactionForm {
 
 export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => {
   const { type: initialType, accountId, categoryId } = route?.params || {};
+  const { theme } = useTheme();
 
   const [transactionType, setTransactionType] = useState<TransactionType>(initialType || 'expense');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['essentials']));
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   // Quick add modals state
   const [showAccountModal, setShowAccountModal] = useState(false);
@@ -98,43 +102,47 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
   const watchedCategoryId = watch('categoryId');
 
   // Update form when route params change (e.g., coming from dashboard quick actions)
+  // Only initialize once when screen first loads
   useFocusEffect(
     useCallback(() => {
-      if (initialType && initialType !== transactionType) {
-        // Route params have a type, update the form
-        setTransactionType(initialType);
-        setValue('type', initialType);
+      if (!hasInitialized && accounts.length > 0) {
+        if (initialType) {
+          // Route params have a type, set it initially
+          setTransactionType(initialType);
+          setValue('type', initialType);
 
-        const defaultAccount = accounts[0];
-        const defaultCategory = categories.find(cat => cat.type === initialType);
+          const defaultAccount = accounts[0];
+          const defaultCategory = categories.find(cat => cat.type === initialType);
 
-        reset({
-          type: initialType,
-          amount: '',
-          accountId: accountId || defaultAccount?.id || '',
-          categoryId: categoryId || defaultCategory?.id || '',
-          accountIdTo: '',
-          date: new Date().toISOString(),
-          note: '',
-          tags: [],
-        });
-      } else if (!initialType && !accountId && !categoryId && accounts.length > 0) {
-        // Only reset if no route params were provided (meaning user navigated naturally)
-        const defaultAccount = accounts[0];
-        const defaultCategory = categories.find(cat => cat.type === transactionType);
+          reset({
+            type: initialType,
+            amount: '',
+            accountId: accountId || defaultAccount?.id || '',
+            categoryId: categoryId || defaultCategory?.id || '',
+            accountIdTo: '',
+            date: new Date().toISOString(),
+            note: '',
+            tags: [],
+          });
+        } else {
+          // No route params, use default
+          const defaultAccount = accounts[0];
+          const defaultCategory = categories.find(cat => cat.type === transactionType);
 
-        reset({
-          type: transactionType,
-          amount: '',
-          accountId: defaultAccount?.id || '',
-          categoryId: defaultCategory?.id || '',
-          accountIdTo: '',
-          date: new Date().toISOString(),
-          note: '',
-          tags: [],
-        });
+          reset({
+            type: transactionType,
+            amount: '',
+            accountId: defaultAccount?.id || '',
+            categoryId: defaultCategory?.id || '',
+            accountIdTo: '',
+            date: new Date().toISOString(),
+            note: '',
+            tags: [],
+          });
+        }
+        setHasInitialized(true);
       }
-    }, [reset, transactionType, initialType, accountId, categoryId, accounts, categories, setValue])
+    }, [hasInitialized, reset, transactionType, initialType, accountId, categoryId, accounts, categories, setValue])
   );
 
 
@@ -184,11 +192,18 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
     setTransactionType(type);
     setValue('type', type);
 
-    // Auto-set smart defaults when type changes
-    if (type !== 'transfer' && !watchedCategoryId) {
-      const suggestedCategory = categories.find(cat => cat.type === type);
-      if (suggestedCategory) {
-        setValue('categoryId', suggestedCategory.id);
+    // Reset category when type changes to avoid mismatched category types
+    if (type === 'transfer') {
+      // Transfers don't use categories
+      setValue('categoryId', '');
+    } else {
+      // Find a matching category for the new type
+      const currentCategory = categories.find(cat => cat.id === watchedCategoryId);
+
+      // If current category doesn't match the new type, reset it
+      if (!currentCategory || currentCategory.type !== type) {
+        const suggestedCategory = categories.find(cat => cat.type === type);
+        setValue('categoryId', suggestedCategory?.id || '');
       }
     }
   };
@@ -294,7 +309,7 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
 
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <GradientHeader
         title="Add Transaction"
         subtitle={`Track your ${transactionType}`}
@@ -336,7 +351,7 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
 
             {/* Title - Essential Details */}
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Essential Details</Text>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Essential Details</Text>
               <Controller
                 control={control}
                 name="date"
@@ -434,11 +449,11 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
               style={styles.collapsibleHeader}
               onPress={() => toggleSection('optional')}
             >
-              <Text style={styles.sectionTitle}>Optional Details</Text>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Optional Details</Text>
               <Icon
                 name={expandedSections.has('optional') ? 'chevron-up' : 'chevron-down'}
                 size={20}
-                color="#6b7280"
+                color={theme.colors.textSecondary}
               />
             </TouchableOpacity>
 
@@ -515,6 +530,8 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
         />
       }
 
+      {/* Bottom spacing */}
+      <SpacerVertical.MD />
     </View>
   );
 };
@@ -522,7 +539,6 @@ export const AddTransactionScreen: React.FC<Props> = ({ navigation, route }) => 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
   },
   progressContainer: {
     paddingHorizontal: 16,
@@ -565,7 +581,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1f2937',
   },
   typeSelector: {
     flexDirection: 'row',

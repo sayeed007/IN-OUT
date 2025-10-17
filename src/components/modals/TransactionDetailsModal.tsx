@@ -21,6 +21,8 @@ interface TransactionDetailsModalProps {
     transaction: Transaction | null;
     accounts: Account[];
     categories: Category[];
+    onEdit?: (transaction: Transaction) => void;
+    onDelete?: (transaction: Transaction) => void;
 }
 
 const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = ({
@@ -29,6 +31,8 @@ const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = ({
     transaction,
     accounts,
     categories,
+    onEdit,
+    onDelete,
 }) => {
     const { theme } = useTheme();
 
@@ -275,6 +279,58 @@ const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = ({
                                 </View>
                             </View>
                         </ScrollView>
+
+                        {/* Action Buttons */}
+                        {(onEdit || onDelete) && (
+                            <View style={[
+                                styles.actionButtons,
+                                {
+                                    backgroundColor: theme.colors.surface,
+                                    borderTopColor: theme.colors.border
+                                }
+                            ]}>
+                                {onEdit && (
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            onEdit(transaction);
+                                            onClose();
+                                        }}
+                                        style={[
+                                            styles.actionButton,
+                                            {
+                                                backgroundColor: theme.colors.primary[500],
+                                            }
+                                        ]}
+                                        activeOpacity={0.8}
+                                    >
+                                        <Icon name="create-outline" size={20} color={theme.colors.onPrimary} />
+                                        <Text style={[styles.actionButtonText, { color: theme.colors.onPrimary }]}>
+                                            Edit
+                                        </Text>
+                                    </TouchableOpacity>
+                                )}
+                                {onDelete && (
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            onDelete(transaction);
+                                            onClose();
+                                        }}
+                                        style={[
+                                            styles.actionButton,
+                                            {
+                                                backgroundColor: theme.colors.error[500],
+                                            }
+                                        ]}
+                                        activeOpacity={0.8}
+                                    >
+                                        <Icon name="trash-outline" size={20} color={theme.colors.onError} />
+                                        <Text style={[styles.actionButtonText, { color: theme.colors.onError }]}>
+                                            Delete
+                                        </Text>
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+                        )}
                     </View>
                 </KeyboardAvoidingView>
             </View>
@@ -413,6 +469,26 @@ const styles = StyleSheet.create({
     idText: {
         fontSize: 12,
         fontFamily: 'monospace',
+    },
+    actionButtons: {
+        flexDirection: 'row',
+        padding: 16,
+        paddingBottom: 24,
+        borderTopWidth: 1,
+        gap: 12,
+    },
+    actionButton: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 14,
+        borderRadius: 12,
+        gap: 8,
+    },
+    actionButtonText: {
+        fontSize: 16,
+        fontWeight: '600',
     },
 });
 

@@ -6,6 +6,7 @@ import { AccountSelector } from '../../../components/forms/AccountSelector';
 import { AccountCreationModal } from '../../../components/modals/AccountCreationModal';
 import AppInitializationService from '../../../services/storage/appInitialization';
 import type { Account } from '../../../types/global';
+import { useTheme } from '../../../app/providers/ThemeProvider';
 
 interface AccountSetupStepProps {
   selectedAccount: {
@@ -26,6 +27,7 @@ export const AccountSetupStep: React.FC<AccountSetupStepProps> = ({
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [seededAccounts, setSeededAccounts] = useState<Account[]>([]);
   const appInit = AppInitializationService.getInstance();
+  const { theme } = useTheme();
 
   // Load seeded accounts from app initialization
   useEffect(() => {
@@ -71,8 +73,8 @@ export const AccountSetupStep: React.FC<AccountSetupStepProps> = ({
 
   return (
     <>
-      <Text style={styles.stepTitle}>Create Your First Account</Text>
-      <Text style={styles.stepDescription}>
+      <Text style={[styles.stepTitle, { color: theme.colors.text }]}>Create Your First Account</Text>
+      <Text style={[styles.stepDescription, { color: theme.colors.textSecondary }]}>
         Choose from our suggested accounts or create a custom one to start tracking transactions.
       </Text>
 
@@ -113,13 +115,11 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1e293b',
     marginBottom: 8,
     textAlign: 'center',
   },
   stepDescription: {
     fontSize: 16,
-    color: '#64748b',
     textAlign: 'center',
     marginBottom: 24,
   },
