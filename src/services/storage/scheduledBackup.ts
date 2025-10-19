@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppState, AppStateStatus } from 'react-native';
 import { STORAGE_KEYS } from '../../utils/env';
 import { GoogleDriveBackupService } from './googleDriveBackup';
+import { showToast } from '../../utils/helpers/toast';
 
 export type BackupFrequency = 'daily' | 'weekly' | 'monthly';
 export type BackupMethod = 'google-drive' | 'email' | 'both';
@@ -14,6 +15,8 @@ export interface ScheduledBackupSettings {
   lastBackupDate?: string;
   nextBackupDate?: string;
   autoBackupEnabled: boolean;
+  lastError?: string;
+  lastErrorDate?: string;
 }
 
 export class ScheduledBackupService {
@@ -221,9 +224,11 @@ export class ScheduledBackupService {
           console.log('[ScheduledBackup] Google Drive backup successful');
         } else {
           errors.push(`Google Drive: ${result.error}`);
+          console.error('[ScheduledBackup] Google Drive backup failed:', result.error);
         }
       } else {
         errors.push('Google Drive: Not signed in');
+        console.error('[ScheduledBackup] Google Drive: User not signed in');
       }
 
       // Update settings with last backup date if backup succeeded
@@ -235,26 +240,69 @@ export class ScheduledBackupService {
           ...settings,
           lastBackupDate: now.toISOString(),
           nextBackupDate: nextBackup.toISOString(),
+          lastError: undefined,
+          lastErrorDate: undefined,
         });
 
         console.log('[ScheduledBackup] Backup completed successfully');
         console.log('[ScheduledBackup] Next backup scheduled for:', nextBackup.toLocaleString());
+
+        // Show success notification
+        showToast.success(
+          `Backup uploaded to Google Drive successfully`,
+          'Auto Backup Complete'
+        );
 
         return {
           success: true,
           error: errors.length > 0 ? `Partial success: ${errors.join(', ')}` : undefined,
         };
       } else {
+        const errorMessage = errors.length > 0 ? errors.join(', ') : 'Backup failed';
+
+        // Store the error in settings
+        await this.saveSettings({
+          ...settings,
+          lastError: errorMessage,
+          lastErrorDate: new Date().toISOString(),
+        });
+
+        // Show error notification to user
+        showToast.error(
+          errorMessage,
+          'Auto Backup Failed'
+        );
+
         return {
           success: false,
-          error: errors.length > 0 ? errors.join(', ') : 'Backup failed',
+          error: errorMessage,
         };
       }
     } catch (error: any) {
       console.error('[ScheduledBackup] Error:', error);
+      const errorMessage = error.message || 'Scheduled backup failed';
+
+      // Try to store the error
+      try {
+        const settings = await this.getSettings();
+        await this.saveSettings({
+          ...settings,
+          lastError: errorMessage,
+          lastErrorDate: new Date().toISOString(),
+        });
+      } catch (saveError) {
+        console.error('[ScheduledBackup] Failed to save error:', saveError);
+      }
+
+      // Show error notification to user
+      showToast.error(
+        errorMessage,
+        'Auto Backup Failed'
+      );
+
       return {
         success: false,
-        error: error.message || 'Scheduled backup failed',
+        error: errorMessage,
       };
     }
   }

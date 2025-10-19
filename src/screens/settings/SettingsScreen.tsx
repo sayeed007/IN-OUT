@@ -11,10 +11,8 @@ import { Spacing } from '../../theme';
 import { useTheme } from '../../app/providers/ThemeProvider';
 import AccountSettings from './components/AccountSettings';
 import PreferencesSettings from './components/PreferencesSettings';
-import DataManagementSettings from './components/DataManagementSettings';
+import BackupSettings from './components/BackupSettings';
 import CloudBackupSettings from './components/CloudBackupSettings';
-import EmailBackupSettings from './components/EmailBackupSettings';
-import ScheduledBackupSettings from './components/ScheduledBackupSettings';
 import AboutSettings from './components/AboutSettings';
 import DangerZoneSettings from './components/DangerZoneSettings';
 import BottomSpacing from '../../components/ui/BottomSpacing';
@@ -57,17 +55,11 @@ export const SettingsScreen: React.FC = () => {
         {/* Preferences */}
         <PreferencesSettings />
 
-        {/* Data Management */}
-        <DataManagementSettings />
+        {/* Backup & Restore */}
+        <BackupSettings />
 
-        {/* Google Drive Backup */}
+        {/* Cloud Backup (Google Drive) */}
         <CloudBackupSettings />
-
-        {/* Email & Share Backup */}
-        <EmailBackupSettings />
-
-        {/* Scheduled Backup */}
-        <ScheduledBackupSettings />
 
         {/* About */}
         <AboutSettings />

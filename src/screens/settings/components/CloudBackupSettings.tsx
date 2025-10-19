@@ -1,16 +1,18 @@
 // src/screens/settings/components/CloudBackupSettings.tsx
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../../app/providers/ThemeProvider';
 import AlertModal from '../../../components/modals/AlertModal';
 import ConfirmationModal from '../../../components/modals/ConfirmationModal';
 import Card from '../../../components/ui/Card';
 import { GoogleDriveBackupService, GoogleDriveFile } from '../../../services/storage/googleDriveBackup';
+import { ScheduledBackupService, BackupFrequency } from '../../../services/storage/scheduledBackup';
 import { Spacing } from '../../../theme';
 import SettingItem from './SettingItem';
 
 interface ModalState {
-  type: 'confirmation' | 'alert' | null;
+  type: 'confirmation' | 'alert' | 'select' | null;
   title: string;
   message: string;
   confirmText?: string;
@@ -18,6 +20,8 @@ interface ModalState {
   alertType?: 'success' | 'error' | 'warning' | 'info';
   icon?: string;
   confirmStyle?: 'default' | 'destructive';
+  options?: Array<{ label: string; value: any }>;
+  onSelect?: (value: any) => void;
 }
 
 interface BackupFile {
@@ -33,6 +37,12 @@ const CloudBackupSettings: React.FC = () => {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [userEmail, setUserEmail] = useState('');
   const [backupFiles, setBackupFiles] = useState<BackupFile[]>([]);
+  const [autoBackupEnabled, setAutoBackupEnabled] = useState(false);
+  const [backupFrequency, setBackupFrequency] = useState<BackupFrequency>('weekly');
+  const [nextBackupDate, setNextBackupDate] = useState<Date | null>(null);
+  const [lastBackupDate, setLastBackupDate] = useState<string | undefined>();
+  const [lastError, setLastError] = useState<string | undefined>();
+  const [lastErrorDate, setLastErrorDate] = useState<string | undefined>();
   const [modal, setModal] = useState<ModalState>({
     type: null,
     title: '',
@@ -62,7 +72,103 @@ const CloudBackupSettings: React.FC = () => {
     infoText: {
       fontSize: 13,
       color: theme.colors.textSecondary,
+      marginBottom: Spacing.sm,
+      lineHeight: 18,
+    },
+    statusContainer: {
+      padding: Spacing.sm,
+      backgroundColor: theme.colors.background,
+      borderRadius: 8,
+      marginBottom: Spacing.sm,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+    },
+    statusRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
       marginBottom: Spacing.xs,
+    },
+    statusLabel: {
+      fontSize: 13,
+      color: theme.colors.textSecondary,
+    },
+    statusValue: {
+      fontSize: 13,
+      color: theme.colors.text,
+      fontWeight: '500',
+    },
+    activeIndicator: {
+      fontSize: 13,
+      color: '#22C55E',
+      fontWeight: '600',
+    },
+    errorIndicator: {
+      fontSize: 13,
+      color: '#EF4444',
+      fontWeight: '600',
+    },
+    errorContainer: {
+      padding: Spacing.sm,
+      backgroundColor: '#FEF2F2',
+      borderRadius: 8,
+      marginBottom: Spacing.sm,
+      borderWidth: 1,
+      borderColor: '#FCA5A5',
+    },
+    errorTitle: {
+      fontSize: 13,
+      color: '#991B1B',
+      fontWeight: '600',
+      marginBottom: 4,
+    },
+    errorText: {
+      fontSize: 12,
+      color: '#7F1D1D',
+      lineHeight: 16,
+    },
+    errorDate: {
+      fontSize: 11,
+      color: '#991B1B',
+      marginTop: 4,
+      fontStyle: 'italic',
+    },
+    divider: {
+      height: 1,
+      backgroundColor: theme.colors.border,
+      marginVertical: Spacing.sm,
+    },
+    optionButton: {
+      paddingVertical: Spacing.base,
+      paddingHorizontal: Spacing.base,
+      borderRadius: 10,
+      borderWidth: 2,
+      borderColor: theme.colors.border,
+      marginBottom: Spacing.sm,
+      backgroundColor: theme.colors.background,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+    },
+    optionButtonSelected: {
+      backgroundColor: '#3B82F6',
+      borderColor: '#3B82F6',
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      elevation: 4,
+    },
+    optionText: {
+      fontSize: 15,
+      color: theme.colors.text,
+      textAlign: 'center',
+      fontWeight: '500',
+    },
+    optionTextSelected: {
+      color: '#FFFFFF',
+      fontWeight: '600',
     },
   });
 
@@ -82,9 +188,22 @@ const CloudBackupSettings: React.FC = () => {
 
         // Load backup files
         await loadBackupFiles();
+
+        // Load scheduled backup settings
+        const scheduledSettings = await ScheduledBackupService.getSettings();
+        setAutoBackupEnabled(scheduledSettings.enabled && scheduledSettings.autoBackupEnabled);
+        setBackupFrequency(scheduledSettings.frequency);
+        setLastBackupDate(scheduledSettings.lastBackupDate);
+        setLastError(scheduledSettings.lastError);
+        setLastErrorDate(scheduledSettings.lastErrorDate);
+
+        if (scheduledSettings.enabled) {
+          const next = await ScheduledBackupService.getNextBackupDate();
+          setNextBackupDate(next);
+        }
       }
     } catch (error) {
-      console.error('Error loading Google Drive backup settings:', error);
+      console.error('Error loading cloud backup settings:', error);
     }
   };
 
@@ -102,6 +221,19 @@ const CloudBackupSettings: React.FC = () => {
       }
     } catch (error) {
       console.error('Error loading backup files:', error);
+    }
+  };
+
+  const getFrequencyLabel = (frequency: BackupFrequency): string => {
+    switch (frequency) {
+      case 'daily':
+        return 'Daily';
+      case 'weekly':
+        return 'Weekly';
+      case 'monthly':
+        return 'Monthly';
+      default:
+        return 'Weekly';
     }
   };
 
@@ -147,17 +279,23 @@ const CloudBackupSettings: React.FC = () => {
     setModal({
       type: 'confirmation',
       title: 'Sign Out',
-      message: 'Are you sure you want to sign out from Google Drive?',
+      message: 'Are you sure you want to sign out from Google Drive? This will also disable automatic backups.',
       confirmText: 'Sign Out',
       icon: 'log-out-outline',
       onConfirm: async () => {
         setModal({ type: null, title: '', message: '' });
         setIsLoading(true);
         try {
+          // Disable scheduled backup if enabled
+          if (autoBackupEnabled) {
+            await ScheduledBackupService.disable();
+          }
+
           await GoogleDriveBackupService.signOut();
           setIsSignedIn(false);
           setUserEmail('');
           setBackupFiles([]);
+          setAutoBackupEnabled(false);
           setModal({
             type: 'alert',
             title: 'Signed Out',
@@ -178,7 +316,7 @@ const CloudBackupSettings: React.FC = () => {
     });
   };
 
-  const handleBackupToGoogleDrive = async () => {
+  const handleBackupToCloud = async () => {
     if (isLoading) return;
 
     setModal({
@@ -200,11 +338,18 @@ const CloudBackupSettings: React.FC = () => {
               alertType: 'success',
             });
             await loadBackupFiles();
+            await loadSettings(); // Refresh to update last backup date
           } else {
+            // Handle quota exceeded error with helpful message
+            const isQuotaError = result.error?.includes('storage is full') ||
+                                 result.error?.includes('quota');
+
             setModal({
               type: 'alert',
-              title: 'Backup Failed',
-              message: result.error || 'Failed to backup to Google Drive',
+              title: isQuotaError ? 'Storage Full' : 'Backup Failed',
+              message: isQuotaError
+                ? `${result.error}\n\nTip: You can delete old backups from this screen to free up space, or upgrade your Google Drive storage.`
+                : result.error || 'Failed to backup to Google Drive',
               alertType: 'error',
             });
           }
@@ -222,7 +367,50 @@ const CloudBackupSettings: React.FC = () => {
     });
   };
 
-  const handleRestoreFromGoogleDrive = (fileId: string, fileName: string) => {
+  const handleDeleteBackup = (fileId: string, fileName: string) => {
+    setModal({
+      type: 'confirmation',
+      title: 'Delete Backup',
+      message: `Are you sure you want to delete this backup?\n\n${fileName}\n\nThis action cannot be undone.`,
+      confirmText: 'Delete',
+      confirmStyle: 'destructive',
+      icon: 'trash-outline',
+      onConfirm: async () => {
+        setModal({ type: null, title: '', message: '' });
+        setIsLoading(true);
+        try {
+          const result = await GoogleDriveBackupService.deleteBackup(fileId);
+          if (result.success) {
+            setModal({
+              type: 'alert',
+              title: 'Backup Deleted',
+              message: 'The backup file has been successfully deleted from Google Drive.',
+              alertType: 'success',
+            });
+            await loadBackupFiles(); // Refresh the list
+          } else {
+            setModal({
+              type: 'alert',
+              title: 'Delete Failed',
+              message: result.error || 'Failed to delete backup from Google Drive',
+              alertType: 'error',
+            });
+          }
+        } catch (error) {
+          setModal({
+            type: 'alert',
+            title: 'Delete Error',
+            message: 'An error occurred while deleting the backup',
+            alertType: 'error',
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      },
+    });
+  };
+
+  const handleRestoreFromCloud = (fileId: string, fileName: string) => {
     setModal({
       type: 'confirmation',
       title: 'Restore from Google Drive',
@@ -264,6 +452,129 @@ const CloudBackupSettings: React.FC = () => {
     });
   };
 
+  const handleToggleAutoBackup = async () => {
+    if (autoBackupEnabled) {
+      // Disable auto backup
+      setModal({
+        type: 'confirmation',
+        title: 'Disable Auto Backup',
+        message: 'This will stop automatic backups to Google Drive. You can still backup manually.',
+        confirmText: 'Disable',
+        confirmStyle: 'destructive',
+        icon: 'close-circle-outline',
+        onConfirm: async () => {
+          setModal({ type: null, title: '', message: '' });
+          setIsLoading(true);
+          try {
+            await ScheduledBackupService.disable();
+            await loadSettings();
+            setModal({
+              type: 'alert',
+              title: 'Auto Backup Disabled',
+              message: 'Automatic backups have been disabled',
+              alertType: 'success',
+            });
+          } catch (error) {
+            setModal({
+              type: 'alert',
+              title: 'Error',
+              message: 'An error occurred while disabling auto backup',
+              alertType: 'error',
+            });
+          } finally {
+            setIsLoading(false);
+          }
+        },
+      });
+    } else {
+      // Enable auto backup
+      setModal({
+        type: 'confirmation',
+        title: 'Enable Auto Backup',
+        message: `This will automatically backup your data to Google Drive ${getFrequencyLabel(backupFrequency).toLowerCase()}.`,
+        confirmText: 'Enable',
+        icon: 'time-outline',
+        onConfirm: async () => {
+          setModal({ type: null, title: '', message: '' });
+          setIsLoading(true);
+          try {
+            const result = await ScheduledBackupService.enable(backupFrequency, 'google-drive');
+            if (result.success) {
+              await loadSettings();
+              setModal({
+                type: 'alert',
+                title: 'Auto Backup Enabled',
+                message: `Automatic backups will occur ${getFrequencyLabel(backupFrequency).toLowerCase()} to Google Drive`,
+                alertType: 'success',
+              });
+            } else {
+              setModal({
+                type: 'alert',
+                title: 'Failed to Enable',
+                message: result.error || 'Failed to enable auto backup',
+                alertType: 'error',
+              });
+            }
+          } catch (error) {
+            setModal({
+              type: 'alert',
+              title: 'Error',
+              message: 'An error occurred while enabling auto backup',
+              alertType: 'error',
+            });
+          } finally {
+            setIsLoading(false);
+          }
+        },
+      });
+    }
+  };
+
+  const handleChangeFrequency = () => {
+    const frequencyOptions: Array<{ label: string; value: BackupFrequency }> = [
+      { label: 'Daily', value: 'daily' },
+      { label: 'Weekly', value: 'weekly' },
+      { label: 'Monthly', value: 'monthly' },
+    ];
+
+    let tempSelectedFrequency = backupFrequency;
+
+    setModal({
+      type: 'select',
+      title: 'Backup Frequency',
+      message: 'How often should automatic backups be created?',
+      options: frequencyOptions,
+      confirmText: 'Save',
+      onSelect: (value: BackupFrequency) => {
+        tempSelectedFrequency = value;
+        setBackupFrequency(value);
+      },
+      onConfirm: async () => {
+        setModal({ type: null, title: '', message: '' });
+        setIsLoading(true);
+        try {
+          await ScheduledBackupService.updateFrequency(tempSelectedFrequency);
+          await loadSettings();
+          setModal({
+            type: 'alert',
+            title: 'Frequency Updated',
+            message: `Backup frequency changed to ${getFrequencyLabel(tempSelectedFrequency)}`,
+            alertType: 'success',
+          });
+        } catch (error) {
+          setModal({
+            type: 'alert',
+            title: 'Error',
+            message: 'Failed to update backup frequency',
+            alertType: 'error',
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      },
+    });
+  };
+
   const closeModal = () => {
     setModal({ type: null, title: '', message: '' });
   };
@@ -271,16 +582,16 @@ const CloudBackupSettings: React.FC = () => {
   return (
     <>
       <Card style={styles.section} padding="small">
-        <Text style={styles.sectionTitle}>Google Drive Backup</Text>
+        <Text style={styles.sectionTitle}>Cloud Backup (Google Drive)</Text>
 
         {!isSignedIn ? (
           <>
             <Text style={styles.infoText}>
-              Sign in to Google to backup and restore your data from Google Drive
+              Sign in to Google Drive to backup and restore your data to the cloud, and enable automatic backups.
             </Text>
             <SettingItem
-              title="Sign In to Google"
-              subtitle={isLoading ? "Signing in..." : "Connect your Google account"}
+              title="Connect Google Drive"
+              subtitle={isLoading ? "Signing in..." : "Sign in with your Google account"}
               onPress={handleGoogleSignIn}
               disabled={isLoading}
             />
@@ -290,10 +601,52 @@ const CloudBackupSettings: React.FC = () => {
             <Text style={styles.infoText}>
               Signed in as: {userEmail}
             </Text>
+
+            {/* Last Error Display */}
+            {lastError && lastErrorDate && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorTitle}>⚠️ Last Backup Error</Text>
+                <Text style={styles.errorText}>{lastError}</Text>
+                <Text style={styles.errorDate}>
+                  {new Date(lastErrorDate).toLocaleString()}
+                </Text>
+              </View>
+            )}
+
+            {/* Auto Backup Status */}
+            {(autoBackupEnabled || lastBackupDate) && (
+              <View style={styles.statusContainer}>
+                {autoBackupEnabled && (
+                  <>
+                    <View style={styles.statusRow}>
+                      <Text style={styles.statusLabel}>Auto Backup</Text>
+                      <Text style={styles.activeIndicator}>✓ Active</Text>
+                    </View>
+                    <View style={styles.statusRow}>
+                      <Text style={styles.statusLabel}>Frequency</Text>
+                      <Text style={styles.statusValue}>{getFrequencyLabel(backupFrequency)}</Text>
+                    </View>
+                    {nextBackupDate && (
+                      <View style={styles.statusRow}>
+                        <Text style={styles.statusLabel}>Next Backup</Text>
+                        <Text style={styles.statusValue}>{nextBackupDate.toLocaleString()}</Text>
+                      </View>
+                    )}
+                  </>
+                )}
+                {lastBackupDate && (
+                  <View style={styles.statusRow}>
+                    <Text style={styles.statusLabel}>Last Backup</Text>
+                    <Text style={styles.statusValue}>{new Date(lastBackupDate).toLocaleString()}</Text>
+                  </View>
+                )}
+              </View>
+            )}
+
             <SettingItem
-              title="Backup to Google Drive"
-              subtitle={isLoading ? "Backing up..." : "Upload backup to Google Drive"}
-              onPress={handleBackupToGoogleDrive}
+              title="Backup to Cloud"
+              subtitle={isLoading ? "Backing up..." : "Upload backup to Google Drive now"}
+              onPress={handleBackupToCloud}
               disabled={isLoading}
             />
 
@@ -304,16 +657,49 @@ const CloudBackupSettings: React.FC = () => {
                   <SettingItem
                     key={file.id}
                     title={file.name}
-                    subtitle={`Modified: ${file.date}`}
-                    onPress={() => handleRestoreFromGoogleDrive(file.id, file.name)}
+                    subtitle={`Modified: ${file.date} • Tap to restore, long-press to delete`}
+                    onPress={() => handleRestoreFromCloud(file.id, file.name)}
+                    onLongPress={() => handleDeleteBackup(file.id, file.name)}
                   />
                 ))}
               </View>
             )}
 
+            <View style={styles.divider} />
+
             <SettingItem
-              title="Sign Out"
-              subtitle="Disconnect Google account"
+              title={autoBackupEnabled ? "Disable Auto Backup" : "Enable Auto Backup"}
+              subtitle={autoBackupEnabled
+                ? `Auto backup is active (${getFrequencyLabel(backupFrequency)})`
+                : "Automatically backup to Google Drive"
+              }
+              onPress={handleToggleAutoBackup}
+              disabled={isLoading}
+            />
+
+            {!autoBackupEnabled && (
+              <SettingItem
+                title="Auto Backup Frequency"
+                subtitle={getFrequencyLabel(backupFrequency)}
+                onPress={handleChangeFrequency}
+                disabled={isLoading}
+              />
+            )}
+
+            {autoBackupEnabled && (
+              <SettingItem
+                title="Change Frequency"
+                subtitle={`Currently: ${getFrequencyLabel(backupFrequency)}`}
+                onPress={handleChangeFrequency}
+                disabled={isLoading}
+              />
+            )}
+
+            <View style={styles.divider} />
+
+            <SettingItem
+              title="Disconnect Google Drive"
+              subtitle="Sign out from your Google account"
               onPress={handleGoogleSignOut}
             />
           </>
@@ -321,7 +707,7 @@ const CloudBackupSettings: React.FC = () => {
       </Card>
 
       {/* Confirmation Modal */}
-      {modal.type === 'confirmation' &&
+      {modal.type === 'confirmation' && (
         <ConfirmationModal
           visible={modal.type === 'confirmation'}
           title={modal.title}
@@ -332,7 +718,7 @@ const CloudBackupSettings: React.FC = () => {
           onConfirm={modal.onConfirm || closeModal}
           onCancel={closeModal}
         />
-      }
+      )}
 
       {/* Alert Modal */}
       <AlertModal
@@ -342,6 +728,53 @@ const CloudBackupSettings: React.FC = () => {
         type={modal.alertType}
         onClose={closeModal}
       />
+
+      {/* Selection Modal */}
+      {modal.type === 'select' && modal.options && (
+        <ConfirmationModal
+          visible={true}
+          title={modal.title}
+          message={modal.message}
+          confirmText={modal.confirmText || 'Save'}
+          cancelText="Cancel"
+          icon="list-outline"
+          onConfirm={modal.onConfirm || closeModal}
+          onCancel={closeModal}
+        >
+          <View style={styles.subsection}>
+            {modal.options.map((option, index) => {
+              const isSelected = option.value === backupFrequency;
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.optionButton,
+                    isSelected && styles.optionButtonSelected,
+                  ]}
+                  onPress={() => modal.onSelect && modal.onSelect(option.value)}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.optionText,
+                      isSelected && styles.optionTextSelected,
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                  {isSelected && (
+                    <Icon
+                      name="checkmark-circle"
+                      size={20}
+                      color="#FFFFFF"
+                    />
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </ConfirmationModal>
+      )}
     </>
   );
 };

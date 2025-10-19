@@ -213,7 +213,18 @@ export class GoogleDriveBackupService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error?.message || 'Upload failed');
+        const errorMessage = errorData.error?.message || 'Upload failed';
+
+        // Handle specific Google Drive errors
+        if (errorMessage.includes('storage quota') || errorMessage.includes('storageQuotaExceeded')) {
+          throw new Error('QUOTA_EXCEEDED');
+        } else if (errorMessage.includes('rate limit') || errorMessage.includes('rateLimitExceeded')) {
+          throw new Error('RATE_LIMIT');
+        } else if (errorMessage.includes('invalid') && errorMessage.includes('credentials')) {
+          throw new Error('AUTH_ERROR');
+        } else {
+          throw new Error(errorMessage);
+        }
       }
 
       const result = await response.json();
@@ -232,9 +243,25 @@ export class GoogleDriveBackupService {
       };
     } catch (error: any) {
       console.error('Google Drive upload error:', error);
+
+      // Provide user-friendly error messages
+      let userMessage = 'Failed to upload backup to Google Drive';
+
+      if (error.message === 'QUOTA_EXCEEDED') {
+        userMessage = 'Your Google Drive storage is full. Please free up space and try again.';
+      } else if (error.message === 'RATE_LIMIT') {
+        userMessage = 'Too many requests. Please wait a few minutes and try again.';
+      } else if (error.message === 'AUTH_ERROR') {
+        userMessage = 'Authentication error. Please sign out and sign in again.';
+      } else if (error.message.includes('Network request failed')) {
+        userMessage = 'Network error. Please check your internet connection.';
+      } else if (error.message) {
+        userMessage = error.message;
+      }
+
       return {
         success: false,
-        error: error.message || 'Failed to upload backup to Google Drive',
+        error: userMessage,
       };
     }
   }
@@ -268,7 +295,13 @@ export class GoogleDriveBackupService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error?.message || 'Failed to list backups');
+        const errorMessage = errorData.error?.message || 'Failed to list backups';
+
+        if (errorMessage.includes('invalid') && errorMessage.includes('credentials')) {
+          throw new Error('AUTH_ERROR');
+        } else {
+          throw new Error(errorMessage);
+        }
       }
 
       const result = await response.json();
@@ -279,9 +312,20 @@ export class GoogleDriveBackupService {
       };
     } catch (error: any) {
       console.error('Google Drive list error:', error);
+
+      let userMessage = 'Failed to list backups from Google Drive';
+
+      if (error.message === 'AUTH_ERROR') {
+        userMessage = 'Authentication error. Please sign out and sign in again.';
+      } else if (error.message.includes('Network request failed')) {
+        userMessage = 'Network error. Please check your internet connection.';
+      } else if (error.message) {
+        userMessage = error.message;
+      }
+
       return {
         success: false,
-        error: error.message || 'Failed to list backups from Google Drive',
+        error: userMessage,
       };
     }
   }
@@ -313,7 +357,15 @@ export class GoogleDriveBackupService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error?.message || 'Download failed');
+        const errorMessage = errorData.error?.message || 'Download failed';
+
+        if (errorMessage.includes('invalid') && errorMessage.includes('credentials')) {
+          throw new Error('AUTH_ERROR');
+        } else if (errorMessage.includes('not found') || errorMessage.includes('File not found')) {
+          throw new Error('FILE_NOT_FOUND');
+        } else {
+          throw new Error(errorMessage);
+        }
       }
 
       const backupContent = await response.text();
@@ -326,9 +378,24 @@ export class GoogleDriveBackupService {
       return { success: true };
     } catch (error: any) {
       console.error('Google Drive restore error:', error);
+
+      let userMessage = 'Failed to restore backup from Google Drive';
+
+      if (error.message === 'AUTH_ERROR') {
+        userMessage = 'Authentication error. Please sign out and sign in again.';
+      } else if (error.message === 'FILE_NOT_FOUND') {
+        userMessage = 'Backup file not found. It may have been deleted.';
+      } else if (error.message.includes('Network request failed')) {
+        userMessage = 'Network error. Please check your internet connection.';
+      } else if (error.message.includes('Invalid backup data structure')) {
+        userMessage = 'Invalid backup file. The file may be corrupted or incompatible.';
+      } else if (error.message) {
+        userMessage = error.message;
+      }
+
       return {
         success: false,
-        error: error.message || 'Failed to restore backup from Google Drive',
+        error: userMessage,
       };
     }
   }
@@ -359,15 +426,36 @@ export class GoogleDriveBackupService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error?.message || 'Delete failed');
+        const errorMessage = errorData.error?.message || 'Delete failed';
+
+        if (errorMessage.includes('invalid') && errorMessage.includes('credentials')) {
+          throw new Error('AUTH_ERROR');
+        } else if (errorMessage.includes('not found') || errorMessage.includes('File not found')) {
+          throw new Error('FILE_NOT_FOUND');
+        } else {
+          throw new Error(errorMessage);
+        }
       }
 
       return { success: true };
     } catch (error: any) {
       console.error('Google Drive delete error:', error);
+
+      let userMessage = 'Failed to delete backup from Google Drive';
+
+      if (error.message === 'AUTH_ERROR') {
+        userMessage = 'Authentication error. Please sign out and sign in again.';
+      } else if (error.message === 'FILE_NOT_FOUND') {
+        userMessage = 'Backup file not found. It may have already been deleted.';
+      } else if (error.message.includes('Network request failed')) {
+        userMessage = 'Network error. Please check your internet connection.';
+      } else if (error.message) {
+        userMessage = error.message;
+      }
+
       return {
         success: false,
-        error: error.message || 'Failed to delete backup from Google Drive',
+        error: userMessage,
       };
     }
   }
