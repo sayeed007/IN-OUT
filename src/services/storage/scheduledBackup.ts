@@ -3,7 +3,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppState, AppStateStatus } from 'react-native';
 import { STORAGE_KEYS } from '../../utils/env';
 import { GoogleDriveBackupService } from './googleDriveBackup';
-import { EmailBackupService } from './emailBackup';
 
 export type BackupFrequency = 'daily' | 'weekly' | 'monthly';
 export type BackupMethod = 'google-drive' | 'email' | 'both';
@@ -193,7 +192,7 @@ export class ScheduledBackupService {
   /**
    * Perform scheduled backup
    */
-  static async performScheduledBackup(): Promise<{ success: boolean; error?: string }> {
+  static async performScheduledBackup(force: boolean = false): Promise<{ success: boolean; error?: string }> {
     try {
       const settings = await this.getSettings();
 
@@ -201,51 +200,34 @@ export class ScheduledBackupService {
         return { success: false, error: 'Scheduled backup is not enabled' };
       }
 
-      // Check if backup is due
-      const isDue = await this.isBackupDue();
-      if (!isDue) {
-        console.log('[ScheduledBackup] Backup not due yet');
-        return { success: true };
+      // Check if backup is due (unless forced)
+      if (!force) {
+        const isDue = await this.isBackupDue();
+        if (!isDue) {
+          console.log('[ScheduledBackup] Backup not due yet');
+          return { success: true };
+        }
       }
 
-      let googleDriveSuccess = false;
-      let emailSuccess = false;
+      let backupSuccess = false;
       const errors: string[] = [];
 
-      // Backup to Google Drive if configured
-      if (settings.method === 'google-drive' || settings.method === 'both') {
-        const isSignedIn = await GoogleDriveBackupService.isSignedIn();
-        if (isSignedIn) {
-          const result = await GoogleDriveBackupService.uploadBackup();
-          if (result.success) {
-            googleDriveSuccess = true;
-            console.log('[ScheduledBackup] Google Drive backup successful');
-          } else {
-            errors.push(`Google Drive: ${result.error}`);
-          }
+      // Backup to Google Drive
+      const isSignedIn = await GoogleDriveBackupService.isSignedIn();
+      if (isSignedIn) {
+        const result = await GoogleDriveBackupService.uploadBackup();
+        if (result.success) {
+          backupSuccess = true;
+          console.log('[ScheduledBackup] Google Drive backup successful');
         } else {
-          errors.push('Google Drive: Not signed in');
+          errors.push(`Google Drive: ${result.error}`);
         }
+      } else {
+        errors.push('Google Drive: Not signed in');
       }
 
-      // Backup via Email if configured
-      if (settings.method === 'email' || settings.method === 'both') {
-        const emailSettings = await EmailBackupService.getSettings();
-        if (emailSettings.enabled && emailSettings.email) {
-          const result = await EmailBackupService.sendBackup();
-          if (result.success) {
-            emailSuccess = true;
-            console.log('[ScheduledBackup] Email backup successful');
-          } else {
-            errors.push(`Email: ${result.error}`);
-          }
-        } else {
-          errors.push('Email: Not configured');
-        }
-      }
-
-      // Update settings with last backup date if at least one method succeeded
-      if (googleDriveSuccess || emailSuccess) {
+      // Update settings with last backup date if backup succeeded
+      if (backupSuccess) {
         const now = new Date();
         const nextBackup = this.calculateNextBackupDate(settings.frequency);
 
@@ -282,30 +264,18 @@ export class ScheduledBackupService {
    */
   static async enable(
     frequency: BackupFrequency,
-    method: BackupMethod
+    method: BackupMethod = 'google-drive'
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const settings = await this.getSettings();
 
-      // Validate method configuration
-      if (method === 'google-drive' || method === 'both') {
-        const isSignedIn = await GoogleDriveBackupService.isSignedIn();
-        if (!isSignedIn) {
-          return {
-            success: false,
-            error: 'Please sign in to Google Drive first',
-          };
-        }
-      }
-
-      if (method === 'email' || method === 'both') {
-        const emailSettings = await EmailBackupService.getSettings();
-        if (!emailSettings.enabled || !emailSettings.email) {
-          return {
-            success: false,
-            error: 'Please configure email backup first',
-          };
-        }
+      // Validate Google Drive is signed in
+      const isSignedIn = await GoogleDriveBackupService.isSignedIn();
+      if (!isSignedIn) {
+        return {
+          success: false,
+          error: 'Please sign in to Google Drive first',
+        };
       }
 
       const nextBackup = this.calculateNextBackupDate(frequency);
@@ -314,7 +284,7 @@ export class ScheduledBackupService {
         ...settings,
         enabled: true,
         frequency,
-        method,
+        method: 'google-drive',
         autoBackupEnabled: true,
         nextBackupDate: nextBackup.toISOString(),
       });
@@ -376,47 +346,6 @@ export class ScheduledBackupService {
     }
   }
 
-  /**
-   * Update backup method
-   */
-  static async updateMethod(method: BackupMethod): Promise<{ success: boolean; error?: string }> {
-    try {
-      // Validate method configuration
-      if (method === 'google-drive' || method === 'both') {
-        const isSignedIn = await GoogleDriveBackupService.isSignedIn();
-        if (!isSignedIn) {
-          return {
-            success: false,
-            error: 'Please sign in to Google Drive first',
-          };
-        }
-      }
-
-      if (method === 'email' || method === 'both') {
-        const emailSettings = await EmailBackupService.getSettings();
-        if (!emailSettings.enabled || !emailSettings.email) {
-          return {
-            success: false,
-            error: 'Please configure email backup first',
-          };
-        }
-      }
-
-      const settings = await this.getSettings();
-      await this.saveSettings({
-        ...settings,
-        method,
-      });
-
-      return { success: true };
-    } catch (error: any) {
-      console.error('Error updating backup method:', error);
-      return {
-        success: false,
-        error: error.message || 'Failed to update backup method',
-      };
-    }
-  }
 
   /**
    * Get next scheduled backup date
@@ -452,11 +381,13 @@ export class ScheduledBackupService {
         autoBackupEnabled: true,
       });
 
-      const result = await this.performScheduledBackup();
+      // Force the backup to run regardless of schedule
+      const result = await this.performScheduledBackup(true);
 
       // Restore original auto backup setting
+      const currentSettings = await this.getSettings();
       await this.saveSettings({
-        ...settings,
+        ...currentSettings,
         autoBackupEnabled: originalAutoBackup,
       });
 

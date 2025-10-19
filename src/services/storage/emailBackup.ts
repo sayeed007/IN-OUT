@@ -1,5 +1,5 @@
 // src/services/storage/emailBackup.ts
-import Mailer from 'react-native-mailer';
+import Share from 'react-native-share';
 import { DataManagementService } from './dataManagement';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from '../../utils/env';
@@ -49,75 +49,45 @@ export class EmailBackupService {
   }
 
   /**
-   * Send backup via email
+   * Send backup via share dialog (email, messaging, cloud storage, etc.)
    */
-  static async sendBackup(
-    recipientEmail?: string
-  ): Promise<{ success: boolean; error?: string }> {
+  static async sendBackup(): Promise<{ success: boolean; error?: string; cancelled?: boolean }> {
     try {
-      // Get settings
-      const settings = await this.getSettings();
-      const email = recipientEmail || settings.email;
-
-      if (!email) {
-        return {
-          success: false,
-          error: 'No email address provided',
-        };
-      }
-
       // Create backup file
       const backupResult = await DataManagementService.backupAllData();
 
-      // Prepare email with backup file attachment
-      const emailData = {
-        subject: 'Financial App Backup',
-        recipients: [email],
-        body: `
-          <html>
-            <body>
-              <h2>Your Financial Data Backup</h2>
-              <p>This email contains a backup of your financial data from the In & Out app.</p>
-              <p><strong>Backup Date:</strong> ${new Date().toLocaleString()}</p>
-              <p><strong>File Name:</strong> ${backupResult.fileName}</p>
+      // Prepare share message
+      const shareMessage = `Your Financial Data Backup
 
-              <h3>How to Restore:</h3>
-              <ol>
-                <li>Download the attached JSON file</li>
-                <li>Open the In & Out app</li>
-                <li>Go to Settings > Data Management</li>
-                <li>Tap "Restore Data"</li>
-                <li>Select the downloaded backup file</li>
-              </ol>
+Backup Date: ${new Date().toLocaleString()}
+File Name: ${backupResult.fileName}
 
-              <p><em>Keep this backup safe and secure. It contains sensitive financial information.</em></p>
+How to Restore:
+1. Save the attached backup file
+2. Open the In & Out app
+3. Go to Settings > Cloud Backup > Restore from Backup
+4. Select the backup file
 
-              <hr>
-              <p style="font-size: 12px; color: #666;">
-                This is an automated backup email from the In & Out financial management app.
-              </p>
-            </body>
-          </html>
-        `,
-        isHTML: true,
-        attachments: [
-          {
-            path: backupResult.filePath,
-            type: 'json',
-            name: backupResult.fileName,
-          },
-        ],
+⚠️ Keep this backup safe and secure. It contains sensitive financial information.
+
+---
+Backup from In & Out financial management app.`;
+
+      // Share options - using Share.open for better compatibility
+      const shareOptions = {
+        title: 'Financial App Backup',
+        message: shareMessage,
+        subject: `In & Out App Backup - ${new Date().toLocaleDateString()}`,
+        url: `file://${backupResult.filePath}`,
+        type: 'application/json',
+        filename: backupResult.fileName,
       };
 
-      // Send email
-      await Mailer.mail(emailData, (error, event) => {
-        if (error) {
-          console.error('Email error:', error);
-        }
-        console.log('Email event:', event);
-      });
+      // Open share dialog
+      await Share.open(shareOptions);
 
       // Update last backup date
+      const settings = await this.getSettings();
       const updatedSettings = {
         ...settings,
         lastBackupDate: new Date().toISOString(),
@@ -126,10 +96,24 @@ export class EmailBackupService {
 
       return { success: true };
     } catch (error: any) {
-      console.error('Email backup error:', error);
+      console.error('Backup share error:', error);
+
+      // Check if user cancelled
+      const errorMessage = error?.message?.toLowerCase() || '';
+      const isCancelled = errorMessage.includes('cancel') ||
+        errorMessage.includes('dismiss') ||
+        errorMessage.includes('user did not share');
+
+      if (isCancelled) {
+        return {
+          success: false,
+          cancelled: true,
+        };
+      }
+
       return {
         success: false,
-        error: error.message || 'Failed to send backup via email',
+        error: error.message || 'Failed to share backup file',
       };
     }
   }

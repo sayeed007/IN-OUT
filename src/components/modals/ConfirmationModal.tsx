@@ -19,6 +19,7 @@ interface ConfirmationModalProps {
     cancelText?: string;
     confirmStyle?: 'default' | 'destructive';
     icon?: string;
+    children?: React.ReactNode;
 }
 
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
@@ -31,6 +32,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     cancelText = 'Cancel',
     confirmStyle = 'default',
     icon,
+    children,
 }) => {
     const { theme } = useTheme();
 
@@ -68,6 +70,9 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                     <Text style={[styles.message, { color: theme.colors.textSecondary }]}>
                         {message}
                     </Text>
+
+                    {/* Children (for custom content like selection options) */}
+                    {children}
 
                     {/* Buttons */}
                     <View style={styles.buttonContainer}>

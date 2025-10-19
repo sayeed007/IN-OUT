@@ -41,22 +41,60 @@ export class GoogleDriveBackupService {
    */
   static async signIn(): Promise<{ success: boolean; user?: any; error?: string }> {
     try {
-      await GoogleSignin.hasPlayServices();
-      const userInfo = await GoogleSignin.signIn();
+      // Check Play Services availability with options for older devices
+      const hasPlayServices = await GoogleSignin.hasPlayServices({
+        showPlayServicesUpdateDialog: true,
+      });
 
-      // Check if sign-in was cancelled or returned invalid data
-      if (!userInfo || userInfo.type === 'cancelled' || !userInfo.data || !userInfo.data.user) {
+      if (!hasPlayServices) {
+        return {
+          success: false,
+          error: 'Google Play Services is not available. Please update Google Play Services.'
+        };
+      }
+
+      const userInfo = await GoogleSignin.signIn();
+      console.log('Sign-in response:', JSON.stringify(userInfo, null, 2));
+
+      // Handle different response structures from different library versions
+      // New version: { type: 'success', data: { user: {...}, idToken: '...', ... } }
+      // Old version: { user: {...}, idToken: '...', ... }
+
+      let userData = null;
+
+      // Check if sign-in was cancelled
+      if (userInfo && userInfo.type === 'cancelled') {
         return { success: false, error: 'Sign-in was cancelled' };
       }
 
-      // Validate we have required user information
-      if (!userInfo.data.user.email) {
-        return { success: false, error: 'Failed to retrieve user information' };
+      // Try new response structure first (v16+)
+      if (userInfo && userInfo.data && userInfo.data.user) {
+        userData = userInfo.data;
+      }
+      // Fallback to old response structure (v15 and earlier)
+      else if (userInfo && userInfo.user) {
+        userData = userInfo;
+      }
+      // Handle direct user object (some edge cases)
+      else if (userInfo && userInfo.email) {
+        userData = { user: userInfo };
       }
 
-      return { success: true, user: userInfo.data };
+      // Validate we have required user information
+      if (!userData || !userData.user || !userData.user.email) {
+        console.error('Invalid user data structure:', userInfo);
+        return {
+          success: false,
+          error: 'Failed to retrieve user information. Please try again.'
+        };
+      }
+
+      console.log('Successfully signed in:', userData.user.email);
+      return { success: true, user: userData };
     } catch (error: any) {
       console.error('Google sign-in error:', error);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
 
       // Provide more specific error messages
       let errorMessage = error.message || 'Sign-in failed';
@@ -64,11 +102,15 @@ export class GoogleDriveBackupService {
       if (error.code === '-5' || error.code === '12501') {
         errorMessage = 'Sign-in cancelled by user';
       } else if (error.code === '10') {
-        errorMessage = 'Google Play Services configuration error. Please check your setup.';
+        errorMessage = 'Developer error: OAuth client configuration is incorrect. Please check SHA-1 certificates and Web Client ID.';
       } else if (error.code === '12500') {
-        errorMessage = 'Google Sign-In service error. Please try again later.';
+        errorMessage = 'Google Sign-In service error. Please ensure you are connected to the internet and try again.';
       } else if (error.code === '7') {
         errorMessage = 'Network error. Please check your internet connection.';
+      } else if (error.code === '12502') {
+        errorMessage = 'Sign-in cancelled or connection error.';
+      } else if (error.message && error.message.includes('DEVELOPER_ERROR')) {
+        errorMessage = 'Configuration error: Please ensure SHA-1 certificate is added to Google Cloud Console for this device.';
       }
 
       return { success: false, error: errorMessage };

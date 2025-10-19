@@ -13,6 +13,7 @@ import AccountSettings from './components/AccountSettings';
 import PreferencesSettings from './components/PreferencesSettings';
 import DataManagementSettings from './components/DataManagementSettings';
 import CloudBackupSettings from './components/CloudBackupSettings';
+import EmailBackupSettings from './components/EmailBackupSettings';
 import ScheduledBackupSettings from './components/ScheduledBackupSettings';
 import AboutSettings from './components/AboutSettings';
 import DangerZoneSettings from './components/DangerZoneSettings';
@@ -51,25 +52,28 @@ export const SettingsScreen: React.FC = () => {
         </View>
 
         {/* Account Settings */}
-        {/* <AccountSettings /> */}
+        <AccountSettings />
 
         {/* Preferences */}
-        {/* <PreferencesSettings /> */}
+        <PreferencesSettings />
 
         {/* Data Management */}
-        {/* <DataManagementSettings /> */}
+        <DataManagementSettings />
 
-        {/* Cloud Backup */}
+        {/* Google Drive Backup */}
         <CloudBackupSettings />
 
+        {/* Email & Share Backup */}
+        <EmailBackupSettings />
+
         {/* Scheduled Backup */}
-        {/* <ScheduledBackupSettings /> */}
+        <ScheduledBackupSettings />
 
         {/* About */}
-        {/* <AboutSettings /> */}
+        <AboutSettings />
 
         {/* Danger Zone */}
-        {/* <DangerZoneSettings /> */}
+        <DangerZoneSettings />
 
         {/* Bottom spacing for tab bar */}
         <BottomSpacing />

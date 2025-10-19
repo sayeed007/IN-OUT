@@ -1,6 +1,7 @@
 // src/screens/settings/components/ScheduledBackupSettings.tsx
 import React, { useState, useEffect } from 'react';
-import { Text, StyleSheet, View, Switch } from 'react-native';
+import { Text, StyleSheet, View, Switch, TouchableOpacity } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import Card from '../../../components/ui/Card';
 import SettingItem from './SettingItem';
 import { Spacing } from '../../../theme';
@@ -54,8 +55,9 @@ const ScheduledBackupSettings: React.FC = () => {
       marginBottom: Spacing.base,
     },
     subsection: {
-      marginTop: Spacing.small,
-      marginBottom: Spacing.small,
+      marginTop: Spacing.base,
+      marginBottom: Spacing.base,
+      width: '100%',
     },
     infoText: {
       fontSize: 13,
@@ -95,25 +97,39 @@ const ScheduledBackupSettings: React.FC = () => {
       fontWeight: '500',
     },
     optionButton: {
-      paddingVertical: Spacing.small,
+      paddingVertical: Spacing.base,
       paddingHorizontal: Spacing.base,
-      borderRadius: 8,
-      borderWidth: 1,
+      borderRadius: 10,
+      borderWidth: 2,
       borderColor: theme.colors.border,
-      marginBottom: Spacing.xs,
+      marginBottom: Spacing.small,
+      backgroundColor: theme.colors.cardBackground,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
     },
     optionButtonSelected: {
       backgroundColor: theme.colors.primary,
       borderColor: theme.colors.primary,
+      shadowColor: theme.colors.primary,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      elevation: 4,
     },
     optionText: {
-      fontSize: 14,
+      fontSize: 15,
       color: theme.colors.text,
       textAlign: 'center',
+      fontWeight: '500',
     },
     optionTextSelected: {
-      color: '#fff',
-      fontWeight: '500',
+      color: '#FFFFFF',
+      fontWeight: '600',
+    },
+    optionIcon: {
+      marginLeft: 4,
     },
   });
 
@@ -148,24 +164,12 @@ const ScheduledBackupSettings: React.FC = () => {
     }
   };
 
-  const getMethodLabel = (method: BackupMethod): string => {
-    switch (method) {
-      case 'google-drive':
-        return 'Google Drive';
-      case 'email':
-        return 'Email';
-      case 'both':
-        return 'Google Drive & Email';
-      default:
-        return 'Google Drive';
-    }
-  };
 
   const handleEnableScheduledBackup = async () => {
     setModal({
       type: 'confirmation',
       title: 'Enable Scheduled Backup',
-      message: 'This will automatically backup your data based on the schedule you set. Make sure you have configured at least one backup method (Google Drive or Email).',
+      message: 'This will automatically backup your data to Google Drive based on the schedule you set. Make sure you are signed in to Google Drive.',
       confirmText: 'Enable',
       icon: 'time-outline',
       onConfirm: async () => {
@@ -174,14 +178,14 @@ const ScheduledBackupSettings: React.FC = () => {
         try {
           const result = await ScheduledBackupService.enable(
             settings.frequency,
-            settings.method
+            'google-drive'
           );
           if (result.success) {
             await loadSettings();
             setModal({
               type: 'alert',
               title: 'Scheduled Backup Enabled',
-              message: `Automatic backups will occur ${getFrequencyLabel(settings.frequency).toLowerCase()} via ${getMethodLabel(settings.method)}`,
+              message: `Automatic backups will occur ${getFrequencyLabel(settings.frequency).toLowerCase()} to Google Drive`,
               alertType: 'success',
             });
           } else {
@@ -247,21 +251,29 @@ const ScheduledBackupSettings: React.FC = () => {
       { label: 'Monthly', value: 'monthly' },
     ];
 
+    // Store selected value temporarily
+    let tempSelectedFrequency = settings.frequency;
+
     setModal({
       type: 'select',
       title: 'Backup Frequency',
       message: 'How often should backups be created?',
       options: frequencyOptions,
-      onSelect: async (value: BackupFrequency) => {
+      confirmText: 'Save',
+      onSelect: (value: BackupFrequency) => {
+        tempSelectedFrequency = value;
+        setSettings({ ...settings, frequency: value });
+      },
+      onConfirm: async () => {
         setModal({ type: null, title: '', message: '' });
         setIsLoading(true);
         try {
-          await ScheduledBackupService.updateFrequency(value);
+          await ScheduledBackupService.updateFrequency(tempSelectedFrequency);
           await loadSettings();
           setModal({
             type: 'alert',
             title: 'Frequency Updated',
-            message: `Backup frequency changed to ${getFrequencyLabel(value)}`,
+            message: `Backup frequency changed to ${getFrequencyLabel(tempSelectedFrequency)}`,
             alertType: 'success',
           });
         } catch (error) {
@@ -278,52 +290,6 @@ const ScheduledBackupSettings: React.FC = () => {
     });
   };
 
-  const handleChangeMethod = () => {
-    const methodOptions: Array<{ label: string; value: BackupMethod }> = [
-      { label: 'Google Drive', value: 'google-drive' },
-      { label: 'Email', value: 'email' },
-      { label: 'Both (Google Drive & Email)', value: 'both' },
-    ];
-
-    setModal({
-      type: 'select',
-      title: 'Backup Method',
-      message: 'Where should backups be stored?',
-      options: methodOptions,
-      onSelect: async (value: BackupMethod) => {
-        setModal({ type: null, title: '', message: '' });
-        setIsLoading(true);
-        try {
-          const result = await ScheduledBackupService.updateMethod(value);
-          if (result.success) {
-            await loadSettings();
-            setModal({
-              type: 'alert',
-              title: 'Method Updated',
-              message: `Backup method changed to ${getMethodLabel(value)}`,
-              alertType: 'success',
-            });
-          } else {
-            setModal({
-              type: 'alert',
-              title: 'Failed to Update',
-              message: result.error || 'Failed to update backup method',
-              alertType: 'error',
-            });
-          }
-        } catch (error) {
-          setModal({
-            type: 'alert',
-            title: 'Error',
-            message: 'Failed to update backup method',
-            alertType: 'error',
-          });
-        } finally {
-          setIsLoading(false);
-        }
-      },
-    });
-  };
 
   const handleBackupNow = async () => {
     if (isLoading) return;
@@ -379,8 +345,8 @@ const ScheduledBackupSettings: React.FC = () => {
         <Text style={styles.sectionTitle}>Scheduled Backup</Text>
 
         <Text style={styles.infoText}>
-          Automatically backup your data at regular intervals. Similar to WhatsApp's backup feature,
-          your data will be backed up to your chosen cloud service on a schedule.
+          Automatically backup your data to Google Drive at regular intervals. Similar to WhatsApp's backup feature,
+          your data will be securely stored on Google Drive based on your schedule.
         </Text>
 
         {/* Status Section */}
@@ -421,14 +387,8 @@ const ScheduledBackupSettings: React.FC = () => {
             />
 
             <SettingItem
-              title="Backup Method"
-              subtitle={getMethodLabel(settings.method)}
-              onPress={handleChangeMethod}
-            />
-
-            <SettingItem
               title="Enable Scheduled Backup"
-              subtitle="Turn on automatic backups"
+              subtitle="Turn on automatic backups to Google Drive"
               onPress={handleEnableScheduledBackup}
               disabled={isLoading}
             />
@@ -442,14 +402,8 @@ const ScheduledBackupSettings: React.FC = () => {
             />
 
             <SettingItem
-              title="Backup Method"
-              subtitle={getMethodLabel(settings.method)}
-              onPress={handleChangeMethod}
-            />
-
-            <SettingItem
               title="Backup Now"
-              subtitle={isLoading ? "Creating backup..." : "Create immediate backup"}
+              subtitle={isLoading ? "Creating backup..." : "Create immediate backup to Google Drive"}
               onPress={handleBackupNow}
               disabled={isLoading}
             />
@@ -490,35 +444,44 @@ const ScheduledBackupSettings: React.FC = () => {
           visible={true}
           title={modal.title}
           message={modal.message}
-          confirmText="Cancel"
+          confirmText={modal.confirmText || 'Save'}
+          cancelText="Cancel"
           icon="list-outline"
-          onConfirm={closeModal}
+          onConfirm={modal.onConfirm || closeModal}
           onCancel={closeModal}
         >
           <View style={styles.subsection}>
-            {modal.options.map((option, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.optionButton,
-                  option.value === settings.frequency || option.value === settings.method
-                    ? styles.optionButtonSelected
-                    : {},
-                ]}
-              >
-                <Text
+            {modal.options.map((option, index) => {
+              const isSelected = option.value === settings.frequency;
+              return (
+                <TouchableOpacity
+                  key={index}
                   style={[
-                    styles.optionText,
-                    option.value === settings.frequency || option.value === settings.method
-                      ? styles.optionTextSelected
-                      : {},
+                    styles.optionButton,
+                    isSelected && styles.optionButtonSelected,
                   ]}
                   onPress={() => modal.onSelect && modal.onSelect(option.value)}
+                  activeOpacity={0.7}
                 >
-                  {option.label}
-                </Text>
-              </View>
-            ))}
+                  <Text
+                    style={[
+                      styles.optionText,
+                      isSelected && styles.optionTextSelected,
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                  {isSelected && (
+                    <Icon
+                      name="checkmark-circle"
+                      size={20}
+                      color="#FFFFFF"
+                      style={styles.optionIcon}
+                    />
+                  )}
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </ConfirmationModal>
       )}

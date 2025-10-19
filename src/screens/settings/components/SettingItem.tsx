@@ -16,6 +16,7 @@ interface SettingItemProps {
   onPress?: () => void;
   rightComponent?: React.ReactNode;
   showArrow?: boolean;
+  disabled?: boolean;
 }
 
 const SettingItem: React.FC<SettingItemProps> = ({
@@ -24,6 +25,7 @@ const SettingItem: React.FC<SettingItemProps> = ({
   onPress,
   rightComponent,
   showArrow = true,
+  disabled = false,
 }) => {
   const { theme } = useTheme();
 
@@ -36,6 +38,7 @@ const SettingItem: React.FC<SettingItemProps> = ({
       paddingVertical: Spacing.sm,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
+      opacity: disabled ? 0.5 : 1,
     },
     settingContent: {
       flex: 1,
@@ -63,8 +66,8 @@ const SettingItem: React.FC<SettingItemProps> = ({
     <TouchableOpacity
       style={styles.settingItem}
       onPress={onPress}
-      disabled={!onPress}
-      activeOpacity={onPress ? 0.7 : 1}
+      disabled={disabled || !onPress}
+      activeOpacity={onPress && !disabled ? 0.7 : 1}
     >
       <View style={styles.settingContent}>
         <Text style={styles.settingTitle}>{title}</Text>
