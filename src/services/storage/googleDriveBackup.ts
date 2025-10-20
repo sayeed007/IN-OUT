@@ -28,7 +28,7 @@ export class GoogleDriveBackupService {
    */
   static async isSignedIn(): Promise<boolean> {
     try {
-      const currentUser = await GoogleSignin.getCurrentUser();
+      const currentUser = GoogleSignin.getCurrentUser();
       return currentUser !== null;
     } catch (error) {
       console.error('Error checking Google sign-in status:', error);
@@ -56,41 +56,38 @@ export class GoogleDriveBackupService {
       const userInfo = await GoogleSignin.signIn();
       console.log('Sign-in response:', JSON.stringify(userInfo, null, 2));
 
-      // Handle different response structures from different library versions
+      // Handle different response structures
       // New version: { type: 'success', data: { user: {...}, idToken: '...', ... } }
-      // Old version: { user: {...}, idToken: '...', ... }
-
-      let userData = null;
+      // or { type: 'cancelled', data: null }
 
       // Check if sign-in was cancelled
-      if (userInfo && userInfo.type === 'cancelled') {
+      if (userInfo.type === 'cancelled') {
         return { success: false, error: 'Sign-in was cancelled' };
       }
 
-      // Try new response structure first (v16+)
-      if (userInfo && userInfo.data && userInfo.data.user) {
-        userData = userInfo.data;
-      }
-      // Fallback to old response structure (v15 and earlier)
-      else if (userInfo && userInfo.user) {
-        userData = userInfo;
-      }
-      // Handle direct user object (some edge cases)
-      else if (userInfo && userInfo.email) {
-        userData = { user: userInfo };
+      // Handle success response (v16+)
+      if (userInfo.type === 'success') {
+        const userData = userInfo.data;
+
+        // Validate we have required user information
+        if (!userData || !userData.user || !userData.user.email) {
+          console.error('Invalid user data structure:', userInfo);
+          return {
+            success: false,
+            error: 'Failed to retrieve user information. Please try again.'
+          };
+        }
+
+        console.log('Successfully signed in:', userData.user.email);
+        return { success: true, user: userData };
       }
 
-      // Validate we have required user information
-      if (!userData || !userData.user || !userData.user.email) {
-        console.error('Invalid user data structure:', userInfo);
-        return {
-          success: false,
-          error: 'Failed to retrieve user information. Please try again.'
-        };
-      }
-
-      console.log('Successfully signed in:', userData.user.email);
-      return { success: true, user: userData };
+      // Unexpected response type
+      console.error('Unexpected sign-in response:', userInfo);
+      return {
+        success: false,
+        error: 'Unexpected sign-in response. Please try again.'
+      };
     } catch (error: any) {
       console.error('Google sign-in error:', error);
       console.error('Error code:', error.code);
@@ -133,11 +130,8 @@ export class GoogleDriveBackupService {
    */
   static async getCurrentUser(): Promise<any | null> {
     try {
-      const userInfo = await GoogleSignin.getCurrentUser();
-      // Handle the new response structure
-      if (userInfo && userInfo.data) {
-        return userInfo.data;
-      }
+      const userInfo = GoogleSignin.getCurrentUser();
+      // getCurrentUser() returns User | null directly (synchronous)
       return userInfo;
     } catch (error) {
       console.error('Error getting current user:', error);
