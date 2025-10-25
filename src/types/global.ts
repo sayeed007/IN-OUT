@@ -44,9 +44,12 @@ export interface Transaction extends BaseEntity {
 // Budget types
 export interface Budget extends BaseEntity {
   categoryId: UUID;
-  month: string; // YYYY-MM format
+  periodId: string; // YYYY-MM-DD format (period start date)
+  periodStartDay: number; // Day of month the period starts (1-28), stored for historical accuracy
   amount: number;
   rollover: boolean;
+  // Legacy field for backward compatibility during migration
+  month?: string; // YYYY-MM format (deprecated, use periodId)
 }
 
 // Attachment types

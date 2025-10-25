@@ -21,12 +21,14 @@ import Card from '../../../components/ui/Card';
 import LoadingSpinner from '../../../components/ui/LoadingSpinner';
 import dayjs from 'dayjs';
 import { showToast } from '../../../utils/helpers/toast';
+import { getCurrentPeriodId, formatPeriodLabel } from '../../../utils/helpers/dateUtils';
 
 interface BudgetCreationModalProps {
   visible: boolean;
   onClose: () => void;
   onBudgetCreated: (budget: Budget) => void;
-  selectedMonth?: string;
+  selectedPeriod?: string; // YYYY-MM-DD format
+  periodStartDay: number; // 1-28
   preselectedCategoryId?: string;
 }
 
@@ -34,7 +36,8 @@ const BudgetCreationModal: React.FC<BudgetCreationModalProps> = ({
   visible,
   onClose,
   onBudgetCreated,
-  selectedMonth,
+  selectedPeriod,
+  periodStartDay,
   preselectedCategoryId,
 }) => {
   const { theme } = useTheme();
@@ -45,7 +48,7 @@ const BudgetCreationModal: React.FC<BudgetCreationModalProps> = ({
   const [isCreating, setIsCreating] = useState(false);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
 
-  const month = selectedMonth || dayjs().format('YYYY-MM');
+  const periodId = selectedPeriod || getCurrentPeriodId(periodStartDay);
 
   const { data: categories = [], isLoading: loadingCategories } = useGetCategoriesQuery();
   const [addBudget] = useAddBudgetMutation();
@@ -90,7 +93,8 @@ const BudgetCreationModal: React.FC<BudgetCreationModalProps> = ({
       const budgetAmount = parseFloat(amount);
       const newBudget = await addBudget({
         categoryId,
-        month,
+        periodId,
+        periodStartDay,
         amount: budgetAmount,
         rollover,
         createdAt: new Date().toISOString(),
@@ -304,7 +308,7 @@ const BudgetCreationModal: React.FC<BudgetCreationModalProps> = ({
       <View style={styles.container}>
         <GradientHeader
           title="Create Budget"
-          subtitle={dayjs(month).format('MMMM YYYY')}
+          subtitle={formatPeriodLabel(periodId, periodStartDay)}
           showBackButton={true}
           onBackPress={handleClose}
           rightElement={
@@ -349,7 +353,7 @@ const BudgetCreationModal: React.FC<BudgetCreationModalProps> = ({
                   style={styles.monthIcon}
                 />
                 <Text style={styles.monthText}>
-                  Budget for {dayjs(month).format('MMMM YYYY')}
+                  Budget for {formatPeriodLabel(periodId, periodStartDay)}
                 </Text>
               </View>
             </View>

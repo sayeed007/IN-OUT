@@ -7,10 +7,12 @@ import {
     Text,
     View,
 } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useTheme } from '../../app/providers/ThemeProvider';
 import { SafeContainer } from '../../components/layout/SafeContainer';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { useGetCategoriesQuery, useGetTransactionsQuery } from '../../state/api';
+import { RootState } from '../../state/store';
 import {
     CustomComparison,
     ComparisonItem,
@@ -23,10 +25,12 @@ import { ReportHeader } from './components/ReportHeader';
 import { ReportCharts } from './components/ReportCharts';
 import { useReportData } from './hooks/useReportData';
 import BottomSpacing from '../../components/ui/BottomSpacing';
+import { getCustomPeriodStart, getCustomPeriodEnd, formatPeriodLabel } from '../../utils/helpers/dateUtils';
 
 
 export const ReportsScreen: React.FC = () => {
     const { theme } = useTheme();
+    const periodStartDay = useSelector((state: RootState) => state.preferences.budgetStartDay);
     const [selectedPeriod, setSelectedPeriod] = useState<ReportPeriod>('monthly');
     const [currentDate, setCurrentDate] = useState(dayjs());
     const [refreshing, setRefreshing] = useState(false);
@@ -56,9 +60,13 @@ export const ReportsScreen: React.FC = () => {
                 label = currentDate.format('MMMM D, YYYY');
                 break;
             case 'monthly':
-                start = currentDate.startOf('month');
-                end = currentDate.endOf('month');
-                label = currentDate.format('MMMM YYYY');
+                // Use custom accounting period
+                start = dayjs(getCustomPeriodStart(currentDate.toDate(), periodStartDay));
+                end = dayjs(getCustomPeriodEnd(currentDate.toDate(), periodStartDay));
+                label = formatPeriodLabel(
+                    start.format('YYYY-MM-DD'),
+                    periodStartDay
+                );
                 break;
             case 'yearly':
                 start = currentDate.startOf('year');

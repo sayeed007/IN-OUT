@@ -8,8 +8,10 @@ import { Spacing } from '../../../theme';
 import { useTheme } from '../../../app/providers/ThemeProvider';
 import { RootState } from '../../../state/store';
 import { updatePreferences } from '../../../state/slices/preferencesSlice';
+import { resetToCurrentPeriod } from '../../../state/slices/appSlice';
 import { DateFormatSelectionModal } from '../../../components/modals/DateFormatSelectionModal';
 import { FirstDayOfWeekSelectionModal } from '../../../components/modals/FirstDayOfWeekSelectionModal';
+import { PeriodStartDaySelectionModal } from '../../../components/modals/PeriodStartDaySelectionModal';
 
 const PreferencesSettings: React.FC = () => {
   const { theme } = useTheme();
@@ -18,6 +20,7 @@ const PreferencesSettings: React.FC = () => {
 
   const [showDateFormatModal, setShowDateFormatModal] = useState(false);
   const [showFirstDayModal, setShowFirstDayModal] = useState(false);
+  const [showPeriodStartDayModal, setShowPeriodStartDayModal] = useState(false);
 
   // const handleNotificationsToggle = (value: boolean) => {
   //   dispatch(updatePreferences({ enableNotifications: value }));
@@ -48,8 +51,41 @@ const PreferencesSettings: React.FC = () => {
     dispatch(updatePreferences({ firstDayOfWeek: day }));
   };
 
+  const handlePeriodStartDaySelect = (day: number) => {
+    dispatch(updatePreferences({ budgetStartDay: day }));
+    // Reset to current period with the new start day
+    dispatch(resetToCurrentPeriod(day));
+  };
+
   const getFirstDayLabel = () => {
     return preferences.firstDayOfWeek === 0 ? 'Saturday' : 'Sunday';
+  };
+
+  const getPeriodStartDayLabel = () => {
+    const day = preferences.budgetStartDay;
+    if (day === 1) {
+      return 'Day 1 (Calendar month)';
+    }
+    return `Day ${day}`;
+  };
+
+  const getPeriodStartDaySubtitle = () => {
+    const day = preferences.budgetStartDay;
+    if (day === 1) {
+      return '1st to last day of month';
+    }
+    const prevDay = day - 1;
+    return `${day}${getOrdinalSuffix(day)} to ${prevDay}${getOrdinalSuffix(prevDay)} of next month`;
+  };
+
+  const getOrdinalSuffix = (day: number): string => {
+    if (day > 3 && day < 21) return 'th';
+    switch (day % 10) {
+      case 1: return 'st';
+      case 2: return 'nd';
+      case 3: return 'rd';
+      default: return 'th';
+    }
   };
 
   const styles = StyleSheet.create({
@@ -127,6 +163,12 @@ const PreferencesSettings: React.FC = () => {
           subtitle={getFirstDayLabel()}
           onPress={() => setShowFirstDayModal(true)}
         />
+
+        <SettingItem
+          title="Period Start Day"
+          subtitle={getPeriodStartDaySubtitle()}
+          onPress={() => setShowPeriodStartDayModal(true)}
+        />
       </Card>
 
       {showDateFormatModal &&
@@ -144,6 +186,15 @@ const PreferencesSettings: React.FC = () => {
           onClose={() => setShowFirstDayModal(false)}
           selectedDay={preferences.firstDayOfWeek}
           onDaySelect={handleFirstDaySelect}
+        />
+      }
+
+      {showPeriodStartDayModal &&
+        <PeriodStartDaySelectionModal
+          visible={showPeriodStartDayModal}
+          onClose={() => setShowPeriodStartDayModal(false)}
+          selectedDay={preferences.budgetStartDay}
+          onDaySelect={handlePeriodStartDaySelect}
         />
       }
     </>

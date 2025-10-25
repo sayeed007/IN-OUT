@@ -9,6 +9,7 @@ import {
     Text,
     View
 } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useTheme } from '../../app/providers/ThemeProvider';
 import { SafeContainer } from '../../components/layout/SafeContainer';
 import Card from '../../components/ui/Card';
@@ -16,6 +17,8 @@ import EmptyState from '../../components/ui/EmptyState';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { SpacerVertical } from '../../components/ui/Spacer';
 import { useGetAccountsQuery, useGetBudgetsQuery, useGetCategoriesQuery, useGetTransactionsQuery } from '../../state/api';
+import { RootState } from '../../state/store';
+import { getCurrentPeriodId, getCustomPeriodStart, getCustomPeriodEnd } from '../../utils/helpers/dateUtils';
 import AccountOverview from './components/AccountOverview';
 import { BalanceOverview } from './components/BalanceOverview';
 import CategoryBreakdown from './components/CategoryBreakdown';
@@ -28,12 +31,19 @@ import TrendChart from './components/TrendChart';
 export const DashboardScreen: React.FC = () => {
     const navigation = useNavigation();
     const { theme } = useTheme();
-    const [selectedMonth, setSelectedMonth] = useState(dayjs().format('YYYY-MM'));
+    const periodStartDay = useSelector((state: RootState) => state.preferences.budgetStartDay);
+
+    const [selectedPeriod, setSelectedPeriod] = useState(getCurrentPeriodId(periodStartDay));
     const [refreshing, setRefreshing] = useState(false);
 
-    // Calculate date range for selected month
-    const startDate = useMemo(() => dayjs(selectedMonth).startOf('month').toISOString(), [selectedMonth]);
-    const endDate = useMemo(() => dayjs(selectedMonth).endOf('month').toISOString(), [selectedMonth]);
+    // Calculate date range for selected period
+    const startDate = useMemo(() => {
+        return getCustomPeriodStart(selectedPeriod, periodStartDay).toISOString();
+    }, [selectedPeriod, periodStartDay]);
+
+    const endDate = useMemo(() => {
+        return getCustomPeriodEnd(selectedPeriod, periodStartDay).toISOString();
+    }, [selectedPeriod, periodStartDay]);
 
     // API queries
     const {
@@ -52,7 +62,7 @@ export const DashboardScreen: React.FC = () => {
         data: budgets = [],
         isLoading: loadingBudgets,
         refetch: refetchBudgets
-    } = useGetBudgetsQuery({ month: selectedMonth });
+    } = useGetBudgetsQuery({ month: selectedPeriod }); // Note: API still uses 'month' param name for backward compatibility
 
     const {
         data: categories = [],
@@ -91,43 +101,43 @@ export const DashboardScreen: React.FC = () => {
         };
     }, [transactions, budgets]);
 
-    // Get daily breakdown for the selected month
+    // Get daily breakdown for the selected period
     const chartData = useMemo(() => {
-        const selectedMonthObj = dayjs(selectedMonth);
-        const daysInMonth = selectedMonthObj.daysInMonth();
+        const periodStart = dayjs(startDate);
+        const periodEnd = dayjs(endDate);
+        const daysInPeriod = periodEnd.diff(periodStart, 'day') + 1;
 
-        // Group transactions by day
+        // Group transactions by date
         const dailyData: { [key: string]: { income: number; expense: number } } = {};
 
         transactions.forEach(transaction => {
-            const transactionDate = dayjs(transaction.date);
-            const dayKey = transactionDate.format('D');
+            const transactionDate = dayjs(transaction.date).format('YYYY-MM-DD');
 
-            if (!dailyData[dayKey]) {
-                dailyData[dayKey] = { income: 0, expense: 0 };
+            if (!dailyData[transactionDate]) {
+                dailyData[transactionDate] = { income: 0, expense: 0 };
             }
 
             if (transaction.type === 'income') {
-                dailyData[dayKey].income += transaction.amount;
+                dailyData[transactionDate].income += transaction.amount;
             } else if (transaction.type === 'expense') {
-                dailyData[dayKey].expense += transaction.amount;
+                dailyData[transactionDate].expense += transaction.amount;
             }
         });
 
-        // Create array for each day of the month
-        return Array.from({ length: Math.min(daysInMonth, 30) }, (_, i) => {
-            const day = i + 1;
-            const dayKey = day.toString();
+        // Create array for each day of the period (limit to 30 days for display)
+        return Array.from({ length: Math.min(daysInPeriod, 30) }, (_, i) => {
+            const currentDay = periodStart.add(i, 'day');
+            const dayKey = currentDay.format('YYYY-MM-DD');
             const data = dailyData[dayKey] || { income: 0, expense: 0 };
 
             return {
-                month: day.toString(),
-                fullMonth: selectedMonthObj.date(day).format('YYYY-MM-DD'),
+                month: currentDay.format('D'), // Day number for display
+                fullMonth: dayKey,
                 income: data.income,
                 expense: data.expense,
             };
         });
-    }, [transactions, selectedMonth]);
+    }, [transactions, startDate, endDate]);
 
     // Category breakdown separated by income and expense
     const categoryData = useMemo(() => {
@@ -220,10 +230,11 @@ export const DashboardScreen: React.FC = () => {
                     />
                 }
             >
-                {/* Month Selector */}
+                {/* Period Selector */}
                 <MonthSelector
-                    selectedMonth={selectedMonth}
-                    onMonthChange={setSelectedMonth}
+                    selectedPeriod={selectedPeriod}
+                    onPeriodChange={setSelectedPeriod}
+                    periodStartDay={periodStartDay}
                 />
 
                 {/* Balance Overview - 2x2 Grid: Total, Net, Income, Expense */}

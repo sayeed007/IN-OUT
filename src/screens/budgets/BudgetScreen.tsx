@@ -7,6 +7,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
 import dayjs from 'dayjs';
 import { useTheme } from '../../app/providers/ThemeProvider';
@@ -21,17 +22,39 @@ import {
     useGetTransactionsQuery,
     useDeleteBudgetMutation
 } from '../../state/api';
+import { RootState } from '../../state/store';
 import { BudgetScreenProps } from '../../types/navigation';
 import BudgetProgress from './components/BudgetProgress';
 import BudgetCreationModal from './components/BudgetCreationModal';
 import { showToast } from '../../utils/helpers/toast';
 import { useNavigation } from '@react-navigation/native';
+import {
+    getCurrentPeriodId,
+    getCustomPeriodStart,
+    getCustomPeriodEnd,
+    getPrevPeriod,
+    getNextPeriod,
+    formatPeriodLabel
+} from '../../utils/helpers/dateUtils';
 
 const BudgetScreen: React.FC<BudgetScreenProps> = ({ route }) => {
     const { theme } = useTheme();
     const navigation = useNavigation();
-    const [selectedMonth, setSelectedMonth] = useState(route.params?.month || dayjs().format('YYYY-MM'));
+    const periodStartDay = useSelector((state: RootState) => state.preferences.budgetStartDay);
+
+    const [selectedPeriod, setSelectedPeriod] = useState(
+        route.params?.month || getCurrentPeriodId(periodStartDay)
+    );
     const [showBudgetForm, setShowBudgetForm] = useState(false);
+
+    // Calculate date range for selected period
+    const startDate = useMemo(() => {
+        return getCustomPeriodStart(selectedPeriod, periodStartDay).toISOString();
+    }, [selectedPeriod, periodStartDay]);
+
+    const endDate = useMemo(() => {
+        return getCustomPeriodEnd(selectedPeriod, periodStartDay).toISOString();
+    }, [selectedPeriod, periodStartDay]);
 
     // API queries
     const {
@@ -39,7 +62,7 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ route }) => {
         isLoading: loadingBudgets,
         isFetching: fetchingBudgets,
         refetch: refetchBudgets
-    } = useGetBudgetsQuery({ month: selectedMonth });
+    } = useGetBudgetsQuery({ month: selectedPeriod });
 
     const {
         data: categories = [],
@@ -52,8 +75,8 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ route }) => {
         isFetching: fetchingTransactions,
         refetch: refetchTransactions
     } = useGetTransactionsQuery({
-        start: dayjs(selectedMonth).startOf('month').toISOString(),
-        end: dayjs(selectedMonth).endOf('month').toISOString(),
+        start: startDate,
+        end: endDate,
     });
 
     const [deleteBudget] = useDeleteBudgetMutation();
@@ -125,12 +148,15 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ route }) => {
         // The queries will be automatically refetched due to cache invalidation
     };
 
-    const navigateToMonth = (direction: 'prev' | 'next') => {
-        const currentMonth = dayjs(selectedMonth);
-        const newMonth = direction === 'prev'
-            ? currentMonth.subtract(1, 'month')
-            : currentMonth.add(1, 'month');
-        setSelectedMonth(newMonth.format('YYYY-MM'));
+    const navigateToPeriod = (direction: 'prev' | 'next') => {
+        const newPeriod = direction === 'prev'
+            ? getPrevPeriod(selectedPeriod, periodStartDay)
+            : getNextPeriod(selectedPeriod, periodStartDay);
+        setSelectedPeriod(newPeriod);
+    };
+
+    const getPeriodLabel = () => {
+        return formatPeriodLabel(selectedPeriod, periodStartDay);
     };
 
     if (isLoading && budgets.length === 0) {
@@ -138,7 +164,7 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ route }) => {
             <View style={styles.container}>
                 <GradientHeader
                     title="Budgets"
-                    subtitle={dayjs(selectedMonth).format('MMMM YYYY')}
+                    subtitle={getPeriodLabel()}
                     showBackButton={false}
                     rightIcon="add-circle-outline"
                     onRightPress={handleCreateBudget}
@@ -157,7 +183,7 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ route }) => {
         <View style={styles.container}>
             <GradientHeader
                 title="Budgets"
-                subtitle={dayjs(selectedMonth).format('MMMM YYYY')}
+                subtitle={getPeriodLabel()}
                 showBackButton={true}
                 onBackPress={() => navigation.goBack()}
                 rightIcon="add-circle-outline"
@@ -175,22 +201,22 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ route }) => {
                     />
                 }
             >
-                {/* Month Selector */}
+                {/* Period Selector */}
                 <Card style={styles.card}>
                     <View style={styles.monthHeader}>
                         <TouchableOpacity
-                            onPress={() => navigateToMonth('prev')}
+                            onPress={() => navigateToPeriod('prev')}
                             style={styles.monthButton}
                         >
                             <Icon name="chevron-back" size={20} color={theme.colors.primary[500]} />
                         </TouchableOpacity>
 
                         <Text style={[styles.monthText, { color: theme.colors.text }]}>
-                            {dayjs(selectedMonth).format('MMMM YYYY')}
+                            {getPeriodLabel()}
                         </Text>
 
                         <TouchableOpacity
-                            onPress={() => navigateToMonth('next')}
+                            onPress={() => navigateToPeriod('next')}
                             style={styles.monthButton}
                         >
                             <Icon name="chevron-forward" size={20} color={theme.colors.primary[500]} />
@@ -275,7 +301,7 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ route }) => {
                     <Card style={styles.emptyCard}>
                         <EmptyState
                             title="No budgets set"
-                            description={`Create budgets for ${dayjs(selectedMonth).format('MMMM')} to track your spending`}
+                            description={`Create budgets for ${getPeriodLabel()} to track your spending`}
                             actionLabel="Create Budget"
                             onActionPress={handleCreateBudget}
                         />
@@ -299,7 +325,8 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ route }) => {
                 visible={showBudgetForm}
                 onClose={() => setShowBudgetForm(false)}
                 onBudgetCreated={handleBudgetCreated}
-                selectedMonth={selectedMonth}
+                selectedPeriod={selectedPeriod}
+                periodStartDay={periodStartDay}
             />
         </View>
     );

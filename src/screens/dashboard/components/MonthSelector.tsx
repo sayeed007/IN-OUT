@@ -12,43 +12,64 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../../app/providers/ThemeProvider';
 import { YearPicker } from '../../reports/components/YearPicker';
 import dayjs from 'dayjs';
+import {
+  formatPeriodLabel,
+  getPrevPeriod,
+  getNextPeriod,
+  getCurrentPeriodId,
+  parsePeriodId,
+  getCustomPeriodId
+} from '../../../utils/helpers/dateUtils';
 
 interface MonthSelectorProps {
-  selectedMonth: string;
-  onMonthChange: (month: string) => void;
+  selectedPeriod: string; // YYYY-MM-DD format (period start date)
+  onPeriodChange: (period: string) => void;
+  periodStartDay: number; // 1-28
 }
 
 export const MonthSelector: React.FC<MonthSelectorProps> = ({
-  selectedMonth,
-  onMonthChange,
+  selectedPeriod,
+  onPeriodChange,
+  periodStartDay,
 }) => {
   const { theme } = useTheme();
   const [showYearPicker, setShowYearPicker] = useState(false);
   const fadeAnim = new Animated.Value(1);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  // Generate last 6 months and next 6 months
-  const months = React.useMemo(() => {
-    const current = dayjs(selectedMonth);
-    const monthsArray = [];
+  // Generate last 6 periods and next 6 periods
+  const periods = React.useMemo(() => {
+    const periodsArray = [];
+    let currentPeriodId = selectedPeriod;
 
-    for (let i = -6; i <= 6; i++) {
-      const month = current.add(i, 'month');
-      monthsArray.push({
-        value: month.format('YYYY-MM'),
-        label: month.format('MMM'),
-        year: month.format('YYYY'),
-        isSelected: month.format('YYYY-MM') === selectedMonth,
-        isCurrent: month.format('YYYY-MM') === dayjs().format('YYYY-MM'),
-      });
+    // Go back 6 periods
+    for (let i = 0; i < 6; i++) {
+      currentPeriodId = getPrevPeriod(currentPeriodId, periodStartDay);
     }
 
-    return monthsArray;
-  }, [selectedMonth]);
+    // Generate 13 periods (-6 to +6 from selected)
+    for (let i = 0; i < 13; i++) {
+      const periodStart = parsePeriodId(currentPeriodId);
+      const isSelected = currentPeriodId === selectedPeriod;
+      const isCurrent = currentPeriodId === getCurrentPeriodId(periodStartDay);
+
+      periodsArray.push({
+        value: currentPeriodId,
+        label: dayjs(periodStart).format('MMM'),
+        year: periodStart.getFullYear().toString(),
+        isSelected,
+        isCurrent,
+      });
+
+      currentPeriodId = getNextPeriod(currentPeriodId, periodStartDay);
+    }
+
+    return periodsArray;
+  }, [selectedPeriod, periodStartDay]);
 
 
-  const handleMonthSelect = (month: string) => {
-    if (month !== selectedMonth) {
+  const handlePeriodSelect = (period: string) => {
+    if (period !== selectedPeriod) {
       // Fade animation
       Animated.sequence([
         Animated.timing(fadeAnim, {
@@ -63,48 +84,50 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
         }),
       ]).start();
 
-      onMonthChange(month);
+      onPeriodChange(period);
     }
   };
 
   const handleYearSelect = (date: dayjs.Dayjs) => {
-    const newMonth = dayjs(selectedMonth).year(date.year()).format('YYYY-MM');
-    onMonthChange(newMonth);
+    // When year is selected, create a period for that year with same month/day as current selection
+    const currentPeriodStart = parsePeriodId(selectedPeriod);
+    const newDate = new Date(date.year(), currentPeriodStart.getMonth(), periodStartDay);
+    const newPeriod = getCustomPeriodId(newDate, periodStartDay);
+    onPeriodChange(newPeriod);
     setShowYearPicker(false);
   };
 
-  const getCurrentMonthLabel = () => {
-    const current = dayjs(selectedMonth);
-    const now = dayjs();
+  const getCurrentPeriodLabel = () => {
+    const currentPeriodId = getCurrentPeriodId(periodStartDay);
 
-    if (current.isSame(now, 'month')) {
-      return 'This Month';
-    } else if (current.isSame(now.subtract(1, 'month'), 'month')) {
-      return 'Last Month';
+    if (selectedPeriod === currentPeriodId) {
+      return periodStartDay === 1 ? 'This Month' : 'This Period';
+    } else if (selectedPeriod === getPrevPeriod(currentPeriodId, periodStartDay)) {
+      return periodStartDay === 1 ? 'Last Month' : 'Last Period';
     } else {
-      return current.format('MMMM YYYY');
+      return formatPeriodLabel(selectedPeriod, periodStartDay);
     }
   };
 
-  const goToPreviousMonth = () => {
-    const prev = dayjs(selectedMonth).subtract(1, 'month').format('YYYY-MM');
-    handleMonthSelect(prev);
+  const goToPreviousPeriod = () => {
+    const prev = getPrevPeriod(selectedPeriod, periodStartDay);
+    handlePeriodSelect(prev);
   };
 
-  const goToNextMonth = () => {
-    const next = dayjs(selectedMonth).add(1, 'month').format('YYYY-MM');
-    handleMonthSelect(next);
+  const goToNextPeriod = () => {
+    const next = getNextPeriod(selectedPeriod, periodStartDay);
+    handlePeriodSelect(next);
   };
 
-  const goToCurrentMonth = () => {
-    const current = dayjs().format('YYYY-MM');
-    handleMonthSelect(current);
+  const goToCurrentPeriod = () => {
+    const current = getCurrentPeriodId(periodStartDay);
+    handlePeriodSelect(current);
   };
 
-  // Auto-scroll to selected month when component mounts or selectedMonth changes
+  // Auto-scroll to selected period when component mounts or selectedPeriod changes
   useEffect(() => {
     if (scrollViewRef.current && !showYearPicker) {
-      const selectedIndex = months.findIndex(month => month.isSelected);
+      const selectedIndex = periods.findIndex(period => period.isSelected);
       if (selectedIndex >= 0) {
         const scrollToX = selectedIndex * 68 - 50; // 68 = width + margin, 50 = offset
         setTimeout(() => {
@@ -115,7 +138,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
         }, 100);
       }
     }
-  }, [selectedMonth, months, showYearPicker]);
+  }, [selectedPeriod, periods, showYearPicker]);
 
   // Create dynamic styles to replace inline styles
   const getDynamicStyles = () => {
@@ -169,7 +192,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
       {/* Header with navigation */}
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={goToPreviousMonth}
+          onPress={goToPreviousPeriod}
           style={styles.navButton}
           activeOpacity={0.7}
         >
@@ -186,7 +209,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
           activeOpacity={0.7}
         >
           <Text style={[styles.monthTitle, { color: theme.colors.text }]}>
-            {getCurrentMonthLabel()}
+            {getCurrentPeriodLabel()}
           </Text>
           <Icon
             name="chevron-down"
@@ -196,7 +219,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={goToNextMonth}
+          onPress={goToNextPeriod}
           style={styles.navButton}
           activeOpacity={0.7}
         >
@@ -208,7 +231,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
         </TouchableOpacity>
       </View>
 
-      {/* Month slider */}
+      {/* Period slider */}
       <ScrollView
         ref={scrollViewRef}
         horizontal
@@ -216,15 +239,15 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
         contentContainerStyle={styles.monthsContainer}
         style={styles.monthsScroll}
       >
-        {months.map((month) => (
+        {periods.map((period) => (
           <TouchableOpacity
-            key={month.value}
-            onPress={() => handleMonthSelect(month.value)}
+            key={period.value}
+            onPress={() => handlePeriodSelect(period.value)}
             style={[
               styles.monthChip,
-              month.isSelected
+              period.isSelected
                 ? dynamicStyles.monthChipSelected
-                : month.isCurrent
+                : period.isCurrent
                   ? dynamicStyles.monthChipCurrent
                   : dynamicStyles.monthChipDefault
             ]}
@@ -232,18 +255,18 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
           >
             <Text style={[
               styles.monthChipText,
-              month.isSelected
+              period.isSelected
                 ? dynamicStyles.monthChipTextSelected
-                : month.isCurrent
+                : period.isCurrent
                   ? dynamicStyles.monthChipTextCurrent
                   : dynamicStyles.monthChipTextDefault
             ]}>
-              {month.label}
+              {period.label}
             </Text>
-            {month.isCurrent && (
+            {period.isCurrent && (
               <View style={[
                 styles.currentIndicator,
-                month.isSelected
+                period.isSelected
                   ? dynamicStyles.currentIndicatorSelected
                   : dynamicStyles.currentIndicatorDefault
               ]} />
@@ -254,14 +277,14 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
 
       {/* Quick actions */}
       <View style={styles.quickActions}>
-        {!dayjs(selectedMonth).isSame(dayjs(), 'month') && (
+        {selectedPeriod !== getCurrentPeriodId(periodStartDay) && (
           <TouchableOpacity
-            onPress={goToCurrentMonth}
+            onPress={goToCurrentPeriod}
             style={[styles.todayButton, { borderColor: theme.colors.primary[500] }]}
             activeOpacity={0.7}
           >
             <Text style={[styles.todayButtonText, { color: theme.colors.primary[500] }]}>
-              This Month
+              {periodStartDay === 1 ? 'This Month' : 'This Period'}
             </Text>
           </TouchableOpacity>
         )}
@@ -270,7 +293,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
       {/* Year Picker Modal */}
       <YearPicker
         visible={showYearPicker}
-        value={dayjs(selectedMonth)}
+        value={dayjs(parsePeriodId(selectedPeriod))}
         onSelect={handleYearSelect}
         onClose={() => setShowYearPicker(false)}
         title="Select Year"

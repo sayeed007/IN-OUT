@@ -1,17 +1,22 @@
 // src/state/slices/appSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { getCurrentPeriodId } from '../../utils/helpers/dateUtils';
 
 interface AppState {
   isInitialized: boolean;
   isLocked: boolean;
-  currentMonth: string; // YYYY-MM
-  currentYear: string; // YYYY
+  currentPeriod: string; // YYYY-MM-DD format (period start date)
+  currentYear: string; // YYYY format
   lastActiveTimestamp: number;
 }
 
-const getCurrentMonth = () => {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+/**
+ * Get current period ID with default start day of 1 (calendar month)
+ * This is used for initial state. The actual periodStartDay from preferences
+ * will be used when components render.
+ */
+const getInitialPeriod = () => {
+  return getCurrentPeriodId(1); // Default to calendar month
 };
 
 const getCurrentYear = () => {
@@ -21,7 +26,7 @@ const getCurrentYear = () => {
 const initialState: AppState = {
   isInitialized: false,
   isLocked: false,
-  currentMonth: getCurrentMonth(),
+  currentPeriod: getInitialPeriod(),
   currentYear: getCurrentYear(),
   lastActiveTimestamp: Date.now(),
 };
@@ -36,8 +41,19 @@ const appSlice = createSlice({
     setLocked: (state, action: PayloadAction<boolean>) => {
       state.isLocked = action.payload;
     },
-    setCurrentMonth: (state, action: PayloadAction<string>) => {
-      state.currentMonth = action.payload;
+    /**
+     * Set the current period ID
+     * @param action.payload - Period ID in YYYY-MM-DD format
+     */
+    setCurrentPeriod: (state, action: PayloadAction<string>) => {
+      state.currentPeriod = action.payload;
+    },
+    /**
+     * Set the current period using a periodStartDay
+     * This is useful when components need to update the period with a specific start day
+     */
+    setCurrentPeriodWithStartDay: (state, action: PayloadAction<{ periodId: string; periodStartDay: number }>) => {
+      state.currentPeriod = action.payload.periodId;
     },
     setCurrentYear: (state, action: PayloadAction<string>) => {
       state.currentYear = action.payload;
@@ -45,8 +61,13 @@ const appSlice = createSlice({
     updateLastActive: (state) => {
       state.lastActiveTimestamp = Date.now();
     },
-    resetToCurrentPeriod: (state) => {
-      state.currentMonth = getCurrentMonth();
+    /**
+     * Reset to current period based on today's date
+     * @param action.payload - Optional periodStartDay (defaults to 1)
+     */
+    resetToCurrentPeriod: (state, action: PayloadAction<number | undefined>) => {
+      const periodStartDay = action.payload || 1;
+      state.currentPeriod = getCurrentPeriodId(periodStartDay);
       state.currentYear = getCurrentYear();
     },
   },
@@ -55,7 +76,8 @@ const appSlice = createSlice({
 export const {
   setInitialized,
   setLocked,
-  setCurrentMonth,
+  setCurrentPeriod,
+  setCurrentPeriodWithStartDay,
   setCurrentYear,
   updateLastActive,
   resetToCurrentPeriod,

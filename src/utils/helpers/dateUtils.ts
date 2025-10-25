@@ -233,3 +233,212 @@ export const isThisMonth = (date: string | Date): boolean => {
   return d.getFullYear() === today.getFullYear() &&
          d.getMonth() === today.getMonth();
 };
+
+// ============================================================================
+// CUSTOM ACCOUNTING PERIOD UTILITIES
+// ============================================================================
+
+/**
+ * Get the start date of a custom accounting period
+ * @param date - Any date within the period
+ * @param periodStartDay - Day of month the period starts (1-28)
+ * @returns Date object representing the start of the period (at 00:00:00)
+ *
+ * @example
+ * // If periodStartDay is 15 and date is Oct 25, 2025
+ * getCustomPeriodStart(new Date('2025-10-25'), 15) // Returns Oct 15, 2025
+ *
+ * @example
+ * // If periodStartDay is 15 and date is Nov 10, 2025
+ * getCustomPeriodStart(new Date('2025-11-10'), 15) // Returns Oct 15, 2025
+ */
+export const getCustomPeriodStart = (date: Date | string, periodStartDay: number): Date => {
+  const d = new Date(date);
+  const currentDay = d.getDate();
+
+  // If we're on or after the period start day, the period started this month
+  if (currentDay >= periodStartDay) {
+    return new Date(d.getFullYear(), d.getMonth(), periodStartDay, 0, 0, 0, 0);
+  }
+
+  // Otherwise, the period started last month
+  return new Date(d.getFullYear(), d.getMonth() - 1, periodStartDay, 0, 0, 0, 0);
+};
+
+/**
+ * Get the end date of a custom accounting period
+ * @param date - Any date within the period
+ * @param periodStartDay - Day of month the period starts (1-28)
+ * @returns Date object representing the end of the period (at 23:59:59.999)
+ *
+ * @example
+ * // If periodStartDay is 15 and date is Oct 25, 2025
+ * getCustomPeriodEnd(new Date('2025-10-25'), 15) // Returns Nov 14, 2025 at 23:59:59
+ */
+export const getCustomPeriodEnd = (date: Date | string, periodStartDay: number): Date => {
+  const periodStart = getCustomPeriodStart(date, periodStartDay);
+
+  // Add one month to get the next period start, then subtract 1 millisecond
+  const nextPeriodStart = new Date(
+    periodStart.getFullYear(),
+    periodStart.getMonth() + 1,
+    periodStartDay,
+    0, 0, 0, 0
+  );
+
+  return new Date(nextPeriodStart.getTime() - 1);
+};
+
+/**
+ * Get period identifier string for a custom accounting period
+ * @param date - Any date within the period
+ * @param periodStartDay - Day of month the period starts (1-28)
+ * @returns String in "YYYY-MM-DD" format representing the period start date
+ *
+ * @example
+ * getCustomPeriodId(new Date('2025-10-25'), 15) // Returns "2025-10-15"
+ */
+export const getCustomPeriodId = (date: Date | string, periodStartDay: number): string => {
+  const periodStart = getCustomPeriodStart(date, periodStartDay);
+  const year = periodStart.getFullYear();
+  const month = (periodStart.getMonth() + 1).toString().padStart(2, '0');
+  const day = periodStartDay.toString().padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+};
+
+/**
+ * Parse a period ID string to get the period start date
+ * @param periodId - Period ID in "YYYY-MM-DD" format
+ * @returns Date object representing the period start
+ */
+export const parsePeriodId = (periodId: string): Date => {
+  const [year, month, day] = periodId.split('-').map(Number);
+  return new Date(year, month - 1, day, 0, 0, 0, 0);
+};
+
+/**
+ * Navigate to the next accounting period
+ * @param currentPeriodId - Current period ID in "YYYY-MM-DD" format
+ * @param periodStartDay - Day of month the period starts (1-28)
+ * @returns Period ID of the next period
+ *
+ * @example
+ * getNextPeriod('2025-10-15', 15) // Returns "2025-11-15"
+ */
+export const getNextPeriod = (currentPeriodId: string, periodStartDay: number): string => {
+  const currentPeriodStart = parsePeriodId(currentPeriodId);
+
+  // Add one month
+  const nextPeriodStart = new Date(
+    currentPeriodStart.getFullYear(),
+    currentPeriodStart.getMonth() + 1,
+    periodStartDay,
+    0, 0, 0, 0
+  );
+
+  return getCustomPeriodId(nextPeriodStart, periodStartDay);
+};
+
+/**
+ * Navigate to the previous accounting period
+ * @param currentPeriodId - Current period ID in "YYYY-MM-DD" format
+ * @param periodStartDay - Day of month the period starts (1-28)
+ * @returns Period ID of the previous period
+ *
+ * @example
+ * getPrevPeriod('2025-10-15', 15) // Returns "2025-09-15"
+ */
+export const getPrevPeriod = (currentPeriodId: string, periodStartDay: number): string => {
+  const currentPeriodStart = parsePeriodId(currentPeriodId);
+
+  // Subtract one month
+  const prevPeriodStart = new Date(
+    currentPeriodStart.getFullYear(),
+    currentPeriodStart.getMonth() - 1,
+    periodStartDay,
+    0, 0, 0, 0
+  );
+
+  return getCustomPeriodId(prevPeriodStart, periodStartDay);
+};
+
+/**
+ * Format a custom period for display
+ * @param periodId - Period ID in "YYYY-MM-DD" format
+ * @param periodStartDay - Day of month the period starts (1-28)
+ * @param dateFormat - User's preferred date format
+ * @returns Formatted string like "Oct 15 - Nov 14, 2025"
+ */
+export const formatPeriodLabel = (
+  periodId: string,
+  periodStartDay: number,
+  dateFormat: DateFormat = 'MM/DD/YYYY'
+): string => {
+  const periodStart = parsePeriodId(periodId);
+  const periodEnd = getCustomPeriodEnd(periodStart, periodStartDay);
+
+  // If period start day is 1, show as regular month (backward compatibility)
+  if (periodStartDay === 1) {
+    const monthName = getMonthName(periodStart.getMonth());
+    return `${monthName} ${periodStart.getFullYear()}`;
+  }
+
+  // Format: "Oct 15 - Nov 14, 2025"
+  const startMonth = getMonthName(periodStart.getMonth(), true);
+  const startDay = periodStart.getDate();
+  const endMonth = getMonthName(periodEnd.getMonth(), true);
+  const endDay = periodEnd.getDate();
+  const year = periodStart.getFullYear();
+
+  // If period spans same month (shouldn't happen with proper start day, but handle it)
+  if (periodStart.getMonth() === periodEnd.getMonth()) {
+    return `${startMonth} ${startDay}-${endDay}, ${year}`;
+  }
+
+  return `${startMonth} ${startDay} - ${endMonth} ${endDay}, ${year}`;
+};
+
+/**
+ * Check if a date is in the current accounting period
+ * @param date - Date to check
+ * @param periodStartDay - Day of month the period starts (1-28)
+ * @returns True if date is in current period
+ */
+export const isCurrentPeriod = (date: string | Date, periodStartDay: number): boolean => {
+  const d = new Date(date);
+  const today = new Date();
+
+  const datePeriodId = getCustomPeriodId(d, periodStartDay);
+  const todayPeriodId = getCustomPeriodId(today, periodStartDay);
+
+  return datePeriodId === todayPeriodId;
+};
+
+/**
+ * Get the current period ID based on today's date
+ * @param periodStartDay - Day of month the period starts (1-28)
+ * @returns Current period ID in "YYYY-MM-DD" format
+ */
+export const getCurrentPeriodId = (periodStartDay: number): string => {
+  return getCustomPeriodId(new Date(), periodStartDay);
+};
+
+/**
+ * Check if a transaction date falls within a given period
+ * @param transactionDate - Date of the transaction
+ * @param periodId - Period ID in "YYYY-MM-DD" format
+ * @param periodStartDay - Day of month the period starts (1-28)
+ * @returns True if transaction is within the period
+ */
+export const isDateInPeriod = (
+  transactionDate: string | Date,
+  periodId: string,
+  periodStartDay: number
+): boolean => {
+  const txDate = new Date(transactionDate);
+  const periodStart = getCustomPeriodStart(parsePeriodId(periodId), periodStartDay);
+  const periodEnd = getCustomPeriodEnd(parsePeriodId(periodId), periodStartDay);
+
+  return txDate >= periodStart && txDate <= periodEnd;
+};

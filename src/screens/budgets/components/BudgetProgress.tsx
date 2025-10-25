@@ -12,9 +12,11 @@ import Card from '../../../components/ui/Card';
 interface BudgetData {
     id: string;
     categoryId: string;
-    month: string;
+    periodId: string; // YYYY-MM-DD format
+    periodStartDay: number; // 1-28
     amount: number;
     rollover: boolean;
+    month?: string; // Legacy field for backward compatibility
     category?: {
         id: string;
         name: string;

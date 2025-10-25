@@ -2,43 +2,54 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { RootState } from '../store';
 import { api } from '../api';
+import { isDateInPeriod } from '../../utils/helpers/dateUtils';
 
-// Get transactions for current month
-export const selectCurrentMonthTransactions = createSelector(
+// Get transactions for current period
+export const selectCurrentPeriodTransactions = createSelector(
     [
-        (state: RootState) => state.app.currentMonth,
+        (state: RootState) => state.app.currentPeriod,
+        (state: RootState) => state.preferences.budgetStartDay,
         api.endpoints.getTransactions.select({}),
     ],
-    (currentMonth, transactionsResult) => {
+    (currentPeriod, periodStartDay, transactionsResult) => {
         const transactions = transactionsResult.data || [];
-        const [year, month] = currentMonth.split('-');
 
         return transactions.filter(tx => {
-            const txDate = new Date(tx.date);
-            return txDate.getFullYear().toString() === year &&
-                (txDate.getMonth() + 1).toString().padStart(2, '0') === month;
+            return isDateInPeriod(tx.date, currentPeriod, periodStartDay);
         });
     }
 );
 
-// Calculate monthly totals
-export const selectMonthlyTotals = createSelector(
-    [selectCurrentMonthTransactions],
+// Legacy selector for backward compatibility
+// This is kept for components that haven't been updated yet
+export const selectCurrentMonthTransactions = selectCurrentPeriodTransactions;
+
+// Calculate period totals
+export const selectPeriodTotals = createSelector(
+    [selectCurrentPeriodTransactions],
     (transactions) => {
-        return transactions.reduce(
-            (totals, tx) => {
+        const totals = transactions.reduce(
+            (acc, tx) => {
                 if (tx.type === 'income') {
-                    totals.income += tx.amount;
+                    acc.income += tx.amount;
                 } else if (tx.type === 'expense') {
-                    totals.expense += tx.amount;
+                    acc.expense += tx.amount;
                 }
                 // Transfers don't affect income/expense totals
-                return totals;
+                return acc;
             },
             { income: 0, expense: 0, net: 0 }
         );
+
+        // Calculate net amount
+        totals.net = totals.income - totals.expense;
+
+        return totals;
     }
 );
+
+// Legacy selector for backward compatibility
+export const selectMonthlyTotals = selectPeriodTotals;
 
 // Get filtered transactions based on current filter state
 export const selectFilteredTransactions = createSelector(
