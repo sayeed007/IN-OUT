@@ -27,27 +27,29 @@ const AppIcon: React.FC<AppIconProps> = ({
   const { theme } = useTheme();
 
   // Try to load custom icon, fall back to generated design
-  const [useCustomIcon, setUseCustomIcon] = React.useState(true);
   const [imageError, setImageError] = React.useState(false);
 
-  // App icon source - uses generated icon or custom if available
-  let iconSource: any;
+  // App icon source - determine at render time without setState
+  let iconSource: any = null;
+  let hasIconSource = false;
+
   try {
     // Try custom icon first
     iconSource = require('../../assets/icon-source.png');
+    hasIconSource = true;
   } catch {
     try {
       // Fall back to generated app icon
       iconSource = require('../assets/app-icon.png');
+      hasIconSource = true;
     } catch {
       // If neither exists, we'll use the default design
-      setUseCustomIcon(false);
+      hasIconSource = false;
     }
   }
-  
+
   const handleImageError = () => {
     setImageError(true);
-    setUseCustomIcon(false);
   };
 
   const renderDefaultIcon = () => {
@@ -114,17 +116,12 @@ const AppIcon: React.FC<AppIconProps> = ({
   };
 
   // Try to use custom icon first, fall back to default design
-  if (useCustomIcon && !imageError) {
-    try {
-      return (
-        <View style={style}>
-          {renderCustomIcon()}
-        </View>
-      );
-    } catch (error) {
-      // If custom icon fails to load, use default
-      return renderDefaultIcon();
-    }
+  if (hasIconSource && !imageError) {
+    return (
+      <View style={style}>
+        {renderCustomIcon()}
+      </View>
+    );
   }
 
   return renderDefaultIcon();
