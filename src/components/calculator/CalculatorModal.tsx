@@ -12,7 +12,6 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useCalculator } from '../../app/providers/CalculatorProvider';
 import { useTheme } from '../../app/providers/ThemeProvider';
-import { SafeContainer } from '../layout/SafeContainer';
 
 const { height } = Dimensions.get('window');
 
@@ -360,12 +359,12 @@ export const CalculatorModal: React.FC = () => {
       transparent={true}
       onRequestClose={hideCalculator}
     >
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.modalContainer}
         activeOpacity={1}
         onPress={hideCalculator}
       >
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.calculatorContainer}
           activeOpacity={1}
           onPress={(e) => e.stopPropagation()}

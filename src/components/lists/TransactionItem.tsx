@@ -1,9 +1,9 @@
 import React from 'react';
 import {
-  View,
+  StyleSheet,
   Text,
   TouchableOpacity,
-  StyleSheet,
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../app/providers/ThemeProvider';
@@ -21,8 +21,8 @@ interface TransactionItemProps {
 export const TransactionItem: React.FC<TransactionItemProps> = ({
   transaction,
   onPress,
-  onEdit,
-  onDelete,
+  onEdit: _onEdit,
+  onDelete: _onDelete,
   categories = [],
   accounts = [],
 }) => {

@@ -373,7 +373,7 @@ export const getPrevPeriod = (currentPeriodId: string, periodStartDay: number): 
 export const formatPeriodLabel = (
   periodId: string,
   periodStartDay: number,
-  dateFormat: DateFormat = 'MM/DD/YYYY'
+  _dateFormat: DateFormat = 'MM/DD/YYYY'
 ): string => {
   const periodStart = parsePeriodId(periodId);
   const periodEnd = getCustomPeriodEnd(periodStart, periodStartDay);

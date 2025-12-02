@@ -1,3 +1,4 @@
+import { useNavigation } from '@react-navigation/native';
 import React, { useMemo, useState } from 'react';
 import {
     RefreshControl,
@@ -7,35 +8,33 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
-import dayjs from 'dayjs';
+import { useSelector } from 'react-redux';
 import { useTheme } from '../../app/providers/ThemeProvider';
-import Card from '../../components/ui/Card';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import EmptyState from '../../components/ui/EmptyState';
 import BottomSpacing from '../../components/ui/BottomSpacing';
+import Card from '../../components/ui/Card';
+import EmptyState from '../../components/ui/EmptyState';
 import { GradientHeader } from '../../components/ui/GradientHeader';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import {
+    useDeleteBudgetMutation,
     useGetBudgetsQuery,
     useGetCategoriesQuery,
-    useGetTransactionsQuery,
-    useDeleteBudgetMutation
+    useGetTransactionsQuery
 } from '../../state/api';
 import { RootState } from '../../state/store';
 import { BudgetScreenProps } from '../../types/navigation';
-import BudgetProgress from './components/BudgetProgress';
-import BudgetCreationModal from './components/BudgetCreationModal';
-import { showToast } from '../../utils/helpers/toast';
-import { useNavigation } from '@react-navigation/native';
 import {
+    formatPeriodLabel,
     getCurrentPeriodId,
-    getCustomPeriodStart,
     getCustomPeriodEnd,
-    getPrevPeriod,
+    getCustomPeriodStart,
     getNextPeriod,
-    formatPeriodLabel
+    getPrevPeriod
 } from '../../utils/helpers/dateUtils';
+import { showToast } from '../../utils/helpers/toast';
+import BudgetCreationModal from './components/BudgetCreationModal';
+import BudgetProgress from './components/BudgetProgress';
 
 const BudgetScreen: React.FC<BudgetScreenProps> = ({ route }) => {
     const { theme } = useTheme();

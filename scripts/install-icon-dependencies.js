@@ -17,7 +17,7 @@ try {
   try {
     execSync('python3 --version', { stdio: 'pipe' });
     console.log('✓ Python3 found');
-  } catch (error) {
+  } catch (pythonError) {
     console.error('❌ Python not found. Please install Python 3.7+ from https://www.python.org/downloads/');
     process.exit(1);
   }
@@ -34,7 +34,7 @@ try {
       return 'python3';
     }
   })();
-  
+
   execSync(`${pythonCmd} -m pip install Pillow`, { stdio: 'inherit' });
   console.log('✓ Pillow installed successfully');
 } catch (error) {

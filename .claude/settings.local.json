@@ -86,7 +86,11 @@
       "Bash(tasklist:*)",
       "Bash(Stop-Process -Id 19872 -Force)",
       "Bash(Stop-Process -Id 10124 -Force)",
-      "Bash(cmd //c \"taskkill /F /PID 19872 & taskkill /F /PID 10124\")"
+      "Bash(cmd //c \"taskkill /F /PID 19872 & taskkill /F /PID 10124\")",
+      "Bash(git checkout:*)",
+      "Bash(dir \"C:\\RN\\in_out\\assets\")",
+      "Bash(dir \"C:\\RN\\in_out\\src\\assets\")",
+      "Bash(dir \"C:\\RN\\in_out\\assets\" /B)"
     ],
     "deny": [],
     "ask": []

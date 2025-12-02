@@ -30,6 +30,7 @@ export const SpendingHeatmap: React.FC<SpendingHeatmapProps> = ({
 
     // Calculate max amount for intensity scaling
     const maxAmount = Math.max(...data.map(d => d.amount), 1);
+    const cellSize = (screenWidth - 80) / 7;
 
     // Get intensity color based on spending amount
     const getIntensityColor = (amount: number) => {
@@ -41,6 +42,21 @@ export const SpendingHeatmap: React.FC<SpendingHeatmapProps> = ({
         if (intensity >= 0.25) return theme.colors.warning[500];
         return theme.colors.warning[50];
     };
+
+    // Get day cell style
+    const getDayCellStyle = (day: DayData, isOutOfRange: boolean, isToday: boolean, isSelected: boolean) => ({
+        width: cellSize,
+        height: cellSize,
+        backgroundColor: isOutOfRange ? 'transparent' : getIntensityColor(day.amount),
+        borderColor: isToday ? theme.colors.primary[500] : 'transparent',
+        borderWidth: isToday ? 2 : isSelected ? 2 : 1,
+        opacity: isOutOfRange ? 0.3 : 1,
+    });
+
+    // Get day number text style
+    const getDayNumberStyle = (amount: number) => ({
+        color: amount > 0 ? '#FFFFFF' : theme.colors.textSecondary
+    });
 
     // Generate calendar grid
     const generateCalendar = () => {
@@ -77,7 +93,6 @@ export const SpendingHeatmap: React.FC<SpendingHeatmapProps> = ({
     };
 
     const weeks = generateCalendar();
-    const cellSize = (screenWidth - 80) / 7;
 
     return (
         <Card style={styles.container}>
@@ -116,16 +131,7 @@ export const SpendingHeatmap: React.FC<SpendingHeatmapProps> = ({
                                     key={`day-${weekIndex}-${dayIndex}`}
                                     style={[
                                         styles.dayCell,
-                                        {
-                                            width: cellSize,
-                                            height: cellSize,
-                                            backgroundColor: isOutOfRange
-                                                ? 'transparent'
-                                                : getIntensityColor(day.amount),
-                                            borderColor: isToday ? theme.colors.primary[500] : 'transparent',
-                                            borderWidth: isToday ? 2 : isSelected ? 2 : 1,
-                                            opacity: isOutOfRange ? 0.3 : 1,
-                                        }
+                                        getDayCellStyle(day, isOutOfRange, isToday, isSelected)
                                     ]}
                                     onPress={() => !isOutOfRange && setSelectedDay(day)}
                                     disabled={isOutOfRange}
@@ -134,11 +140,7 @@ export const SpendingHeatmap: React.FC<SpendingHeatmapProps> = ({
                                     <Text
                                         style={[
                                             styles.dayNumber,
-                                            {
-                                                color: day.amount > 0
-                                                    ? '#FFFFFF'
-                                                    : theme.colors.textSecondary
-                                            }
+                                            getDayNumberStyle(day.amount)
                                         ]}
                                     >
                                         {dayjs(day.date).format('D')}

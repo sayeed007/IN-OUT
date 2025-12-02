@@ -1,28 +1,27 @@
 // src/screens/budgets/components/BudgetCreationModal.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Modal,
   Platform,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  Switch,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../../app/providers/ThemeProvider';
-import { GradientHeader } from '../../../components/ui/GradientHeader';
-import { useAddBudgetMutation, useUpdateBudgetMutation, useGetCategoriesQuery } from '../../../state/api';
-import type { Budget, Category } from '../../../types/global';
-import Card from '../../../components/ui/Card';
-import LoadingSpinner from '../../../components/ui/LoadingSpinner';
-import dayjs from 'dayjs';
-import { showToast } from '../../../utils/helpers/toast';
-import { getCurrentPeriodId, formatPeriodLabel } from '../../../utils/helpers/dateUtils';
 import { CategoryCreationModal } from '../../../components/modals/CategoryCreationModal';
+import Card from '../../../components/ui/Card';
+import { GradientHeader } from '../../../components/ui/GradientHeader';
+import LoadingSpinner from '../../../components/ui/LoadingSpinner';
+import { useAddBudgetMutation, useGetCategoriesQuery, useUpdateBudgetMutation } from '../../../state/api';
+import type { Budget, Category } from '../../../types/global';
+import { formatPeriodLabel, getCurrentPeriodId } from '../../../utils/helpers/dateUtils';
+import { showToast } from '../../../utils/helpers/toast';
 
 interface BudgetCreationModalProps {
   visible: boolean;

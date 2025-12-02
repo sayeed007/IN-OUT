@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dimensions, StyleSheet, Text, View, ScrollView } from 'react-native';
+import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../../app/providers/ThemeProvider';
 import Card from '../../../components/ui/Card';
@@ -81,8 +81,6 @@ export const CategoryTrendChart: React.FC<CategoryTrendChartProps> = ({
                     {/* Bars */}
                     <View style={styles.barsContainer}>
                         {data.map((period, periodIndex) => {
-                            let cumulativeHeight = 0;
-
                             return (
                                 <View key={`period-${periodIndex}`} style={styles.barColumn}>
                                     <View style={[styles.barStack, { height: chartHeight }]}>
@@ -106,7 +104,6 @@ export const CategoryTrendChart: React.FC<CategoryTrendChartProps> = ({
                                                 />
                                             );
 
-                                            cumulativeHeight += segmentHeight;
                                             return segment;
                                         })}
                                     </View>

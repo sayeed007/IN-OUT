@@ -312,7 +312,7 @@ export class ScheduledBackupService {
    */
   static async enable(
     frequency: BackupFrequency,
-    method: BackupMethod = 'google-drive'
+    _method: BackupMethod = 'google-drive'
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const settings = await this.getSettings();

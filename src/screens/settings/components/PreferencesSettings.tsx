@@ -61,14 +61,6 @@ const PreferencesSettings: React.FC = () => {
     return preferences.firstDayOfWeek === 0 ? 'Saturday' : 'Sunday';
   };
 
-  const getPeriodStartDayLabel = () => {
-    const day = preferences.budgetStartDay;
-    if (day === 1) {
-      return 'Day 1 (Calendar month)';
-    }
-    return `Day ${day}`;
-  };
-
   const getPeriodStartDaySubtitle = () => {
     const day = preferences.budgetStartDay;
     if (day === 1) {

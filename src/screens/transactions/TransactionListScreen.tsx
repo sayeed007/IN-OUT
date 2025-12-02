@@ -41,12 +41,6 @@ interface RouteParams {
     };
 }
 
-// Define navigation params for Add screen
-interface AddScreenParams {
-    editTransaction?: Transaction;
-    type?: TransactionType;
-}
-
 export const TransactionListScreen: React.FC = () => {
     const navigation = useNavigation<any>();
     const route = useRoute<{ key: string; name: string; params?: RouteParams }>();

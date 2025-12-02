@@ -307,36 +307,36 @@ export const localBaseQuery: BaseQueryFn<
             let data = [...resourceData];
 
             // Apply filters
-            const typeParam = params['type'];
+            const typeParam = params.type;
             if (typeParam) {
               data = data.filter((item: any) => item.type === typeParam);
             }
 
-            const dateGteParam = params['date_gte'];
+            const dateGteParam = params.date_gte;
             if (dateGteParam) {
               const startDate = new Date(dateGteParam);
               data = data.filter((item: any) => new Date(item.date) >= startDate);
             }
 
-            const dateLteParam = params['date_lte'];
+            const dateLteParam = params.date_lte;
             if (dateLteParam) {
               const endDate = new Date(dateLteParam);
               data = data.filter((item: any) => new Date(item.date) <= endDate);
             }
 
-            const monthParam = params['month'];
+            const monthParam = params.month;
             if (monthParam) {
               data = data.filter((item: any) => item.month === monthParam);
             }
 
-            const categoryIdParam = params['categoryId'];
+            const categoryIdParam = params.categoryId;
             if (categoryIdParam) {
               data = data.filter((item: any) => item.categoryId === categoryIdParam);
             }
 
             // Apply sorting
-            const sortBy = params['_sort'] || 'createdAt';
-            const sortOrder = params['_order'] || 'desc';
+            const sortBy = params._sort || 'createdAt';
+            const sortOrder = params._order || 'desc';
 
             data.sort((a: any, b: any) => {
               const aVal = a[sortBy];
@@ -361,8 +361,8 @@ export const localBaseQuery: BaseQueryFn<
             });
 
             // Apply pagination
-            const pageParam = params['_page'];
-            const limitParam = params['_limit'];
+            const pageParam = params._page;
+            const limitParam = params._limit;
             const page = parseInt(pageParam || '1', 10);
             const limit = parseInt(limitParam || '1000', 10);
             const start = (page - 1) * limit;
