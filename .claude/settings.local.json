@@ -80,7 +80,13 @@
       "Bash(del \"C:\\RN\\in_out\\android\\app\\google-services.json\")",
       "Bash(git rm:*)",
       "Bash(./gradlew signingReport:*)",
-      "Bash(./gradlew :app:signingReport:*)"
+      "Bash(./gradlew :app:signingReport:*)",
+      "Bash(dir C:RNin_outdoc)",
+      "Bash(netstat:*)",
+      "Bash(tasklist:*)",
+      "Bash(Stop-Process -Id 19872 -Force)",
+      "Bash(Stop-Process -Id 10124 -Force)",
+      "Bash(cmd //c \"taskkill /F /PID 19872 & taskkill /F /PID 10124\")"
     ],
     "deny": [],
     "ask": []

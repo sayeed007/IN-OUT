@@ -36,13 +36,20 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, title }) => {
         );
     }
 
-    // Prepare chart data with indexed x values for better chart handling
-    const chartData = data.map((d, index) => ({
-        x: index,
-        income: Number(d.income) || 0,
-        expense: Number(d.expense) || 0,
-        date: d.date,
-    }));
+    // Calculate total income (flat line at top)
+    const totalIncome = data.reduce((sum, d) => sum + (Number(d.income) || 0), 0);
+
+    // Calculate cumulative expenses (ascending line from bottom)
+    let cumulativeExpense = 0;
+    const chartData = data.map((d, index) => {
+        cumulativeExpense += Number(d.expense) || 0;
+        return {
+            x: index,
+            income: totalIncome, // Flat line showing available income
+            expense: cumulativeExpense, // Cumulative spending (starts at 0, goes up)
+            date: d.date,
+        };
+    });
 
     // Only show value labels if we have 8 or fewer data points to avoid clutter
     const showValueLabels = data.length <= 8;
@@ -61,7 +68,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, title }) => {
                     {title}
                 </Text>
                 <Text style={[styles.chartSubtitle, { color: theme.colors.textSecondary }]}>
-                    Period Analysis
+                    Spending climbs toward available income
                 </Text>
             </View>
 
@@ -90,25 +97,26 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, title }) => {
                             lineWidth: 0.1,
                             labelColor: theme.colors.textSecondary,
                             formatYLabel: (value) => {
-                                if (value >= 1000) return `$${(value / 1000).toFixed(0)}k`;
+                                if (value >= 1000) return `$${(value / 1000).toFixed(1)}k`;
+                                if (value <= -1000) return `-$${(Math.abs(value) / 1000).toFixed(1)}k`;
                                 return `$${value.toFixed(0)}`;
                             }
                         }]}
                     >
                         {({ points }) => (
                             <>
-                                {/* Income Line */}
+                                {/* Income Line - Flat line at top */}
                                 <Line
                                     points={points.income}
                                     color={theme.colors.income.main}
-                                    strokeWidth={2}
+                                    strokeWidth={3}
                                     animate={{ type: "timing", duration: 300 }}
                                 />
-                                {/* Expense Line */}
+                                {/* Expense Line - Ascending from bottom */}
                                 <Line
                                     points={points.expense}
                                     color={theme.colors.expense.main}
-                                    strokeWidth={2}
+                                    strokeWidth={3}
                                     animate={{ type: "timing", duration: 300 }}
                                 />
 
@@ -118,13 +126,13 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, title }) => {
                                         <Circle
                                             cx={state.x.position}
                                             cy={state.y.income.position}
-                                            r={4}
+                                            r={5}
                                             color={theme.colors.income.main}
                                         />
                                         <Circle
                                             cx={state.x.position}
                                             cy={state.y.expense.position}
-                                            r={4}
+                                            r={5}
                                             color={theme.colors.expense.main}
                                         />
                                     </>
@@ -141,10 +149,13 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, title }) => {
                             {data[Math.round(state.x.value.value)]?.date}
                         </Text>
                         <Text style={[styles.tooltipValue, { color: theme.colors.income.main }]}>
-                            Income: ${Math.round(state.y.income.value.value || 0).toLocaleString()}
+                            Available: ${Math.round(state.y.income.value.value || 0).toLocaleString()}
                         </Text>
                         <Text style={[styles.tooltipValue, { color: theme.colors.expense.main }]}>
-                            Expenses: ${Math.round(state.y.expense.value.value || 0).toLocaleString()}
+                            Spent: ${Math.round(state.y.expense.value.value || 0).toLocaleString()}
+                        </Text>
+                        <Text style={[styles.tooltipValue, { color: theme.colors.primary[500] }]}>
+                            Remaining: ${Math.round((state.y.income.value.value || 0) - (state.y.expense.value.value || 0)).toLocaleString()}
                         </Text>
                     </View>
                 )}
@@ -157,16 +168,16 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, title }) => {
                             Income
                         </Text>
                         <Text style={[styles.summaryValue, { color: theme.colors.income.main }]}>
-                            (Avg: ${(data.reduce((sum, d) => sum + d.income, 0) / data.length).toFixed(0)})
+                            (${totalIncome.toFixed(0)})
                         </Text>
                     </View>
                     <View style={styles.legendItem}>
                         <View style={[styles.legendColor, { backgroundColor: theme.colors.expense.main }]} />
                         <Text style={[styles.legendText, { color: theme.colors.textSecondary }]}>
-                            Expenses
+                            Spending
                         </Text>
                         <Text style={[styles.summaryValue, { color: theme.colors.expense.main }]}>
-                            (Avg: ${(data.reduce((sum, d) => sum + d.expense, 0) / data.length).toFixed(0)})
+                            (${chartData[chartData.length - 1].expense.toFixed(0)})
                         </Text>
                     </View>
                 </View>
@@ -182,35 +193,29 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, title }) => {
                         <Text style={[styles.tableHeaderCell, { color: theme.colors.textSecondary }]}>
                             Period
                         </Text>
-                        <Text style={[styles.tableHeaderCell, { color: theme.colors.income.main }]}>
-                            Income
-                        </Text>
                         <Text style={[styles.tableHeaderCell, { color: theme.colors.expense.main }]}>
-                            Expenses
+                            Spent
                         </Text>
-                        <Text style={[styles.tableHeaderCell, { color: theme.colors.text }]}>
-                            Net
+                        <Text style={[styles.tableHeaderCell, { color: theme.colors.primary[500] }]}>
+                            Remaining
                         </Text>
                     </View>
-                    {data.map((item, index) => (
-                        <View key={`data-row-${index}`} style={styles.dataTableRow}>
-                            <Text style={[styles.tableCell, { color: theme.colors.text }]}>
-                                {item.date}
-                            </Text>
-                            <Text style={[styles.tableCell, { color: theme.colors.income.main }]}>
-                                ${item.income.toFixed(0)}
-                            </Text>
-                            <Text style={[styles.tableCell, { color: theme.colors.expense.main }]}>
-                                ${item.expense.toFixed(0)}
-                            </Text>
-                            <Text style={[
-                                styles.tableCell,
-                                { color: item.net >= 0 ? theme.colors.income.main : theme.colors.expense.main }
-                            ]}>
-                                ${Math.abs(item.net).toFixed(0)}
-                            </Text>
-                        </View>
-                    ))}
+                    {chartData.map((item, index) => {
+                        const remaining = item.income - item.expense;
+                        return (
+                            <View key={`data-row-${index}`} style={styles.dataTableRow}>
+                                <Text style={[styles.tableCell, { color: theme.colors.text }]}>
+                                    {item.date}
+                                </Text>
+                                <Text style={[styles.tableCell, { color: theme.colors.expense.main }]}>
+                                    ${item.expense.toFixed(0)}
+                                </Text>
+                                <Text style={[styles.tableCell, { color: theme.colors.primary[500] }]}>
+                                    ${remaining.toFixed(0)}
+                                </Text>
+                            </View>
+                        );
+                    })}
                 </View>
             )}
 
@@ -218,33 +223,33 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, title }) => {
             <View style={styles.chartStats}>
                 <View style={styles.statItem}>
                     <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
-                        Total Income
+                        Available Income
                     </Text>
                     <Text style={[styles.statValue, { color: theme.colors.income.main }]}>
-                        ${data.reduce((sum, d) => sum + d.income, 0).toFixed(0)}
+                        ${totalIncome.toFixed(0)}
                     </Text>
                 </View>
                 <View style={styles.statItem}>
                     <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
-                        Total Expenses
+                        Total Spent
                     </Text>
                     <Text style={[styles.statValue, { color: theme.colors.expense.main }]}>
-                        ${data.reduce((sum, d) => sum + d.expense, 0).toFixed(0)}
+                        ${chartData[chartData.length - 1].expense.toFixed(0)}
                     </Text>
                 </View>
                 <View style={styles.statItem}>
                     <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
-                        Net Amount
+                        Remaining
                     </Text>
                     <Text style={[
                         styles.statValue,
                         {
-                            color: data.reduce((sum, d) => sum + d.net, 0) >= 0
-                                ? theme.colors.income.main
-                                : theme.colors.expense.main
+                            color: (totalIncome - chartData[chartData.length - 1].expense) >= 0
+                                ? theme.colors.success[500]
+                                : theme.colors.error[500]
                         }
                     ]}>
-                        ${Math.abs(data.reduce((sum, d) => sum + d.net, 0)).toFixed(0)}
+                        ${(totalIncome - chartData[chartData.length - 1].expense).toFixed(0)}
                     </Text>
                 </View>
             </View>

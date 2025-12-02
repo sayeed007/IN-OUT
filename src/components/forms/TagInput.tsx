@@ -29,9 +29,17 @@ export const TagInput: React.FC<TagInputProps> = ({
   const { theme } = useTheme();
 
   const handleInputChange = (text: string) => {
-    // Remove spaces and commas as user types
-    const cleanText = text.replace(/[,\s]/g, '');
-    setInputText(cleanText);
+    // Check if comma was entered - use it as delimiter
+    if (text.includes(',')) {
+      const tagText = text.replace(',', '').trim();
+      if (tagText) {
+        addTag(tagText);
+      } else {
+        setInputText('');
+      }
+    } else {
+      setInputText(text);
+    }
   };
 
   const handleInputSubmit = () => {
@@ -121,7 +129,7 @@ export const TagInput: React.FC<TagInputProps> = ({
             returnKeyType="done"
             autoCorrect={false}
             autoCapitalize="none"
-            maxLength={20}
+            maxLength={30}
           />
         )}
       </View>
@@ -129,7 +137,7 @@ export const TagInput: React.FC<TagInputProps> = ({
       {/* Tag Counter and Helper Text */}
       <View style={styles.footer}>
         <Text style={[styles.helperText, { color: theme.colors.textSecondary }]}>
-          Press space or comma to add tags
+          Use comma or Enter to add tags
         </Text>
         <Text style={[styles.counterText, { color: theme.colors.textSecondary }]}>
           {tags.length}/{maxTags}

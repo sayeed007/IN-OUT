@@ -15,13 +15,14 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../../app/providers/ThemeProvider';
 import { GradientHeader } from '../../../components/ui/GradientHeader';
-import { useAddBudgetMutation, useGetCategoriesQuery } from '../../../state/api';
+import { useAddBudgetMutation, useUpdateBudgetMutation, useGetCategoriesQuery } from '../../../state/api';
 import type { Budget, Category } from '../../../types/global';
 import Card from '../../../components/ui/Card';
 import LoadingSpinner from '../../../components/ui/LoadingSpinner';
 import dayjs from 'dayjs';
 import { showToast } from '../../../utils/helpers/toast';
 import { getCurrentPeriodId, formatPeriodLabel } from '../../../utils/helpers/dateUtils';
+import { CategoryCreationModal } from '../../../components/modals/CategoryCreationModal';
 
 interface BudgetCreationModalProps {
   visible: boolean;
@@ -30,6 +31,7 @@ interface BudgetCreationModalProps {
   selectedPeriod?: string; // YYYY-MM-DD format
   periodStartDay: number; // 1-28
   preselectedCategoryId?: string;
+  budgetToEdit?: Budget;
 }
 
 const BudgetCreationModal: React.FC<BudgetCreationModalProps> = ({
@@ -39,19 +41,23 @@ const BudgetCreationModal: React.FC<BudgetCreationModalProps> = ({
   selectedPeriod,
   periodStartDay,
   preselectedCategoryId,
+  budgetToEdit,
 }) => {
   const { theme } = useTheme();
+  const isEditMode = !!budgetToEdit;
 
-  const [categoryId, setCategoryId] = useState(preselectedCategoryId || '');
-  const [amount, setAmount] = useState('');
-  const [rollover, setRollover] = useState(false);
+  const [categoryId, setCategoryId] = useState(budgetToEdit?.categoryId || preselectedCategoryId || '');
+  const [amount, setAmount] = useState(budgetToEdit?.amount.toString() || '');
+  const [rollover, setRollover] = useState(budgetToEdit?.rollover || false);
   const [isCreating, setIsCreating] = useState(false);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
 
-  const periodId = selectedPeriod || getCurrentPeriodId(periodStartDay);
+  const periodId = budgetToEdit?.periodId || selectedPeriod || getCurrentPeriodId(periodStartDay);
 
   const { data: categories = [], isLoading: loadingCategories } = useGetCategoriesQuery();
   const [addBudget] = useAddBudgetMutation();
+  const [updateBudget] = useUpdateBudgetMutation();
 
   // Filter to only expense categories
   const expenseCategories = categories.filter(cat => cat.type === 'expense' && !cat.isArchived);
@@ -59,10 +65,14 @@ const BudgetCreationModal: React.FC<BudgetCreationModalProps> = ({
   const selectedCategory = expenseCategories.find(cat => cat.id === categoryId);
 
   useEffect(() => {
-    if (preselectedCategoryId) {
+    if (budgetToEdit) {
+      setCategoryId(budgetToEdit.categoryId);
+      setAmount(budgetToEdit.amount.toString());
+      setRollover(budgetToEdit.rollover);
+    } else if (preselectedCategoryId) {
       setCategoryId(preselectedCategoryId);
     }
-  }, [preselectedCategoryId]);
+  }, [budgetToEdit, preselectedCategoryId]);
 
   const resetForm = () => {
     setCategoryId(preselectedCategoryId || '');
@@ -91,29 +101,48 @@ const BudgetCreationModal: React.FC<BudgetCreationModalProps> = ({
     setIsCreating(true);
     try {
       const budgetAmount = parseFloat(amount);
-      const newBudget = await addBudget({
-        categoryId,
-        periodId,
-        periodStartDay,
-        amount: budgetAmount,
-        rollover,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }).unwrap();
 
-      onBudgetCreated(newBudget);
+      let result: Budget;
+      if (isEditMode && budgetToEdit) {
+        result = await updateBudget({
+          id: budgetToEdit.id,
+          categoryId,
+          amount: budgetAmount,
+          rollover,
+          updatedAt: new Date().toISOString(),
+        }).unwrap();
+        showToast.success('Budget updated successfully!');
+      } else {
+        result = await addBudget({
+          categoryId,
+          periodId,
+          periodStartDay,
+          amount: budgetAmount,
+          rollover,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }).unwrap();
+        showToast.success('Budget created successfully!');
+      }
+
+      onBudgetCreated(result);
       resetForm();
       onClose();
-      showToast.success('Budget created successfully!');
     } catch (error) {
-      console.error('Failed to create budget:', error);
-      showToast.error('Failed to create budget. Please try again.');
+      console.error(`Failed to ${isEditMode ? 'update' : 'create'} budget:`, error);
+      showToast.error(`Failed to ${isEditMode ? 'update' : 'create'} budget. Please try again.`);
     } finally {
       setIsCreating(false);
     }
   };
 
   const handleCategorySelect = (category: Category) => {
+    setCategoryId(category.id);
+    setShowCategoryPicker(false);
+  };
+
+  const handleCategoryCreated = (category: Category) => {
+    // Auto-select the newly created category
     setCategoryId(category.id);
     setShowCategoryPicker(false);
   };
@@ -227,6 +256,9 @@ const BudgetCreationModal: React.FC<BudgetCreationModalProps> = ({
       borderTopColor: theme.colors.border,
       backgroundColor: theme.colors.surface,
     },
+    createCategoryItem: {
+      backgroundColor: theme.colors.primary[50] || `${theme.colors.primary[500]}08`,
+    },
     amountInputContainer: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -307,7 +339,7 @@ const BudgetCreationModal: React.FC<BudgetCreationModalProps> = ({
     >
       <View style={styles.container}>
         <GradientHeader
-          title="Create Budget"
+          title={isEditMode ? 'Edit Budget' : 'Create Budget'}
           subtitle={formatPeriodLabel(periodId, periodStartDay)}
           showBackButton={true}
           onBackPress={handleClose}
@@ -327,7 +359,7 @@ const BudgetCreationModal: React.FC<BudgetCreationModalProps> = ({
                     !isFormValid && styles.createButtonTextDisabled
                   ]}
                 >
-                  Create
+                  {isEditMode ? 'Update' : 'Create'}
                 </Text>
               </TouchableOpacity>
             )
@@ -365,7 +397,8 @@ const BudgetCreationModal: React.FC<BudgetCreationModalProps> = ({
                 <View style={styles.categorySelector}>
                   <TouchableOpacity
                     style={styles.categoryButton}
-                    onPress={() => setShowCategoryPicker(!showCategoryPicker)}
+                    onPress={() => !isEditMode && setShowCategoryPicker(!showCategoryPicker)}
+                    disabled={isEditMode}
                   >
                     {selectedCategory ? (
                       <>
@@ -398,55 +431,76 @@ const BudgetCreationModal: React.FC<BudgetCreationModalProps> = ({
                         </Text>
                       </>
                     )}
-                    <Icon
-                      name={showCategoryPicker ? 'chevron-up' : 'chevron-down'}
-                      size={22}
-                      color={theme.colors.textSecondary}
-                    />
+                    {!isEditMode && (
+                      <Icon
+                        name={showCategoryPicker ? 'chevron-up' : 'chevron-down'}
+                        size={22}
+                        color={theme.colors.textSecondary}
+                      />
+                    )}
                   </TouchableOpacity>
 
-                  {showCategoryPicker && (
+                  {!isEditMode && showCategoryPicker && (
                     <ScrollView style={styles.categoryList} nestedScrollEnabled>
                       {loadingCategories ? (
                         <View style={styles.categoryItemCentered}>
                           <LoadingSpinner size="small" />
                         </View>
-                      ) : expenseCategories.length > 0 ? (
-                        expenseCategories.map((category) => (
+                      ) : (
+                        <>
+                          {expenseCategories.map((category) => (
+                            <TouchableOpacity
+                              key={category.id}
+                              style={[
+                                styles.categoryItem,
+                                categoryId === category.id && styles.categoryItemSelected
+                              ]}
+                              onPress={() => handleCategorySelect(category)}
+                            >
+                              <View style={[
+                                styles.categoryIconContainer,
+                                { backgroundColor: category.color }
+                              ]}>
+                                <Icon
+                                  name={getCategoryIcon(category.icon)}
+                                  size={22}
+                                  color="#FFFFFF"
+                                />
+                              </View>
+                              <Text style={styles.categoryText}>{category.name}</Text>
+                              {categoryId === category.id && (
+                                <Icon
+                                  name="checkmark-circle"
+                                  size={22}
+                                  color={theme.colors.primary[500]}
+                                />
+                              )}
+                            </TouchableOpacity>
+                          ))}
+
+                          {/* Create New Category Option */}
                           <TouchableOpacity
-                            key={category.id}
-                            style={[
-                              styles.categoryItem,
-                              categoryId === category.id && styles.categoryItemSelected
-                            ]}
-                            onPress={() => handleCategorySelect(category)}
+                            style={[styles.categoryItem, styles.createCategoryItem]}
+                            onPress={() => {
+                              setShowCategoryPicker(false);
+                              setShowCategoryModal(true);
+                            }}
                           >
                             <View style={[
                               styles.categoryIconContainer,
-                              { backgroundColor: category.color }
+                              { backgroundColor: theme.colors.primary[500] }
                             ]}>
                               <Icon
-                                name={getCategoryIcon(category.icon)}
-                                size={22}
+                                name="add"
+                                size={24}
                                 color="#FFFFFF"
                               />
                             </View>
-                            <Text style={styles.categoryText}>{category.name}</Text>
-                            {categoryId === category.id && (
-                              <Icon
-                                name="checkmark-circle"
-                                size={22}
-                                color={theme.colors.primary[500]}
-                              />
-                            )}
+                            <Text style={[styles.categoryText, { color: theme.colors.primary[500] }]}>
+                              Create New Category
+                            </Text>
                           </TouchableOpacity>
-                        ))
-                      ) : (
-                        <View style={styles.categoryItemCentered}>
-                          <Text style={[styles.categoryText, styles.categoryPlaceholder]}>
-                            No expense categories available
-                          </Text>
-                        </View>
+                        </>
                       )}
                     </ScrollView>
                   )}
@@ -513,6 +567,16 @@ const BudgetCreationModal: React.FC<BudgetCreationModalProps> = ({
           </ScrollView>
         </KeyboardAvoidingView>
       </View>
+
+      {/* Category Creation Modal */}
+      {showCategoryModal && (
+        <CategoryCreationModal
+          visible={showCategoryModal}
+          onClose={() => setShowCategoryModal(false)}
+          onCategoryCreated={handleCategoryCreated}
+          type="expense"
+        />
+      )}
     </Modal>
   );
 };

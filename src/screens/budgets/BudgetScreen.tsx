@@ -46,6 +46,7 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ route }) => {
         route.params?.month || getCurrentPeriodId(periodStartDay)
     );
     const [showBudgetForm, setShowBudgetForm] = useState(false);
+    const [budgetToEdit, setBudgetToEdit] = useState<any>(null);
 
     // Calculate date range for selected period
     const startDate = useMemo(() => {
@@ -62,7 +63,7 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ route }) => {
         isLoading: loadingBudgets,
         isFetching: fetchingBudgets,
         refetch: refetchBudgets
-    } = useGetBudgetsQuery({ month: selectedPeriod });
+    } = useGetBudgetsQuery({ periodId: selectedPeriod });
 
     const {
         data: categories = [],
@@ -103,7 +104,7 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ route }) => {
                 percentage: Math.min(percentage, 100),
                 isOverspent: categorySpending > budget.amount,
             };
-        });
+        }).sort((a, b) => b.amount - a.amount); // Sort by highest amount first
     }, [budgets, categories, transactions]);
 
     // Summary calculations
@@ -140,12 +141,19 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ route }) => {
     };
 
     const handleCreateBudget = () => {
+        setBudgetToEdit(null);
         setShowBudgetForm(true);
     };
 
-    const handleBudgetCreated = () => {
-        // Budget creation success is handled by the form itself
+    const handleEditBudget = (budget: any) => {
+        setBudgetToEdit(budget);
+        setShowBudgetForm(true);
+    };
+
+    const handleBudgetSaved = () => {
+        // Budget creation/update success is handled by the form itself
         // The queries will be automatically refetched due to cache invalidation
+        setBudgetToEdit(null);
     };
 
     const navigateToPeriod = (direction: 'prev' | 'next') => {
@@ -295,6 +303,7 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ route }) => {
                             key={budget.id}
                             budget={budget}
                             onDelete={handleDeleteBudget}
+                            onEdit={handleEditBudget}
                         />
                     ))
                 ) : (
@@ -323,10 +332,14 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ route }) => {
             {/* Budget Creation Modal */}
             <BudgetCreationModal
                 visible={showBudgetForm}
-                onClose={() => setShowBudgetForm(false)}
-                onBudgetCreated={handleBudgetCreated}
+                onClose={() => {
+                    setShowBudgetForm(false);
+                    setBudgetToEdit(null);
+                }}
+                onBudgetCreated={handleBudgetSaved}
                 selectedPeriod={selectedPeriod}
                 periodStartDay={periodStartDay}
+                budgetToEdit={budgetToEdit}
             />
         </View>
     );

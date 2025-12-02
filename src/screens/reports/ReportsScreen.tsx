@@ -11,7 +11,7 @@ import { useSelector } from 'react-redux';
 import { useTheme } from '../../app/providers/ThemeProvider';
 import { SafeContainer } from '../../components/layout/SafeContainer';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import { useGetCategoriesQuery, useGetTransactionsQuery } from '../../state/api';
+import { useGetCategoriesQuery, useGetTransactionsQuery, useGetBudgetsQuery } from '../../state/api';
 import { RootState } from '../../state/store';
 import {
     CustomComparison,
@@ -46,6 +46,7 @@ export const ReportsScreen: React.FC = () => {
     // Data queries
     const { data: transactions = [], isLoading, refetch: refetchTransactions } = useGetTransactionsQuery({});
     const { data: categories = [] } = useGetCategoriesQuery();
+    const { data: budgets = [] } = useGetBudgetsQuery({});
 
     // Calculate date ranges based on selected period
     const dateRange = useMemo(() => {
@@ -119,6 +120,7 @@ export const ReportsScreen: React.FC = () => {
         selectedPeriod,
         customPeriod,
         transactions,
+        budgets,
     });
 
     // Handle period navigation
@@ -226,14 +228,14 @@ export const ReportsScreen: React.FC = () => {
     // Get trend chart title
     const getTrendChartTitle = () => {
         if (selectedPeriod === 'custom' && customPeriod.items.length > 0) {
-            return `${customPeriod.comparisonType.charAt(0).toUpperCase() + customPeriod.comparisonType.slice(1)} Comparison`;
+            return `${customPeriod.comparisonType.charAt(0).toUpperCase() + customPeriod.comparisonType.slice(1)} Spending vs Income`;
         }
 
         switch (selectedPeriod) {
-            case 'daily': return 'Daily Income vs Expenses';
-            case 'monthly': return 'Weekly Income vs Expenses';
-            case 'yearly': return 'Monthly Income vs Expenses';
-            default: return 'Income vs Expenses';
+            case 'daily': return 'Daily Spending vs Income';
+            case 'monthly': return 'Spending Trend vs Available Income';
+            case 'yearly': return 'Monthly Spending vs Income';
+            default: return 'Spending vs Income';
         }
     };
 
@@ -306,6 +308,7 @@ export const ReportsScreen: React.FC = () => {
                 <ReportCharts
                     reportData={reportData}
                     trendChartTitle={getTrendChartTitle()}
+                    dateRange={dateRange}
                 />
 
                 {/* Export Options */}

@@ -183,10 +183,10 @@ export const api = createApi({
     }),
 
     // Budget endpoints
-    getBudgets: builder.query<Budget[], { month?: string }>({
+    getBudgets: builder.query<Budget[], { periodId?: string }>({
       query: (params = {}) => {
         const searchParams = new URLSearchParams();
-        if (params.month) searchParams.append('month', params.month);
+        if (params.periodId) searchParams.append('periodId', params.periodId);
         return `/budgets?${searchParams.toString()}`;
       },
       providesTags: (result) =>

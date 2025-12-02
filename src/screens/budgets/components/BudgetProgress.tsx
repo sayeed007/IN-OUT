@@ -32,9 +32,10 @@ interface BudgetData {
 interface BudgetProgressProps {
     budget: BudgetData;
     onDelete: (budgetId: string) => void;
+    onEdit: (budget: BudgetData) => void;
 }
 
-const BudgetProgress: React.FC<BudgetProgressProps> = ({ budget, onDelete }) => {
+const BudgetProgress: React.FC<BudgetProgressProps> = ({ budget, onDelete, onEdit }) => {
     const { theme } = useTheme();
 
     const getProgressColor = () => {
@@ -80,8 +81,14 @@ const BudgetProgress: React.FC<BudgetProgressProps> = ({ budget, onDelete }) => 
 
                 <View style={styles.actions}>
                     <TouchableOpacity
+                        onPress={() => onEdit(budget)}
+                        style={styles.actionButton}
+                    >
+                        <Icon name="pencil-outline" size={18} color={theme.colors.primary[500]} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
                         onPress={() => onDelete(budget.id)}
-                        style={styles.deleteButton}
+                        style={styles.actionButton}
                     >
                         <Icon name="trash-outline" size={18} color={theme.colors.error[500]} />
                     </TouchableOpacity>
@@ -205,8 +212,9 @@ const styles = StyleSheet.create({
     },
     actions: {
         flexDirection: 'row',
+        gap: 4,
     },
-    deleteButton: {
+    actionButton: {
         padding: 8,
     },
     amounts: {

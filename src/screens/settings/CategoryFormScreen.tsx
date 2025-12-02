@@ -433,7 +433,8 @@ export const CategoryFormScreen: React.FC = () => {
                   >
                     <Icon name={iconOption} size={20} color={icon === iconOption ? color : theme.colors.textSecondary} />
                   </TouchableOpacity>
-                ))}              </View>
+                ))}
+              </View>
             </Card>
           </View>
 

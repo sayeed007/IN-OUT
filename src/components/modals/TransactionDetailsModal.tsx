@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import dayjs from 'dayjs';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../app/providers/ThemeProvider';
 import { Transaction, Account, Category } from '../../types/global';
 
@@ -35,6 +36,7 @@ const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = ({
     onDelete,
 }) => {
     const { theme } = useTheme();
+    const insets = useSafeAreaInsets();
 
     if (!transaction) return null;
 
@@ -286,7 +288,8 @@ const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = ({
                                 styles.actionButtons,
                                 {
                                     backgroundColor: theme.colors.surface,
-                                    borderTopColor: theme.colors.border
+                                    borderTopColor: theme.colors.border,
+                                    paddingBottom: Math.max(16, insets.bottom + 8)
                                 }
                             ]}>
                                 {onEdit && (
@@ -473,7 +476,6 @@ const styles = StyleSheet.create({
     actionButtons: {
         flexDirection: 'row',
         padding: 16,
-        paddingBottom: 24,
         borderTopWidth: 1,
         gap: 12,
     },

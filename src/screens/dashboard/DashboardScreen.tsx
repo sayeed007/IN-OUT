@@ -62,7 +62,7 @@ export const DashboardScreen: React.FC = () => {
         data: budgets = [],
         isLoading: loadingBudgets,
         refetch: refetchBudgets
-    } = useGetBudgetsQuery({ month: selectedPeriod }); // Note: API still uses 'month' param name for backward compatibility
+    } = useGetBudgetsQuery({ periodId: selectedPeriod });
 
     const {
         data: categories = [],
