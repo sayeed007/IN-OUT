@@ -38,7 +38,7 @@ const AppIcon: React.FC<AppIconProps> = ({
   } catch {
     try {
       // Fall back to generated app icon
-      iconSource = require('../../assets/app-icon.png');
+      iconSource = require('../assets/app-icon.png');
     } catch {
       // If neither exists, we'll use the default design
       setUseCustomIcon(false);
