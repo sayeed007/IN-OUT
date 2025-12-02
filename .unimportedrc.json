@@ -1,0 +1,22 @@
+{
+  "ignoreUnresolved": [
+    [
+      "../../assets/icon-source.png",
+      [
+        "src\\components\\ui\\AppIcon.tsx"
+      ]
+    ],
+    [
+      "../assets/app-icon.png",
+      [
+        "src\\components\\ui\\AppIcon.tsx"
+      ]
+    ]
+  ],
+  "ignoreUnused": [
+    "react",
+    "react-dom",
+    "react-native"
+  ],
+  "ignoreUnimported": []
+}
